@@ -3,6 +3,7 @@ using backend.data;
 using backend.Models;
 using backend.Models.DTOs;
 using MongoDB.Driver;
+using MongoDB.Bson;
 
 namespace backend.Services;
 
@@ -31,6 +32,7 @@ public class AuthService
         }
         var user = new User
         {
+            Name = request.name,
             Email = request.email,
             Role = UserRole.Customer,
             IsActive = true
@@ -69,7 +71,7 @@ public class AuthService
         return new LoginResponse
         {
             AccessToken = token,
-            RefreshTken = refreshToken,
+            RefreshToken = refreshToken,
             Email = user.Email,
             Role = user.Role
         };
@@ -109,12 +111,50 @@ public class AuthService
         return new LoginResponse
         {
             AccessToken = newAccessToken,
-            RefreshTken = newRefreshToken,
+            RefreshToken = newRefreshToken,
             Email = user.Email,
             Role = user.Role
         };
     }
 
+    public async Task<bool> UpdateUser(string id,RegisterRequest request)
+    {
+        if (!ObjectId.TryParse(id, out var objectId))
+        {
+            return false;
+        }
+
+        var emailAlreadyUsed = await _dbcontext.Users
+            .Find(existingUser => existingUser.Email == request.email && existingUser.Id != objectId)
+            .AnyAsync();
+
+        if (emailAlreadyUsed)
+        {
+            return false;
+        }
+
+        var user = await _dbcontext.Users
+            .Find(existingUser => existingUser.Id == objectId)
+            .FirstOrDefaultAsync();
+
+        if (user is null)
+        {
+            return false;
+        }
+        user.Name = request.name;
+        user.Email = request.email;
+
+        if (!string.IsNullOrWhiteSpace(request.password))
+        {
+            user.PasswordHash = _passwordService.HashPassword(user, request.password);
+        }
+
+        var result = await _dbcontext.Users.ReplaceOneAsync(
+            existingUser => existingUser.Id == objectId,
+            user);
+
+        return result.IsAcknowledged && result.MatchedCount == 1;
+    }
     public async Task<bool> Logout(RefreshRequest request)
     {
         var tokenHash = _tokenService.HashToken(request.RefreshToken);

@@ -9,6 +9,7 @@ import {
   Typography,
   message,
 } from "antd";
+import axios from "axios";
 import { useFormik } from "formik";
 import { Link, useNavigate } from "react-router";
 import * as Yup from "yup";
@@ -21,7 +22,6 @@ const validationSchema = Yup.object({
     .required("Email is required"),
 
   password: Yup.string()
-    .min(6, "Password must be at least 6 characters")
     .required("Password is required"),
 });
 
@@ -33,7 +33,6 @@ export function LoginForm({
   const navigate = useNavigate();
   const formik = useFormik({
     initialValues: {
-      loginType: "user" as LoginType,
       email: "",
       password: "",
     },
@@ -42,19 +41,35 @@ export function LoginForm({
 
     onSubmit: async (values, { setSubmitting }) => {
       try {
-        const success = login(values.email, values.password);
+        const authenticatedUser = await login(values.email, values.password);
 
-        if (!success) {
+        if (!authenticatedUser) {
           message.error("Invalid email or password");
           return;
         }
 
         message.success("Login successful!");
 
-        if (values.loginType === "admin") {
-          navigate("/admin");
+        if (authenticatedUser.role === "admin") {
+          navigate("/admin", { replace: true });
         } else {
-          navigate("/");
+          navigate("/", { replace: true });
+        }
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          const responseData = error.response?.data;
+
+          const errorMessage =
+            typeof responseData === "string"
+              ? responseData
+              : (responseData?.message ??
+                responseData?.tittle ??
+                "Invalid email or password.");
+          message.error(errorMessage);
+        } else {
+          message.error(
+            "Unable to log in. Please try again."
+          );
         }
       } finally {
         setSubmitting(false);
@@ -84,25 +99,6 @@ export function LoginForm({
               </Button>
             </div>
             <Divider className="!my-0">Or continue with</Divider>
-            <Form.Item>
-              <Select
-                id="loginType"
-                value={formik.values.loginType}
-                onChange={(value: LoginType) => {
-                  formik.setFieldValue("loginType", value);
-                }}
-                options={[
-                  {
-                    label: "User",
-                    value: "user",
-                  },
-                  {
-                    label: "Admin",
-                    value: "admin",
-                  },
-                ]}
-              />
-            </Form.Item>
             <Form.Item
               label="Email"
               className="!mb-0"

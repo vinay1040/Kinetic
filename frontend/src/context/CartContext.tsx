@@ -1,5 +1,11 @@
 import { message } from "antd";
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 import type { Product } from "@/services/productApi";
 
 export type CartItem = {
@@ -10,8 +16,8 @@ export type CartItem = {
 export type CartContextType = {
   cart: CartItem[];
   addToCart: (product: Product, quantity: number) => void;
-  removeFromCart: (productID: number) => void;
-  updateQuantity: (productId: number, quantity: number) => void;
+  removeFromCart: (productID: string) => void;
+  updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
 };
 
@@ -54,12 +60,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       ];
     });
   };
-  const removeFromCart = (productId: number) => {
+  const removeFromCart = (productId: string) => {
     setCart((currentCart) =>
       currentCart.filter((item) => item.product.id !== productId),
     );
   };
-  const updateQuantity = (productId: number, quantity: number) => {
+  const updateQuantity = (productId: string, quantity: number) => {
     if (quantity < 1) return;
     setCart((currentCart) =>
       currentCart.map((item) =>
@@ -88,4 +94,3 @@ export const useCart = () => {
 
   return context;
 };
-

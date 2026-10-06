@@ -12,31 +12,52 @@ var builder = WebApplication.CreateBuilder(args);
 var mongoSetting = builder.Configuration
     .GetSection("MongoDB")
     .Get<MongoDbSettings>();
+
 var jwtSetting = builder.Configuration
     .GetSection("Jwt")
     .Get<JwtSettings>();
+
+// JWT Authentication
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(option =>
-{
-    option.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        
-        ValidateAudience = true,
-        ValidAudience = builder.Configuration["Jwt:Audience"],
+        option.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
 
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey =true,
-        IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(
-                builder.Configuration["Jwt:Key"]!
-            )
-        ),
-        ClockSkew = TimeSpan.FromSeconds(30)
-    };
+            ValidateAudience = true,
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+
+            ValidateLifetime = true,
+
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(
+                    builder.Configuration["Jwt:Key"]!
+                )
+            ),
+
+            ClockSkew = TimeSpan.FromSeconds(30)
+        };
+    });
+
+// Authorization
+builder.Services.AddAuthorization();
+
+// CORS configuration
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendPolicy", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
 });
+
 // Dependency Injection
 builder.Services.AddSingleton(mongoSetting!);
 builder.Services.AddSingleton(jwtSetting!);
@@ -53,6 +74,7 @@ builder.Services.AddControllers();
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -65,22 +87,29 @@ builder.Services.AddSwaggerGen(options =>
         Description = "Enter your JWT token."
     });
 
-    options.AddSecurityRequirement(document => 
+    options.AddSecurityRequirement(document =>
         new OpenApiSecurityRequirement
         {
             [new OpenApiSecuritySchemeReference("Bearer", document)] = []
         });
 });
+
 var app = builder.Build();
 
+// Middleware order
+app.UseRouting();
+
+app.UseCors("FrontendPolicy");
+
 app.UseAuthentication();
+
 app.UseAuthorization();
 
 // Swagger
 app.UseSwagger();
 app.UseSwaggerUI();
 
-// Controllers
+// Map controllers
 app.MapControllers();
 
 app.Run();

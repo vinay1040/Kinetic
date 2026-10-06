@@ -9,7 +9,7 @@ type ProductCardProps = {
 };
 const ProductCard = ({ product }: ProductCardProps) => {
   const { isWishlisted, toggleWishlist } = useWishlist();
-  const saved = isWishlisted(product.id);
+  const saved = isWishlisted(Number(product.id));
 
   return (
     <Link to={`/product/${product.id}`} className="group block h-full">

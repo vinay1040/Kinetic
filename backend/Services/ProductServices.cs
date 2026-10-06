@@ -1,4 +1,5 @@
 using backend.data;
+using backend.DTOs.Products;
 using backend.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -14,19 +15,42 @@ public class ProductServices
         _context = context;
     }
 
-    public async Task<List<Product>> GetProducts()
+    private static ProductResponse MapToResponse(Product product)
     {
-        return await _context.Products
-            .Find(_ => true)
-            .ToListAsync();
+        return new ProductResponse
+        {
+            Id = product.Id.ToString(),
+            Images = product.Images,
+            Thumbnail = product.Thumbnail,
+            Title = product.Title,
+            Description = product.Description,
+            Price = product.Price,
+            DiscountPercentage = product.DiscountPercentage,
+            Category = product.Category,
+            Stock = product.Stock,
+            Rating = product.Rating,
+            Brand = product.Brand
+        };
     }
 
-    public async Task<Product?> GetProductById(string id)
+    public async Task<List<ProductResponse>> GetProducts()
     {
-        if (!ObjectId.TryParse(id, out var objectId)) return null;
-        return await _context.Products
-            .Find(product => product.id == MongoDB.Bson.ObjectId.Parse(id))
+        var products = await _context.Products.Find(_ => true).ToListAsync();
+        return products.Select(MapToResponse).ToList();
+    }
+
+    public async Task<ProductResponse?> GetProductById(string id)
+    {
+        if (!ObjectId.TryParse(id, out var objectId))
+        {
+            return null;
+        }
+
+        var product = await _context.Products
+            .Find(product => product.Id == objectId)
             .FirstOrDefaultAsync();
+
+        return product is null ? null : MapToResponse(product);
     }
 
     public async Task CreateProduct(Product product)
@@ -41,19 +65,31 @@ public class ProductServices
             return false;
         }
 
-        updatedProduct.id = objectId;
+        updatedProduct.Id = objectId;
 
-        var result = await _context.Products.ReplaceOneAsync(
-            product => product.id == objectId,
-            updatedProduct);
+        var update = Builders<Product>.Update
+            .Set(product => product.Title, updatedProduct.Title)
+            .Set(product => product.Description, updatedProduct.Description)
+            .Set(product => product.Price, updatedProduct.Price)
+            .Set(product => product.DiscountPercentage, updatedProduct.DiscountPercentage)
+            .Set(product => product.Category, updatedProduct.Category)
+            .Set(product => product.Stock, updatedProduct.Stock)
+            .Set(product => product.Brand, updatedProduct.Brand)
+            .Set(product => product.Thumbnail, updatedProduct.Thumbnail)
+            .Set(product => product.Images, updatedProduct.Images);
+
+        var result = await _context.Products.UpdateOneAsync(
+            product => product.Id == objectId,
+            update);
 
         return result.IsAcknowledged && result.MatchedCount > 0;
     }
+
     public async Task<bool> DeleteProduct(string id)
     {
         if (!ObjectId.TryParse(id, out var objectId)) return false;
-        var result = await _context.Products.DeleteOneAsync(product => product.id == MongoDB.Bson.ObjectId.Parse(id));
+
+        var result = await _context.Products.DeleteOneAsync(product => product.Id == objectId);
         return result.DeletedCount > 0;
     }
-
 }

@@ -11,7 +11,7 @@ public class User
 {
    [BsonId]
    public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
-   
+   public string Name {get;set;} = string.Empty;
    public string Email { get; set; } = default!;
    public string PasswordHash { get; set; } = default!;
    [BsonRepresentation(BsonType.String)]

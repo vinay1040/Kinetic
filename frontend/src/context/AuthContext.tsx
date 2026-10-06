@@ -1,4 +1,5 @@
 import {
+  Children,
   createContext,
   useContext,
   useEffect,
@@ -6,6 +7,14 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import {
+  loginUser,
+  registerUser,
+  logoutUser,
+  updateUserPRofile,
+  type ApiUserRole,
+} from "../services/authApi";
+import { User } from "lucide-react";
 
 type Address = {
   street: string;
@@ -24,225 +33,131 @@ export type User = {
   address?: Address;
 };
 
-type StoredUser = User & {
-  password: string;
-};
-
 type UpdateProfileData = Partial<Omit<User, "id">>;
+
+type AuthSession = {
+  user: User;
+  accessToken: string;
+  refreshToken: string | null;
+};
 
 type AuthContextType = {
   user: User | null;
-  register: (
-    name: string,
-    email: string,
-    password: string,
-  ) => boolean;
-  login: (
-    email: string,
-    password: string,
-  ) => boolean;
-  logout: () => void;
-  updateProfile: (
-    data: UpdateProfileData,
-  ) => void;
+  register: (name: string, email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
+  logout: () => Promise<void>;
+  updateProfile: (data: UpdateProfileData) => void;
   isAuthenticated: boolean;
 };
+const SESSION_KEY = "kinetic_auth_session";
 
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const AuthContext = createContext<
-  AuthContextType | undefined
->(undefined);
+function normalizeRole(role: ApiUserRole): UserRole {
+  if (role === "Admin" || role === 1) return "admin";
+  return "user";
+}
 
+function readSession(): AuthSession | null {
+  try {
+    const savedSession = localStorage.getItem(SESSION_KEY);
+    if (!savedSession) return null;
+    const session = JSON.parse(savedSession) as AuthSession;
 
-export const AuthProvider = ({
-  children,
-}: {
-  children: ReactNode;
-}) => {
-
-
-  const [user, setUser] = useState<User | null>(() => {
-    const savedUser = localStorage.getItem("users");
-
-    if (!savedUser) {
+    if (
+      !session.user ||
+      !session.accessToken ||
+      typeof session.accessToken !== "string"
+    ) {
+      localStorage.removeItem(SESSION_KEY);
       return null;
     }
+    return session;
+  } catch {
+    localStorage.removeItem(SESSION_KEY);
+    return null;
+  }
+}
 
-    try {
-      return JSON.parse(savedUser) as User;
-    } catch {
-      localStorage.removeItem("user");
-      return null;
-    }
-  });
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [session, setSession] = useState<AuthSession | null>(() =>
+    readSession(),
+  );
 
-
-  const getStoredUsers = (): StoredUser[] => {
-    const savedUsers = localStorage.getItem("users");
-
-    if (!savedUsers) {
-      return [];
-    }
-
-    try {
-      return JSON.parse(savedUsers) as StoredUser[];
-    } catch {
-      localStorage.removeItem("users");
-      return [];
-    }
-  };
+  const user = session?.user ?? null;
+  const isAuthenticated = Boolean(session?.accessToken && user);
 
   useEffect(() => {
-    const users = getStoredUsers();
-
-    const adminExists = users.some(
-      (user) => user.role === "admin",
-    );
-
-    if (!adminExists) {
-      const adminUser: StoredUser = {
-        id: crypto.randomUUID(),
-        name: "Admin",
-        email: "admin@example.com",
-        password: "admin123",
-        role: "admin",
-      };
-
-      users.push(adminUser);
-
-      localStorage.setItem(
-        "users",
-        JSON.stringify(users),
-      );
-    }
-  }, []);
-
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem(
-        "user",
-        JSON.stringify(user),
-      );
+    if (session) {
+      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
     } else {
-      localStorage.removeItem("user");
+      localStorage.removeItem(SESSION_KEY);
     }
-  }, [user]);
+  }, [session]);
 
-  const register = (
+  const register = async (
     name: string,
     email: string,
     password: string,
-  ): boolean => {
-    const users = getStoredUsers();
+  ): Promise<void> => {
+    await registerUser(name, email, password);
+  };
 
-    const normalizedEmail = email
-      .trim()
-      .toLowerCase();
+  const login = async (email: string, password: string): Promise<User> => {
+    const response = await loginUser(email.trim().toLowerCase(), password);
 
-    const existingUser = users.find(
-      (user) => user.email === normalizedEmail,
-    );
-
-    if (existingUser) {
-      return false;
-    }
-
-    const newUser: StoredUser = {
-      id: crypto.randomUUID(),
-      name: name.trim(),
-      email: normalizedEmail,
-      password,
-      role: "user",
+    const nextUser: User = {
+      id: "",
+      name: response.email.split("@")[0],
+      email: response.email,
+      role: normalizeRole(response.role),
     };
 
-    users.push(newUser);
+    setSession({
+      user: nextUser,
+      accessToken: response.accessToken,
+      refreshToken: response.refreshToken ?? null,
+    });
 
-    localStorage.setItem(
-      "users",
-      JSON.stringify(users),
-    );
-
-    return true;
+    return nextUser;
   };
 
-  const login = (
-    email: string,
-    password: string,
-  ): boolean => {
-    const users = getStoredUsers();
+  const logout = async (): Promise<void> => {
+    const refreshToken = session?.refreshToken;
+    setSession(null);
+    if (refreshToken) {
+      try {
+        await logoutUser(refreshToken);
+      } catch (error) {
+        console.error("Backend logout failed:", error);
+      }
+    }
+  };
 
-    const normalizedEmail = email
-      .trim()
-      .toLowerCase();
-
-    const foundUser = users.find(
-      (user) =>
-        user.email === normalizedEmail &&
-        user.password === password,
-    );
-
-    if (!foundUser) {
-      return false;
+  const updateProfile = async (data: UpdateProfileData): Promise<void> => {
+    if (!session) {
+      throw new Error("You must be logged in to update your profile.");
     }
 
-    setUser({
-      id: foundUser.id,
-      name: foundUser.name,
-      email: foundUser.email,
-      role: foundUser.role,
-      address: foundUser.address,
+    await updateUserPRofile(session.user.id, {
+      name: data.name ?? session.user.name,
+      email: data.email ?? session.user.email,
     });
 
-    return true;
-  };
+    setSession((currentSession) => {
+      if (!currentSession) return null;
 
-  const logout = () => {
-    setUser(null);
-  };
-
- 
-  const updateProfile = (
-    data: UpdateProfileData,
-  ) => {
-    setUser((currentUser) => {
-      if (!currentUser) {
-        return null;
-      }
-
-      const updatedUser: User = {
-        ...currentUser,
-        ...data,
-      };
-
-      const users = getStoredUsers();
-
-      const updatedUsers = users.map(
-        (storedUser) => {
-          if (storedUser.id !== currentUser.id) {
-            return storedUser;
-          }
-
-          return {
-            ...storedUser,
-            ...data,
-          };
+      return {
+        ...currentSession,
+        user: {
+          ...currentSession.user,
+          ...data,
         },
-      );
-
-      localStorage.setItem(
-        "users",
-        JSON.stringify(updatedUsers),
-      );
-
-      return updatedUser;
+      };
     });
   };
 
-
-  const isAuthenticated = user !== null;
-
-
-  const value = useMemo(
+  const value = useMemo<AuthContextType>(
     () => ({
       user,
       register,
@@ -254,20 +169,14 @@ export const AuthProvider = ({
     [user, isAuthenticated],
   );
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
 
   if (context === undefined) {
-    throw new Error(
-      "useAuth must be used inside AuthProvider",
-    );
+    throw new Error("useAuth must be used inside AuthProvider");
   }
 
   return context;

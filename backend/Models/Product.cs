@@ -2,16 +2,30 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace backend.Models;
+
 public class Product
 {
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
-    public ObjectId id {get;set;} = ObjectId.GenerateNewId();
-    public string tittle {get;set;} = string.Empty;
-    public string discription {get;set;} = string.Empty;
-    public decimal price {get;set;} 
-    public string category{get;set;} = string.Empty;
-    public int stock {get;set;} 
-    public double rating {get;set;}
-    public string brand {get;set;} = string.Empty;
+    public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
+
+    public string Title { get; set; } = string.Empty;
+
+    public string Description { get; set; } = string.Empty;
+
+    public decimal Price { get; set; }
+
+    public decimal DiscountPercentage { get; set; }
+
+    public string Category { get; set; } = string.Empty;
+
+    public int Stock { get; set; }
+
+    public double Rating { get; set; }
+
+    public string Brand { get; set; } = string.Empty;
+
+    public string Thumbnail { get; set; } = string.Empty;
+
+    public List<string> Images { get; set; } = new();
 }

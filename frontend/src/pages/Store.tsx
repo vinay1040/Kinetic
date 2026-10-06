@@ -25,7 +25,7 @@ const Store = () => {
 
       const ratingMatch = product.rating >= minRating;
 
-      const searchMatch = product.title
+      const searchMatch = (product.title ?? "")
         .toLowerCase()
         .includes(search.toLowerCase());
 

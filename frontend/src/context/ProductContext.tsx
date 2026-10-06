@@ -1,3 +1,4 @@
+
 import { getData, type Product } from "@/services/productApi";
 import {
   createContext,
@@ -9,28 +10,42 @@ import {
 
 type ProductContextType = {
   products: Product[];
-  // fetchProducts: () => Promise<void>;
-  // getProductById: (id: number) => Product | null;
+  loading: boolean;
+  error: string | null;
 };
 
 const ProductContext = createContext<ProductContextType | null>(null);
 
-export const ProductProvider = ({ children }: { children: ReactNode }) => {
-  const [products, setProduct] = useState<Product[]>([]);
+export const ProductProvider = ({
+  children,
+}: {
+  children: ReactNode;
+}) => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
-      const Data = await getData();
+      try {
+        setLoading(true);
+        setError(null);
 
-      if (Data) {
-        setProduct(Data);
+        const data = await getData();
+        setProducts(data);
+      } catch (err) {
+        console.error("Failed to load products:", err);
+        setError("Unable to load products. Please try again.");
+      } finally {
+        setLoading(false);
       }
     };
+
     loadData();
   }, []);
 
   return (
-    <ProductContext.Provider value={{ products }}>
+    <ProductContext.Provider value={{ products, loading, error }}>
       {children}
     </ProductContext.Provider>
   );
@@ -39,8 +54,9 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
 export const useProduct = () => {
   const context = useContext(ProductContext);
 
-  if (context == undefined) {
-    throw new Error("useProduct must be used inside AuthProvider");
+  if (context === null) {
+    throw new Error("useProduct must be used inside ProductProvider");
   }
+
   return context;
 };

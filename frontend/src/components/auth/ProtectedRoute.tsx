@@ -5,16 +5,14 @@ type ProtectedRouteProps = {
   allowedRole?: UserRole; 
 }
 
-const DEV_MODE = true;
-
 export const ProtectedRoute = ({allowedRole} : ProtectedRouteProps) => {
   const { user,isAuthenticated } = useAuth();
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || !user) {
     return <Navigate to="/login" replace />;
   }
 
-  if(!DEV_MODE && allowedRole && user?.role !== allowedRole){
+  if(allowedRole && user?.role !== allowedRole){
     return <Navigate to={"/"} replace/>
   }
 

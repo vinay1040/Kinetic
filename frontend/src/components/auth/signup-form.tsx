@@ -1,11 +1,12 @@
 import { Button, Card, Form, Input, message, Typography } from "antd";
 import { Link, useNavigate } from "react-router";
-import { useFormik } from "formik";
+import { ErrorMessage, useFormik } from "formik";
 import * as Yup from "yup";
 import { useAuth } from "@/context/AuthContext";
+import axios from "axios";
 
 const validationSchema = Yup.object({
-  name: Yup.string().required("Name is required"),
+  name: Yup.string().trim().required("Name is required"),
 
   email: Yup.string()
     .email("Enter a valid email")
@@ -31,14 +32,32 @@ export function SignupForm({
       password: "",
       confirmPassword: "",
     },
-    onSubmit: (values) => {
-      const success = register(values.name, values.email, values.password);
-
-      if (success) {
-        message.success("Account created successfully!");
+    onSubmit: async (values, { setSubmitting }) => {
+      try {
+        await register(
+          values.name.trim(),
+          values.email.trim(),
+          values.password,
+        );
+        message.success("Account created successfully");
         navigate("/login");
-      } else {
-        message.error("Email already registered!");
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          const responseData = error.response?.data;
+          const errorMessage =
+            typeof responseData === "string"
+              ? responseData
+              : (responseData?.messaage ??
+                responseData.tittle ??
+                (error.response?.status === 409
+                  ? "This email is already registred."
+                  : "Registration failed. Please try again."));
+          message.error(errorMessage);
+        } else {
+          message.error("Unable o create your account. Please try again");
+        }
+      } finally {
+        setSubmitting(false);
       }
     },
     validationSchema,
@@ -56,7 +75,7 @@ export function SignupForm({
             Enter your email below to create your account
           </Typography.Text>
         </div>
-        <Form layout="vertical" onFinish={formik.handleSubmit}>
+        <Form layout="vertical" onFinish={formik.submitForm}>
           <div className="flex flex-col gap-4">
             <Form.Item
               label="Full Name"

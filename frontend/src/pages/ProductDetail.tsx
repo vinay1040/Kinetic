@@ -34,7 +34,7 @@ const ProductDetail = () => {
         setLoading(true);
         setError("");
 
-        const data = await getProductById(Number(id));
+        const data = await getProductById(id);
 
         setProduct(data);
         setSelectedImage(data.thumbnail);
@@ -100,7 +100,7 @@ const ProductDetail = () => {
   const images = [product.thumbnail, ...(product.images ?? [])].filter(
     (image, index, array) => array.indexOf(image) === index,
   );
-  const saved = isWishlisted(product.id);
+  const saved = isWishlisted(Number(product.id));
 
   return (
     <main className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">

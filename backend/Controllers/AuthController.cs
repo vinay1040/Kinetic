@@ -45,7 +45,14 @@ public class AuthController : ControllerBase
 
         return Ok(result);
     }
+    [HttpPut("updateProfile/{id}")]
+    public async Task<IActionResult> UpdateProfile([FromRoute] string id, [FromBody] RegisterRequest request)
+    {
+        var updated = await _authService.UpdateUser(id,request);
+        if(!updated) return NotFound("User not found");
+        return Ok("Profile updated");
 
+    }
     [HttpPost("logout")]
     public async Task<IActionResult> Logout(RefreshRequest request)
     {
