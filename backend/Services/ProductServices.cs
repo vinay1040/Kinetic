@@ -33,10 +33,30 @@ public class ProductServices
         };
     }
 
-    public async Task<List<ProductResponse>> GetProducts()
+    public async Task<PaginationResponse> GetProducts(int page, int pageSize)
     {
-        var products = await _context.Products.Find(_ => true).ToListAsync();
-        return products.Select(MapToResponse).ToList();
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 10;
+
+        var skip = (page - 1) * pageSize;
+        var totalProducts = await _context.Products.CountDocumentsAsync(_ => true);
+
+        var products = await _context.Products
+            .Find(_ => true)
+            .Skip(skip)
+            .Limit(pageSize)
+            .ToListAsync();
+
+        var totalPage = (int)Math.Ceiling((double)totalProducts / pageSize);
+
+        return new PaginationResponse
+        {
+            Products = products.Select(MapToResponse).ToList(),
+            Page = page,
+            PageSize = pageSize,
+            TotalProducts = totalProducts,
+            TotalPages = totalPage
+        };
     }
 
     public async Task<ProductResponse?> GetProductById(string id)

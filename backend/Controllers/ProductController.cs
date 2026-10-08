@@ -40,9 +40,9 @@ public class ProductController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetProducts()
+    public async Task<IActionResult> GetProducts([FromQuery] int page = 1, [FromQuery] int pageSize = 40)
     {
-        var products = await _productService.GetProducts();
+        var products = await _productService.GetProducts(page,pageSize);
         return Ok(products);
     }
 

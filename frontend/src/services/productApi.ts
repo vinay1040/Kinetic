@@ -13,10 +13,16 @@ export const categories = [
   "speakers",
   "cameras",
 ];
+export interface ProductResponse {
+  products: Product[];
+  page: number;
+  pageSize: number;
+  totalProducts: number;
+  totalPages: number;
+}
 
 export interface Product {
   id: string;
-  dummyJsonId?: number;
   title: string;
   description: string;
   category: string;
@@ -28,12 +34,14 @@ export interface Product {
   thumbnail: string;
   images: string[];
 }
-export const getData = async (): Promise<Product[]> => {
-  const response = await AuthApi.get<Product[]>("/Product");
+export const getData = async (page : number ,pageSize : number): Promise<ProductResponse> => {
+  const response = await AuthApi.get<ProductResponse>(`/Product?page=${page}&pageSize=${pageSize}`);
   return response.data;
-};  
+};
 export const getProductById = async (id: string) => {
-  const response = await AuthApi.get<Product>(`/Product/${encodeURIComponent(id)}`);
-  
+  const response = await AuthApi.get<Product>(
+    `/Product/${encodeURIComponent(id)}`,
+  );
+
   return response.data;
 };

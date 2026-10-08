@@ -2,12 +2,12 @@ import ProductCard from "@/components/products/ProductCard";
 import { SideBar } from "@/components/SideBar";
 import { categories } from "@/services/productApi";
 import { Search, SlidersHorizontal, X } from "lucide-react";
-import {  useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Button, Input } from "antd";
 import { useProduct } from "@/context/ProductContext";
 
 const Store = () => {
-  const {products} = useProduct();
+  const { products, page, totalPages, setPage } = useProduct();
   const [selectCategories, setSelectCategories] = useState("all");
 
   const [minPrice, setMinPrice] = useState(0);
@@ -32,9 +32,12 @@ const Store = () => {
       return categoryMatch && priceMatch && ratingMatch && searchMatch;
     });
   }, [products, selectCategories, minPrice, maxPrice, minRating, search]);
-
+  const pageNumbers = Array.from(
+    { length: totalPages },
+    (_, index) => index + 1,
+  );
   return (
-    <main className="min-h-screen  px-4 py-6 sm:px-6 lg:px-8">
+    <main className="min-h-screen  py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <div className="mb-6  p-6 ">
           <p className="mb-1 text-xs font-semibold tracking-wider text-primary">
@@ -74,7 +77,7 @@ const Store = () => {
           </div>
         </div>
 
-        <div className="flex flex-col gap-5 md:flex-row">
+        <div className="flex flex-col gap-2 md:flex-row">
           <SideBar
             categories={categories}
             selectCategories={selectCategories}
@@ -148,7 +151,7 @@ const Store = () => {
             </div>
 
             {filteredProducts && filteredProducts.length > 0 ? (
-              <div className="grid grid-cols-1 gap-2  sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid grid-cols-1 gap-2  sm:grid-cols-2 xl:grid-cols-4">
                 {filteredProducts.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
@@ -164,6 +167,28 @@ const Store = () => {
                 </p>
               </div>
             )}
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+              <Button disabled={page === 1} onClick={() => setPage(page - 1)}>
+                Previous
+              </Button>
+
+              {pageNumbers.map((pageNumber) => (
+                <Button
+                  key={pageNumber}
+                  type={pageNumber === page ? "primary" : "default"}
+                  onClick={() => setPage(pageNumber)}
+                >
+                  {pageNumber}
+                </Button>
+              ))}
+
+              <Button
+                disabled={page === totalPages}
+                onClick={() => setPage(page + 1)}
+              >
+                Next
+              </Button>
+            </div>
           </section>
         </div>
       </div>
