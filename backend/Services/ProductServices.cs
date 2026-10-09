@@ -1,9 +1,9 @@
 using backend.data;
 using backend.DTOs.Products;
 using backend.Models;
+using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
-
 namespace backend.Services;
 
 public class ProductServices
@@ -33,20 +33,90 @@ public class ProductServices
         };
     }
 
-    public async Task<PaginationResponse> GetProducts(int page, int pageSize)
+    public async Task<PaginationResponse> GetProducts([FromQuery] ProductPaginationRequest request)
     {
-        if (page < 1) page = 1;
-        if (pageSize < 1) pageSize = 10;
-
+        var page = request.Page;
+        var pageSize = request.PageSize;
         var skip = (page - 1) * pageSize;
-        var totalProducts = await _context.Products.CountDocumentsAsync(_ => true);
+        var filter = Builders<Product>.Filter.Empty;
 
-        var products = await _context.Products
-            .Find(_ => true)
+        var Category = request.Category?.Trim().ToLowerInvariant();
+
+        if (!string.IsNullOrWhiteSpace(Category))
+        {
+            filter &= Builders<Product>.Filter.Eq(
+                product => product.Category,
+                request.Category
+            );
+        }
+        if (request.MinPrice is not null)
+        {
+            filter &= Builders<Product>.Filter.Gte(
+                product => product.Price,
+                request.MinPrice.Value);
+        }
+
+        if (request.MaxPrice is not null)
+        {
+            filter &= Builders<Product>.Filter.Lte(
+                product => product.Price,
+                request.MaxPrice.Value);
+        }
+        if (request.MinRating is not null)
+        {
+            filter &= Builders<Product>.Filter.Gte(
+                product => product.Rating,
+                request.MinRating.Value);
+        }
+        var totalProducts = await _context.Products.CountDocumentsAsync(filter);
+        var sortOrder = request.SortOrder?.ToLower();
+        SortDefinition<Product>? sort = null;
+        switch (request.SortBy?.ToLower())
+        {
+            case "price":
+                sort = sortOrder == "desc"
+                    ? Builders<Product>.Sort.Descending(product => product.Price)
+                    : Builders<Product>.Sort.Ascending(product => product.Price);
+                break;
+
+            case "rating":
+                sort = sortOrder == "desc"
+                    ? Builders<Product>.Sort.Descending(product => product.Rating)
+                    : Builders<Product>.Sort.Ascending(product => product.Rating);
+                break;
+
+            case "stock":
+                sort = sortOrder == "desc"
+                    ? Builders<Product>.Sort.Descending(product => product.Stock)
+                    : Builders<Product>.Sort.Ascending(product => product.Stock);
+                break;
+
+            case "title":
+                sort = sortOrder == "desc"
+                    ? Builders<Product>.Sort.Descending(product => product.Title)
+                    : Builders<Product>.Sort.Ascending(product => product.Title);
+                break;
+        }
+        var query = _context.Products.Find(filter);
+
+        if (sort is not null)
+        {
+            var combinedSort = Builders<Product>.Sort.Combine(
+                sort,
+                Builders<Product>.Sort.Ascending(product => product.Id)
+            );
+
+            query = query.Sort(combinedSort);
+        }
+        else
+        {
+            query = query.Sort(
+                Builders<Product>.Sort.Ascending(product => product.Id));
+        }
+        var products = await query
             .Skip(skip)
             .Limit(pageSize)
             .ToListAsync();
-
         var totalPage = (int)Math.Ceiling((double)totalProducts / pageSize);
 
         return new PaginationResponse
@@ -59,23 +129,41 @@ public class ProductServices
         };
     }
 
-    public async Task<ProductResponse?> GetProductById(string id)
+    public async Task<ProductLookupResult> GetProductById(string id)
     {
         if (!ObjectId.TryParse(id, out var objectId))
         {
-            return null;
+            return new ProductLookupResult
+            {
+                Status = ProductLookupStatus.InvalidId,
+                Product = null
+            };
         }
 
         var product = await _context.Products
             .Find(product => product.Id == objectId)
             .FirstOrDefaultAsync();
 
-        return product is null ? null : MapToResponse(product);
+        if (product is null)
+        {
+            return new ProductLookupResult
+            {
+                Status = ProductLookupStatus.NotFound,
+                Product = null
+            };
+        }
+
+        return new ProductLookupResult
+        {
+            Status = ProductLookupStatus.Found,
+            Product = MapToResponse(product)
+        };
     }
 
-    public async Task CreateProduct(Product product)
+    public async Task<ProductResponse> CreateProduct(Product product)
     {
         await _context.Products.InsertOneAsync(product);
+        return MapToResponse(product);
     }
 
     public async Task<bool> UpdateProduct(string id, Product updatedProduct)
@@ -104,12 +192,89 @@ public class ProductServices
 
         return result.IsAcknowledged && result.MatchedCount > 0;
     }
-
-    public async Task<bool> DeleteProduct(string id)
+    public async Task<ProductUpdateResult> UpdateProductPartial(string id, UpdateProductRequest request)
     {
-        if (!ObjectId.TryParse(id, out var objectId)) return false;
+        if (!ObjectId.TryParse(id, out var objectId))
+        {
+            return new ProductUpdateResult
+            {
+                Status = ProductUpdateStatus.InvalidId,
+                WasModified = false
+            };
+        }
+        var updates = new List<UpdateDefinition<Product>>();
+        if (request.Title is not null)
+            updates.Add(Builders<Product>.Update.Set(p => p.Title, request.Title));
+        if (request.Description is not null)
+            updates.Add(Builders<Product>.Update.Set(p => p.Description, request.Description));
+        if (request.Price is not null)
+            updates.Add(Builders<Product>.Update.Set(p => p.Price, request.Price.Value));
+        if (request.DiscountPercentage is not null)
+            updates.Add(Builders<Product>.Update.Set(p => p.DiscountPercentage, request.DiscountPercentage.Value));
+        if (request.Category is not null)
+            updates.Add(Builders<Product>.Update.Set(p => p.Category, request.Category));
+        if (request.Stock is not null)
+            updates.Add(Builders<Product>.Update.Set(p => p.Stock, request.Stock.Value));
+        if (request.Brand is not null)
+            updates.Add(Builders<Product>.Update.Set(p => p.Brand, request.Brand));
+        if (request.Thumbnail is not null)
+            updates.Add(Builders<Product>.Update.Set(p => p.Thumbnail, request.Thumbnail));
+        if (request.Images is not null)
+            updates.Add(Builders<Product>.Update.Set(p => p.Images, request.Images));
 
-        var result = await _context.Products.DeleteOneAsync(product => product.Id == objectId);
-        return result.DeletedCount > 0;
+        if (updates.Count == 0)
+        {
+            return new ProductUpdateResult
+            {
+                Status = ProductUpdateStatus.Updated,
+                WasModified = false
+            };
+        }
+        var result = await _context.Products.UpdateOneAsync(
+            product => product.Id == objectId,
+            Builders<Product>.Update.Combine(updates));
+
+        if (result.MatchedCount == 0)
+        {
+            return new ProductUpdateResult
+            {
+                Status = ProductUpdateStatus.NotFound,
+                WasModified = false
+            };
+        }
+        return new ProductUpdateResult
+        {
+            Status = ProductUpdateStatus.Updated,
+            WasModified = result.ModifiedCount > 0
+        };
     }
+
+
+    public async Task<ProductDeleteResult> DeleteProduct(string id)
+    {
+        if (!ObjectId.TryParse(id, out var objectId))
+        {
+            return new ProductDeleteResult
+            {
+                Status = ProductDeleteStatus.InvalidId
+            };
+        }
+
+        var result = await _context.Products.DeleteOneAsync(
+            product => product.Id == objectId);
+
+        if (result.DeletedCount == 0)
+        {
+            return new ProductDeleteResult
+            {
+                Status = ProductDeleteStatus.NotFound
+            };
+        }
+
+        return new ProductDeleteResult
+        {
+            Status = ProductDeleteStatus.Deleted
+        };
+    }
+
 }

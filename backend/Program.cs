@@ -1,8 +1,10 @@
 using System.Text;
 using backend.Configuration;
 using backend.data;
+using backend.MiddleWare;
 using backend.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 
@@ -70,7 +72,28 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<TokenService>();
 
 // Controllers
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var errors = context.ModelState
+                .Where(x => x.Value?.Errors.Count > 0)
+                .ToDictionary(
+                    x => x.Key,
+                    x => x.Value!.Errors
+                        .Select(error => error.ErrorMessage)
+                        .ToArray()
+                );
+
+            return new BadRequestObjectResult(new
+            {
+                status = 400,
+                message = "Validation failed",
+                errors
+            });
+        };
+    });
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -100,10 +123,11 @@ var app = builder.Build();
 app.UseRouting();
 
 app.UseCors("FrontendPolicy");
-
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseAuthentication();
 
 app.UseAuthorization();
+
 
 // Swagger
 app.UseSwagger();
