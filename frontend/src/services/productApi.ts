@@ -34,13 +34,47 @@ export interface Product {
   thumbnail: string;
   images: string[];
 }
-export const getData = async (page : number ,pageSize : number): Promise<ProductResponse> => {
-  const response = await AuthApi.get<ProductResponse>(`/Product?page=${page}&pageSize=${pageSize}`);
+export type ProductUpdateRequest = Partial<
+  Pick<
+    Product,
+    | "title"
+    | "description"
+    | "price"
+    | "discountPercentage"
+    | "category"
+    | "stock"
+    | "brand"
+    | "thumbnail"
+    | "images"
+  >
+>;
+export interface ProductUpdateResponse {
+  status: number;
+  message: string;
+  modified: boolean;
+}
+export const getData = async (
+  page: number,
+  pageSize: number,
+): Promise<ProductResponse> => {
+  const response = await AuthApi.get<ProductResponse>(
+    `/Product?page=${page}&pageSize=${pageSize}`,
+  );
   return response.data;
 };
 export const getProductById = async (id: string) => {
   const response = await AuthApi.get<Product>(
     `/Product/${encodeURIComponent(id)}`,
+  );
+  return response.data;
+};
+export const updateProduct = async (
+  id: string,
+  updateData: ProductUpdateRequest,
+): Promise<ProductUpdateResponse> => {
+  const response = await AuthApi.patch<ProductUpdateResponse>(
+    `/Product/${encodeURIComponent(id)}`,
+    updateData,
   );
 
   return response.data;

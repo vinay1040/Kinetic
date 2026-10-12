@@ -12,6 +12,7 @@ import { Layout, Menu, Typography, Button } from "antd";
 import { Outlet, useNavigate } from "react-router";
 import { useAuth } from "@/context/AuthContext";
 import { Package } from "lucide-react";
+import { useUpdateProduct } from "@/hooks/useUpdateProduct";
 
 const { Header, Content, Footer, Sider } = Layout;
 
