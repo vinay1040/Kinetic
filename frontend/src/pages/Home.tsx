@@ -41,9 +41,9 @@ const Home = () => {
   const [randomProducts, setRandomProducts] = useState<Product[] | null>();
   useEffect(() => {
     const loadData = async () => {
-      const data = await getData();
+      const data = await getData(1, 12);
       if (data) {
-        const random = [...data].sort(() => Math.random() - 0.5).slice(0, 8);
+        const random = [...data.products].sort(() => Math.random() - 0.5).slice(0, 8);
         setRandomProducts(random);
       }
     };

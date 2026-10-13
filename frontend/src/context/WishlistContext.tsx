@@ -5,10 +5,10 @@ import type { Product } from "@/services/productApi";
 type WishlistContextValue = {
   wishlist: Product[];
   addToWishlist: (product: Product) => void;
-  removeFromWishlist: (productId: number) => void;
+  removeFromWishlist: (productId: string) => void;
   clearWishlist: () => void;
-  isInWishlist: (productId: number) => boolean;
-  isWishlisted: (productId: number) => boolean;
+  isInWishlist: (productId: string) => boolean;
+  isWishlisted: (productId: string) => boolean;
   toggleWishlist: (product: Product) => void;
 };
 
@@ -39,15 +39,15 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
             : [...currentItems, product],
         );
       },
-      removeFromWishlist: (productId: number) => {
+      removeFromWishlist: (productId: string) => {
         setWishlist((currentItems) =>
-          currentItems.filter((item) => item.id !== productId),
+          currentItems.filter((item) => item.id === productId),
         );
       },
       clearWishlist: () => setWishlist([]),
-      isInWishlist: (productId: number) =>
+      isInWishlist: (productId: string) =>
         wishlist.some((item) => item.id === productId),
-      isWishlisted: (productId: number) =>
+      isWishlisted: (productId: string) =>
         wishlist.some((item) => item.id === productId),
       toggleWishlist: (product: Product) => {
         setWishlist((currentItems) =>

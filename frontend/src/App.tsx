@@ -2,7 +2,7 @@ import Home from "./pages/Home";
 import { BrowserRouter, Route, Routes } from "react-router";
 import MainLayout from "./layouts/MainLayout";
 import Store from "./pages/Store";
-import ProductDetail from "./pages/ProductDetail";
+import ProductDetail from "./components/products/ProductDetail";
 import { CartProvider } from "./context/CartContext";
 import { WishlistProvider } from "./context/WishlistContext";
 import Cart from "./pages/Cart";

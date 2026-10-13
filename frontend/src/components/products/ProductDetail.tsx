@@ -1,7 +1,7 @@
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { Button } from "antd";
-import { getProductById, type Product } from "@/services/productApi";
+import { getProductById} from "@/services/productApi";
 import {
   ArrowLeft,
   Heart,
@@ -12,43 +12,52 @@ import {
   Truck,
   ShieldCheck,
 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";import { Link, useParams } from "react-router";
 
 const ProductDetail = () => {
   const { id } = useParams();
-
-  const [product, setProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const {data: product,isPending,isError} = useQuery({
+    queryKey: ["products",id],
+    queryFn: () => {
+      if(!id){
+        throw new Error("Product Id is missing")
+      }
+      return getProductById(id);
+    },
+    enabled:Boolean(id),
+  });
+  // const [product, setProduct] = useState<Product | null>(null);
+  // const [loading, setLoading] = useState(true);
+  // const [error, setError] = useState("");
 
   const [selectedImage, setSelectedImage] = useState("");
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
   const { isWishlisted, toggleWishlist } = useWishlist();
-  useEffect(() => {
-    const fetchProduct = async () => {
-      if (!id) return;
+  // useEffect(() => {
+  //   const fetchProduct = async () => {
+  //     if (!id) return;
 
-      try {
-        setLoading(true);
-        setError("");
+  //     try {
+  //       setLoading(true);
+  //       setError("");
 
-        const data = await getProductById(id);
+  //       const data = await getProductById(id);
 
-        setProduct(data);
-        setSelectedImage(data.thumbnail);
-      } catch {
-        setError("Failed to load product");
-      } finally {
-        setLoading(false);
-      }
-    };
+  //       setProduct(data);
+  //       setSelectedImage(data.thumbnail);
+  //     } catch {
+  //       setError("Failed to load product");
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
 
-    fetchProduct();
-  }, [id]);
+  //   fetchProduct();
+  // }, [id]);
 
-  if (loading) {
+  if (isPending) {
     return (
       <main className="min-h-screen px-4 py-10 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
@@ -67,7 +76,7 @@ const ProductDetail = () => {
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
       <main className="flex min-h-screen items-center justify-center px-4">
         <div className="text-center">
@@ -75,7 +84,7 @@ const ProductDetail = () => {
             Something went wrong
           </h1>
 
-          <p className="mt-2 text-sm text-slate-500">{error}</p>
+          <p className="mt-2 text-sm text-slate-500">{isError}</p>
 
           <Link
             to="/store"
@@ -100,7 +109,7 @@ const ProductDetail = () => {
   const images = [product.thumbnail, ...(product.images ?? [])].filter(
     (image, index, array) => array.indexOf(image) === index,
   );
-  const saved = isWishlisted(Number(product.id));
+  const saved = isWishlisted(product.id);
 
   return (
     <main className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
@@ -125,7 +134,7 @@ const ProductDetail = () => {
           <div>
             <div className="flex h-[450px] items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-white sm:h-[550px]">
               <img
-                src={selectedImage}
+                src={selectedImage || product.thumbnail}
                 alt={product.title}
                 className="h-full w-full object-contain p-6 transition duration-300"
               />

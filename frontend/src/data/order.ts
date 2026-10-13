@@ -2,7 +2,7 @@ import type { Product } from "@/services/productApi";
 import type { Order } from "@/components/account/OrderCard";
 
 const laptop: Product = {
-  id: 101,
+  id: "101",
   title: "Gaming Laptop",
   description: "High performance gaming laptop.",
   category: "laptops",
@@ -17,7 +17,7 @@ const laptop: Product = {
 };
 
 const headphones: Product = {
-  id: 102,
+  id: "102",
   title: "Wireless Headphones",
   description: "Wireless over-ear headphones with noise cancellation.",
   category: "headphones",

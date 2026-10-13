@@ -5,7 +5,6 @@ import {
   Divider,
   Form,
   Input,
-  Select,
   Typography,
   message,
 } from "antd";
@@ -13,8 +12,6 @@ import axios from "axios";
 import { useFormik } from "formik";
 import { Link, useNavigate } from "react-router";
 import * as Yup from "yup";
-
-type LoginType = "user" | "admin";
 
 const validationSchema = Yup.object({
   email: Yup.string()
