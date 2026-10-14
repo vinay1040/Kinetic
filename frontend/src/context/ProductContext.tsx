@@ -28,11 +28,13 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
   // const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const pageSize = 40;
+  const [filters, setfilters] = useState<ProductFilters>({});
+
   // const [totalPages, setTotalPages] = useState(0);
   // const [totalProducts, settotalProducts] = useState(0);
   const { data, isPending, isError } = useQuery({
-    queryKey: ["products", page, pageSize],
-    queryFn: () => getData(page, pageSize),
+    queryKey: ["products", page, pageSize,filters],
+    queryFn: () => getData(page, pageSize, filters),
     staleTime: 60_000,
   });
   // useEffect(() => {

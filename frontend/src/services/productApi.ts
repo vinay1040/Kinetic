@@ -53,7 +53,19 @@ export const getData = async (
   if (filters.search?.trim()) {
     params.set("search", filters.search?.trim());
   }
-  const response = await AuthApi.get<ProductResponse>(
+  if(filters.category?.trim() && filters.category !== "all"){
+    params.set("category", filters.category?.trim())
+  }
+  if(filters.minPrice !== undefined){
+    params.set("minPrice", String(filters.minPrice));
+  }
+  if(filters.maxPrice !== undefined){
+    params.set("category", String(filters.maxPrice));
+  }
+  if(filters.minRating !== undefined && filters.minRating > 0){
+    params.set("minRating",String(filters.minRating));
+  }
+  const response = await AuthApi.get<ProductResponse>(  
     `/Product?${params.toString()}`,
   );
   return response.data;
@@ -64,6 +76,7 @@ export const getProductById = async (id: string) => {
   );
   return response.data;
 };
+
 export const updateProduct = async (
   id: string,
   updateData: ProductUpdateRequest,
