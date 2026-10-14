@@ -12,6 +12,13 @@ type ProductContextType = {
   loading: boolean;
   error: string | null;
 };
+export interface ProductFilters {
+  search?: string;
+  category?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  minRating?: number;
+}
 
 const ProductContext = createContext<ProductContextType | null>(null);
 

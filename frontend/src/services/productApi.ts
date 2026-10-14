@@ -1,18 +1,6 @@
+import type { ProductFilters } from "@/context/ProductContext";
 import { AuthApi } from "./authApi";
 
-export const categories = [
-  "laptops",
-  "smartphones",
-  "tablets",
-  "mobile-accessories",
-  "smartwatches",
-  "gaming",
-  "monitors",
-  "computer-accessories",
-  "headphones",
-  "speakers",
-  "cameras",
-];
 export interface ProductResponse {
   products: Product[];
   page: number;
@@ -56,9 +44,17 @@ export interface ProductUpdateResponse {
 export const getData = async (
   page: number,
   pageSize: number,
+  filters: ProductFilters = {},
 ): Promise<ProductResponse> => {
+  const params = new URLSearchParams({
+    page: String(page),
+    pageSize: String(pageSize),
+  });
+  if (filters.search?.trim()) {
+    params.set("search", filters.search?.trim());
+  }
   const response = await AuthApi.get<ProductResponse>(
-    `/Product?page=${page}&pageSize=${pageSize}`,
+    `/Product?${params.toString()}`,
   );
   return response.data;
 };

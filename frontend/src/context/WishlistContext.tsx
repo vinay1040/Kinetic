@@ -41,7 +41,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
       },
       removeFromWishlist: (productId: string) => {
         setWishlist((currentItems) =>
-          currentItems.filter((item) => item.id === productId),
+          currentItems.filter((item) => item.id !== productId),
         );
       },
       clearWishlist: () => setWishlist([]),

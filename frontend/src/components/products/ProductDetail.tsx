@@ -17,7 +17,7 @@ import { useState } from "react";import { Link, useParams } from "react-router";
 
 const ProductDetail = () => {
   const { id } = useParams();
-  const {data: product,isPending,isError} = useQuery({
+  const {data: product,isPending,isError,error} = useQuery({
     queryKey: ["products",id],
     queryFn: () => {
       if(!id){
@@ -26,6 +26,8 @@ const ProductDetail = () => {
       return getProductById(id);
     },
     enabled:Boolean(id),
+    staleTime: 60_000,
+    gcTime: 300_000,
   });
   // const [product, setProduct] = useState<Product | null>(null);
   // const [loading, setLoading] = useState(true);
@@ -84,7 +86,7 @@ const ProductDetail = () => {
             Something went wrong
           </h1>
 
-          <p className="mt-2 text-sm text-slate-500">{isError}</p>
+          <p className="mt-2 text-sm text-slate-500">{error instanceof Error ? error.message : "Failed to load Product"}</p>
 
           <Link
             to="/store"

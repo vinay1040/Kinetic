@@ -1240,11 +1240,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "c:\\Users\\vinay sharma\\OneDrive\\Desktop\\tasks CIT\\Kinetic\\ProductImporter\\ProductImporter.csproj",
+      "projectUniqueName": "C:\\Users\\vinay sharma\\OneDrive\\Desktop\\tasks CIT\\Kinetic\\ProductImporter\\ProductImporter.csproj",
       "projectName": "ProductImporter",
-      "projectPath": "c:\\Users\\vinay sharma\\OneDrive\\Desktop\\tasks CIT\\Kinetic\\ProductImporter\\ProductImporter.csproj",
+      "projectPath": "C:\\Users\\vinay sharma\\OneDrive\\Desktop\\tasks CIT\\Kinetic\\ProductImporter\\ProductImporter.csproj",
       "packagesPath": "C:\\Users\\vinay sharma\\.nuget\\packages\\",
-      "outputPath": "c:\\Users\\vinay sharma\\OneDrive\\Desktop\\tasks CIT\\Kinetic\\ProductImporter\\obj\\",
+      "outputPath": "C:\\Users\\vinay sharma\\OneDrive\\Desktop\\tasks CIT\\Kinetic\\ProductImporter\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -1304,7 +1304,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.401/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.402/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.CSharp": "(,4.7.32767]",
           "Microsoft.VisualBasic": "(,10.4.32767]",
