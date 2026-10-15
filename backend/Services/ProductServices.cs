@@ -45,7 +45,7 @@ public class ProductServices
 
         if (!string.IsNullOrWhiteSpace(category) && !string.Equals(category, "all", StringComparison.OrdinalIgnoreCase))
         {
-            filter &= Builders<Product>.Filter.Eq(
+            filter &= Builders<Product>.Filter.Regex(
                 product => product.Category,
                 new BsonRegularExpression($"^{Regex.Escape(category)}$",
             "i")
@@ -54,12 +54,15 @@ public class ProductServices
         var search = request.Search?.Trim();
         if (!string.IsNullOrWhiteSpace(search))
         {
-            var searchPattern = new BsonRegularExpression(Regex.Escape("i"));
+            var searchPattern = new BsonRegularExpression(
+                Regex.Escape(search),
+                "i"
+            );
             filter &= Builders<Product>.Filter.Or(
-                Builders<Product>.Filter.Regex(product => product.Title,searchPattern),
-                Builders<Product>.Filter.Regex(product => product.Description,searchPattern),
-                Builders<Product>.Filter.Regex(product => product.Brand,searchPattern),
-                Builders<Product>.Filter.Regex(product => product.Category,searchPattern)
+                Builders<Product>.Filter.Regex(product => product.Title, searchPattern),
+                Builders<Product>.Filter.Regex(product => product.Description, searchPattern),
+                Builders<Product>.Filter.Regex(product => product.Brand, searchPattern),
+                Builders<Product>.Filter.Regex(product => product.Category, searchPattern)
             );
         }
         if (request.MinPrice is not null)

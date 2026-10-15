@@ -1,6 +1,7 @@
 import ProductCard from "@/components/products/ProductCard";
 import { SideBar } from "@/components/SideBar";
 import { Search, SlidersHorizontal, X } from "lucide-react";
+import { useMemo } from "react";
 import { Button, Input } from "antd";
 import { useProduct } from "@/context/ProductContext";
 
@@ -101,10 +102,10 @@ const Store = () => {
           <SideBar
             categories={categories}
             selectCategories={selectCategories}
-            setSelectCategories={() =>
+            setSelectCategories={(category) =>
               setFilters((current) => ({
                 ...current,
-                category:undefined,
+                category: category === "all" ? undefined : category,
               }))
             }
             minPrice={minPrice}
@@ -115,15 +116,15 @@ const Store = () => {
               }))
             }
             maxPrice={maxPrice}
-            setMaxPrice={(maxPrice) =>
+            setMaxPrice={(price) =>
               setFilters((current) => ({
                 ...current,
-                minPrice: maxPrice > 0 ? minPrice : undefined,
+                minPrice: Number.isFinite(price) ? minPrice : undefined,
               }))}
             minRating={minRating}
-            setMinRating={() => setFilters((rating) => ({
-              ...rating,
-              minRating : undefined
+            setMinRating={(rating) => setFilters((current) => ({
+              ...current,
+              minRating : rating > 0 ? rating : undefined
             }))}
           />
 
