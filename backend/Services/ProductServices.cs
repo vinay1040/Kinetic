@@ -4,6 +4,7 @@ using backend.Models;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using System.Text.RegularExpressions;
 namespace backend.Services;
 
 public class ProductServices
@@ -40,13 +41,25 @@ public class ProductServices
         var skip = (page - 1) * pageSize;
         var filter = Builders<Product>.Filter.Empty;
 
-        var Category = request.Category?.Trim().ToLowerInvariant();
+        var category = request.Category?.Trim();
 
-        if (!string.IsNullOrWhiteSpace(Category))
+        if (!string.IsNullOrWhiteSpace(category) && !string.Equals(category, "all", StringComparison.OrdinalIgnoreCase))
         {
             filter &= Builders<Product>.Filter.Eq(
                 product => product.Category,
-                request.Category
+                new BsonRegularExpression($"^{Regex.Escape(category)}$",
+            "i")
+            );
+        }
+        var search = request.Search?.Trim();
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var searchPattern = new BsonRegularExpression(Regex.Escape("i"));
+            filter &= Builders<Product>.Filter.Or(
+                Builders<Product>.Filter.Regex(product => product.Title,searchPattern),
+                Builders<Product>.Filter.Regex(product => product.Description,searchPattern),
+                Builders<Product>.Filter.Regex(product => product.Brand,searchPattern),
+                Builders<Product>.Filter.Regex(product => product.Category,searchPattern)
             );
         }
         if (request.MinPrice is not null)

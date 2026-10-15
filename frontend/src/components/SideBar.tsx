@@ -1,4 +1,4 @@
-import type React from "react";
+
 import { useState } from "react";
 import { RotateCcw, SlidersHorizontal, ChevronDown } from "lucide-react";
 import { Button, Input, Radio } from "antd";
@@ -6,13 +6,13 @@ import { Button, Input, Radio } from "antd";
 interface FilterCategories {
   categories: string[];
   selectCategories: string;
-  setSelectCategories: React.Dispatch<React.SetStateAction<string>>;
+  setSelectCategories: (category:string) => void;
   minPrice: number;
-  setMinPrice: React.Dispatch<React.SetStateAction<number>>;
+  setMinPrice: (price: number) => void;
   maxPrice: number;
-  setMaxPrice: React.Dispatch<React.SetStateAction<number>>;
+  setMaxPrice:(price: number) => void;
   minRating: number;
-  setMinRating: React.Dispatch<React.SetStateAction<number>>;
+  setMinRating: (rating: number) => void;
 }
 
 export const SideBar = ({

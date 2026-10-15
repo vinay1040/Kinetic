@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 
 type ProductContextType = {
   products: Product[];
+  filters: ProductFilters;
+  setFilters: React.Dispatch<React.SetStateAction<ProductFilters>>;
   page: number;
   pageSize: number;
   totalPages: number;
@@ -28,12 +30,15 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
   // const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const pageSize = 40;
-  const [filters, setfilters] = useState<ProductFilters>({});
-
+  const [filters, setFilters] = useState<ProductFilters>({});
+  const updateFilter = (newFilter: React.SetStateAction<ProductFilters>) => {
+    setFilters(newFilter),
+    setPage(1);
+  }
   // const [totalPages, setTotalPages] = useState(0);
   // const [totalProducts, settotalProducts] = useState(0);
   const { data, isPending, isError } = useQuery({
-    queryKey: ["products", page, pageSize,filters],
+    queryKey: ["products", page, pageSize, filters],
     queryFn: () => getData(page, pageSize, filters),
     staleTime: 60_000,
   });
@@ -68,11 +73,13 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
       value={{
         products,
         page,
+        filters,
+        setFilters:updateFilter,
         pageSize,
         totalPages,
         totalProducts,
         setPage,
-        loading : isPending,
+        loading: isPending,
         error,
       }}
     >

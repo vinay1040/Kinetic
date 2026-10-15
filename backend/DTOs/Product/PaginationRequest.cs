@@ -9,6 +9,7 @@ public class ProductPaginationRequest
 
     [Range(1, 100)]
     public int PageSize { get; set; } = 10;
+    public string? Search { get; set; }
     public string? Category { get; set; }
     [Range(0, double.MaxValue)]
     public decimal? MinPrice { get; set; }

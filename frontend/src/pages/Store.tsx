@@ -1,40 +1,56 @@
 import ProductCard from "@/components/products/ProductCard";
 import { SideBar } from "@/components/SideBar";
 import { Search, SlidersHorizontal, X } from "lucide-react";
-import { useMemo, useState } from "react";
 import { Button, Input } from "antd";
 import { useProduct } from "@/context/ProductContext";
 
 const Store = () => {
-  const { products, page, totalPages, setPage } = useProduct();
-  const [selectCategories, setSelectCategories] = useState("all");
+  const {
+    products,
+    page,
+    totalPages,
+    totalProducts,
+    setPage,
+    filters,
+    setFilters,
+  } = useProduct();
+  const categories = [
+    ...new Set(products.map((product) => product.category)),
+  ].sort();
+  const selectCategories = filters.category ?? "all";
+  const minPrice = filters.minPrice ?? 0;
+  const maxPrice = filters.maxPrice ?? Infinity;
+  const minRating = filters.minRating ?? 0;
+  const search = filters.search ?? "";
+  // const [selectCategories, setSelectCategories] = useState("all");
 
-  const [minPrice, setMinPrice] = useState(0);
-  const [maxPrice, setMaxPrice] = useState(Infinity);
-  const [minRating, setMinRating] = useState(0);
+  // const [minPrice, setMinPrice] = useState(0);
+  // const [maxPrice, setMaxPrice] = useState(Infinity);
+  // const [minRating, setMinRating] = useState(0);
 
-  const [search, setSearch] = useState("");
+  // const [search, setSearch] = useState("");
 
-  const filteredProducts = useMemo(() => {
-    return products?.filter((product) => {
-      const categoryMatch =
-        selectCategories === "all" || product.category === selectCategories;
+  // const filteredProducts = useMemo(() => {
+  //   return products?.filter((product) => {
+  //     const categoryMatch =
+  //       selectCategories === "all" || product.category === selectCategories;
 
-      const priceMatch = product.price >= minPrice && product.price <= maxPrice;
+  //     const priceMatch = product.price >= minPrice && product.price <= maxPrice;
 
-      const ratingMatch = product.rating >= minRating;
+  //     const ratingMatch = product.rating >= minRating;
 
-      const searchMatch = (product.title ?? "")
-        .toLowerCase()
-        .includes(search.toLowerCase());
+  //     const searchMatch = (product.title ?? "")
+  //       .toLowerCase()
+  //       .includes(search.toLowerCase());
 
-      return categoryMatch && priceMatch && ratingMatch && searchMatch;
-    });
-  }, [products, selectCategories, minPrice, maxPrice, minRating, search]);
+  //     return categoryMatch && priceMatch && ratingMatch && searchMatch;
+  //   });
+  // }, [products, selectCategories, minPrice, maxPrice, minRating, search]);
   const pageNumbers = Array.from(
     { length: totalPages },
     (_, index) => index + 1,
   );
+
   return (
     <main className="min-h-screen  py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
@@ -63,14 +79,19 @@ const Store = () => {
               type="text"
               placeholder="Search products..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) =>
+                setFilters((current) => ({
+                  ...current,
+                  search: e.target.value,
+                }))
+              }
               className="h-10 bg-slate-50 pl-9"
             />
           </div>
 
           <div className="text-sm text-slate-500">
             <span className="font-semibold text-slate-900">
-              {filteredProducts?.length ?? 0}
+              {totalProducts}
             </span>{" "}
             products found
           </div>
@@ -80,13 +101,30 @@ const Store = () => {
           <SideBar
             categories={categories}
             selectCategories={selectCategories}
-            setSelectCategories={setSelectCategories}
+            setSelectCategories={() =>
+              setFilters((current) => ({
+                ...current,
+                category:undefined,
+              }))
+            }
             minPrice={minPrice}
-            setMinPrice={setMinPrice}
+            setMinPrice={(minPrice) =>
+              setFilters((current) => ({
+                ...current,
+                minPrice: minPrice > 0 ? minPrice : undefined,
+              }))
+            }
             maxPrice={maxPrice}
-            setMaxPrice={setMaxPrice}
+            setMaxPrice={(maxPrice) =>
+              setFilters((current) => ({
+                ...current,
+                minPrice: maxPrice > 0 ? minPrice : undefined,
+              }))}
             minRating={minRating}
-            setMinRating={setMinRating}
+            setMinRating={() => setFilters((rating) => ({
+              ...rating,
+              minRating : undefined
+            }))}
           />
 
           <section className="min-w-0 flex-1">
@@ -100,7 +138,10 @@ const Store = () => {
 
                     <button
                       type="button"
-                      onClick={() => setSelectCategories("all")}
+                      onClick={() => setFilters((category) => ({
+                        ...category,
+                        category: undefined
+                      }))}
                       className="rounded-full text-slate-400 hover:text-slate-900"
                     >
                       <X size={14} />
@@ -114,7 +155,10 @@ const Store = () => {
 
                     <button
                       type="button"
-                      onClick={() => setMinRating(0)}
+                      onClick={() => setFilters((minRating) => ({
+                        ...minRating,
+                        minRating:undefined
+                      }))}
                       className="rounded-full text-slate-400 hover:text-slate-900"
                     >
                       <X size={14} />
@@ -131,10 +175,11 @@ const Store = () => {
 
                     <button
                       type="button"
-                      onClick={() => {
-                        setMinPrice(0);
-                        setMaxPrice(Infinity);
-                      }}
+                      onClick={() => setFilters((current) => ({
+                        ...current,
+                        minPrice: undefined,
+                        maxPrice: undefined
+                      }))}
                       className="rounded-full text-slate-400 hover:text-slate-900"
                     >
                       <X size={14} />
@@ -149,9 +194,9 @@ const Store = () => {
               </Button>
             </div>
 
-            {filteredProducts && filteredProducts.length > 0 ? (
+            {products.length > 0 ? (
               <div className="grid grid-cols-1 gap-2  sm:grid-cols-2 xl:grid-cols-4">
-                {filteredProducts.map((product) => (
+                {products.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>

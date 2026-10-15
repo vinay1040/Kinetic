@@ -13,7 +13,6 @@ import {
   updateUserPRofile,
   type ApiUserRole,
 } from "../services/authApi";
-import { User } from "lucide-react";
 
 type Address = {
   street: string;
