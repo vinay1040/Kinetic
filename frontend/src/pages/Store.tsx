@@ -1,6 +1,5 @@
 import ProductCard from "@/components/products/ProductCard";
 import { SideBar } from "@/components/SideBar";
-import { categories } from "@/services/productApi";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button, Input } from "antd";

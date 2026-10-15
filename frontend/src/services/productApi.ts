@@ -60,7 +60,7 @@ export const getData = async (
     params.set("minPrice", String(filters.minPrice));
   }
   if(filters.maxPrice !== undefined){
-    params.set("category", String(filters.maxPrice));
+    params.set("maxPrice", String(filters.maxPrice));
   }
   if(filters.minRating !== undefined && filters.minRating > 0){
     params.set("minRating",String(filters.minRating));
