@@ -10,7 +10,7 @@ import { useAuth } from "@/context/AuthContext";
 
 const AccountSidebar = () => {
   const location = useLocation();
-  const { logout } = useAuth();
+  const { user,logout } = useAuth();
 
   const menuItems = [
     {
@@ -39,7 +39,7 @@ const AccountSidebar = () => {
   return (
     <aside className="w-full rounded-xl border bg-white p-4 md:w-64">
       <div className="mb-6">
-        <h2 className="text-lg font-semibold">My Account</h2>
+        <h2 className="text-lg font-semibold">{user?.name}</h2>
         <p className="text-sm text-gray-500">
           Manage your account
         </p>

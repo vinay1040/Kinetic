@@ -1,4 +1,4 @@
-import { Heart, Menu, ShoppingBag, X } from "lucide-react";
+import { CircleUser, Heart, Menu, ShoppingBag, X } from "lucide-react";
 import { Button, Dropdown } from "antd";
 import { Link } from "react-router";
 import { useState } from "react";
@@ -102,18 +102,9 @@ const NavBar = () => {
 
           {/* Authentication */}
           {isAuthenticated ? (
-            <Dropdown
-              menu={{ items: userMenu }}
-              placement="bottomRight"
-              trigger={["click"]}
-            >
-              <Button
-                type="primary"
-                className="ml-1 rounded-full bg-slate-950 px-4 text-xs hover:bg-blue-700"
-              >
-                {user?.name}
-              </Button>
-            </Dropdown>
+            <Link to={"/profile"} className="">
+              <CircleUser ></CircleUser>
+            </Link>
           ) : (
             <Link to="/login">
               <Button

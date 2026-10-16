@@ -9,7 +9,7 @@ const AccountOverview = () => {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div>
+      {/* <div>
         <h1 className="text-2xl font-bold">
           Welcome back, {user?.name}
         </h1>
@@ -17,7 +17,7 @@ const AccountOverview = () => {
         <p className="mt-1 text-gray-500">
           Manage your account and view your recent activity.
         </p>
-      </div>
+      </div> */}
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="rounded-xl border bg-white p-5">

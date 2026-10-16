@@ -58,7 +58,7 @@ function normalizeRole(role: ApiUserRole): UserRole {
 
 function readSession(): AuthSession | null {
   try {
-    const savedSession = localStorage.getItem(SESSION_KEY);
+    const savedSession = sessionStorage.getItem(SESSION_KEY);
     if (!savedSession) return null;
     const session = JSON.parse(savedSession) as AuthSession;
 
@@ -67,12 +67,12 @@ function readSession(): AuthSession | null {
       !session.accessToken ||
       typeof session.accessToken !== "string"
     ) {
-      localStorage.removeItem(SESSION_KEY);
+      sessionStorage.removeItem(SESSION_KEY);
       return null;
     }
     return session;
   } catch {
-    localStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(SESSION_KEY);
     return null;
   }
 }
@@ -87,9 +87,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (session) {
-      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
     } else {
-      localStorage.removeItem(SESSION_KEY);
+      sessionStorage.removeItem(SESSION_KEY);
     }
   }, [session]);
 

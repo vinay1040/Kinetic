@@ -175,6 +175,18 @@ public class ProductServices
             Product = MapToResponse(product)
         };
     }
+    public async Task<List<string>> GetCategories()
+    {
+        var categories = await _context.Products.Distinct<string>(
+                "Category",
+                Builders<Product>.Filter.Empty
+        ).ToListAsync();
+
+        return categories
+            .Where(category => !string.IsNullOrWhiteSpace(category))
+            .OrderBy(category => category)
+            .ToList();
+    }
 
     public async Task<ProductResponse> CreateProduct(Product product)
     {

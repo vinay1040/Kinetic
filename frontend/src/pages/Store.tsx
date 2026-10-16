@@ -1,9 +1,10 @@
 import ProductCard from "@/components/products/ProductCard";
 import { SideBar } from "@/components/SideBar";
 import { Search, SlidersHorizontal, X } from "lucide-react";
-import { useMemo } from "react";
 import { Button, Input } from "antd";
 import { useProduct } from "@/context/ProductContext";
+import { useQuery } from "@tanstack/react-query";
+import { getCategory } from "@/services/productApi";
 
 const Store = () => {
   const {
@@ -15,9 +16,12 @@ const Store = () => {
     filters,
     setFilters,
   } = useProduct();
-  const categories = [
-    ...new Set(products.map((product) => product.category)),
-  ].sort();
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ["productsCategory"],
+    queryFn: getCategory,
+    staleTime: 5 * 60 * 1000,
+  });
   const selectCategories = filters.category ?? "all";
   const minPrice = filters.minPrice ?? 0;
   const maxPrice = filters.maxPrice ?? Infinity;
@@ -114,18 +118,21 @@ const Store = () => {
                 ...current,
                 minPrice: minPrice > 0 ? minPrice : undefined,
               }))
-            }
+            } 
             maxPrice={maxPrice}
             setMaxPrice={(price) =>
               setFilters((current) => ({
                 ...current,
-                minPrice: Number.isFinite(price) ? minPrice : undefined,
-              }))}
+                maxPrice: Number.isFinite(price) ? price : undefined,
+              }))
+            }
             minRating={minRating}
-            setMinRating={(rating) => setFilters((current) => ({
-              ...current,
-              minRating : rating > 0 ? rating : undefined
-            }))}
+            setMinRating={(rating) =>
+              setFilters((current) => ({
+                ...current,
+                minRating: rating > 0 ? rating : undefined,
+              }))
+            }
           />
 
           <section className="min-w-0 flex-1">
@@ -139,10 +146,12 @@ const Store = () => {
 
                     <button
                       type="button"
-                      onClick={() => setFilters((category) => ({
-                        ...category,
-                        category: undefined
-                      }))}
+                      onClick={() =>
+                        setFilters((category) => ({
+                          ...category,
+                          category: undefined,
+                        }))
+                      }
                       className="rounded-full text-slate-400 hover:text-slate-900"
                     >
                       <X size={14} />
@@ -156,10 +165,12 @@ const Store = () => {
 
                     <button
                       type="button"
-                      onClick={() => setFilters((minRating) => ({
-                        ...minRating,
-                        minRating:undefined
-                      }))}
+                      onClick={() =>
+                        setFilters((minRating) => ({
+                          ...minRating,
+                          minRating: undefined,
+                        }))
+                      }
                       className="rounded-full text-slate-400 hover:text-slate-900"
                     >
                       <X size={14} />
@@ -176,11 +187,13 @@ const Store = () => {
 
                     <button
                       type="button"
-                      onClick={() => setFilters((current) => ({
-                        ...current,
-                        minPrice: undefined,
-                        maxPrice: undefined
-                      }))}
+                      onClick={() =>
+                        setFilters((current) => ({
+                          ...current,
+                          minPrice: undefined,
+                          maxPrice: undefined,
+                        }))
+                      }
                       className="rounded-full text-slate-400 hover:text-slate-900"
                     >
                       <X size={14} />

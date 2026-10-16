@@ -24,7 +24,7 @@ AuthApi.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    const savedSession = localStorage.getItem("kinetic_auth_session");
+    const savedSession = sessionStorage.getItem("kinetic_auth_session");
 
     if (!savedSession) {
       return Promise.reject(error);
@@ -46,12 +46,12 @@ AuthApi.interceptors.response.use(
         refreshToken: response.refreshToken,
       };
 
-      localStorage.setItem("kinetic_auth_session", JSON.stringify(newSession));
+      sessionStorage.setItem("kinetic_auth_session", JSON.stringify(newSession));
 
       error.config.headers.Authorization = `Bearer ${response.accessToken}`;
       return AuthApi(error.config);
     } catch (refreshError) {
-      localStorage.removeItem("kinetic_auth_session");
+      sessionStorage.removeItem("kinetic_auth_session");
       return Promise.reject(refreshError);
     } finally {
       refreshPromise = null;
@@ -60,7 +60,7 @@ AuthApi.interceptors.response.use(
 );
 
 AuthApi.interceptors.request.use((config) => {
-  const savedSession = localStorage.getItem("kinetic_auth_session");
+  const savedSession = sessionStorage.getItem("kinetic_auth_session");
 
   if (savedSession) {
     try {
