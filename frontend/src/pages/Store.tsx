@@ -57,51 +57,46 @@ const Store = () => {
   );
 
   return (
-    <main className="min-h-screen  py-6 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-6  p-6 ">
-          <p className="mb-1 text-xs font-semibold tracking-wider text-primary">
-            LUMIÈRE TECH
-          </p>
-
-          <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">
-            Computing Gear
-          </h1>
-
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-            Discover precision-engineered technology designed for modern life.
-          </p>
-        </div>
-
-        <div className="mb-5 flex flex-col gap-4  p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative w-full sm:max-w-md">
-            <Search
-              size={17}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-            />
-
-            <Input
-              type="text"
-              placeholder="Search products..."
-              value={search}
-              onChange={(e) =>
-                setFilters((current) => ({
-                  ...current,
-                  search: e.target.value,
-                }))
-              }
-              className="h-10 bg-slate-50 pl-9"
-            />
+    <main className="min-h-screen py-2 sm:px-6 lg:px-4">
+      <div className="mx-auto">
+        <div className="flex w-full justify-between border-b-1 mb-2">
+          <div className="">
+            <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">
+              Computing Gear
+            </h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+              Discover precision-engineered technology designed for modern life.
+            </p>
           </div>
+          <div className="w-md">
+            <div className="relative w-full mb-3"> 
+              <Search
+                size={17}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+              />
 
-          <div className="text-sm text-slate-500">
-            <span className="font-semibold text-slate-900">
-              {totalProducts}
-            </span>{" "}
-            products found
+              <Input
+                type="text"
+                placeholder="Search products..."
+                value={search}
+                onChange={(e) =>
+                  setFilters((current) => ({
+                    ...current,
+                    search: e.target.value,
+                  }))
+                }
+                className="h-10 border-none bg-slate-50 focus:border-none"
+              />
+            </div>
+
+            <div className="text-sm text-slate-500 text-right">
+              <span className="font-semibold text-slate-900">
+                {totalProducts}
+              </span>{" "}
+              products found
+            </div>
           </div>
         </div>
-
         <div className="flex flex-col gap-2 md:flex-row">
           <SideBar
             categories={categories}
@@ -118,7 +113,7 @@ const Store = () => {
                 ...current,
                 minPrice: minPrice > 0 ? minPrice : undefined,
               }))
-            } 
+            }
             maxPrice={maxPrice}
             setMaxPrice={(price) =>
               setFilters((current) => ({
@@ -136,7 +131,7 @@ const Store = () => {
           />
 
           <section className="min-w-0 flex-1">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <div className="flex flex-wrap gap-2">
                 {selectCategories !== "all" && (
                   <div className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm shadow-sm">
@@ -202,14 +197,14 @@ const Store = () => {
                 )}
               </div>
 
-              <Button type="default" className="gap-2 bg-white">
+              <Button type="default" className="bg-white">
                 <SlidersHorizontal size={16} />
                 Sort
               </Button>
             </div>
 
             {products.length > 0 ? (
-              <div className="grid grid-cols-1 gap-2  sm:grid-cols-2 xl:grid-cols-4">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
                 {products.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}

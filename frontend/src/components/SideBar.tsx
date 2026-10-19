@@ -1,16 +1,15 @@
-
 import { useState } from "react";
 import { RotateCcw, SlidersHorizontal, ChevronDown } from "lucide-react";
-import { Button, Input, Radio } from "antd";
+import { Button, Collapse, Dropdown, Input, Radio } from "antd";
 
 interface FilterCategories {
   categories: string[];
   selectCategories: string;
-  setSelectCategories: (category:string) => void;
+  setSelectCategories: (category: string) => void;
   minPrice: number;
   setMinPrice: (price: number) => void;
   maxPrice: number;
-  setMaxPrice:(price: number) => void;
+  setMaxPrice: (price: number) => void;
   minRating: number;
   setMinRating: (rating: number) => void;
 }
@@ -36,8 +35,8 @@ export const SideBar = ({
   };
 
   return (
-    <aside className="my-4 h-fit w-full shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm md:sticky md:top-20 md:w-72">
-      <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-5 py-4">
+    <aside className="my-4 h-fit w-full shrink-0 overflow-hidden bg-white md:sticky md:top-20 md:w-70">
+      <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 py-2">
         <Button
           type="text"
           onClick={() => setIsOpen(!isOpen)}
@@ -73,43 +72,56 @@ export const SideBar = ({
         `}
       >
         <div className="max-h-[calc(100vh-6rem)] overflow-y-auto">
-          <div className="space-y-6 p-5">
+          <div className=" p-2">
             <section>
-              <h3 className="mb-3 text-sm font-semibold text-slate-900">
-                Categories
-              </h3>
-
               <div className="space-y-1">
                 {/* All Products */}
-                <label className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 text-sm text-slate-600 transition hover:bg-slate-50 hover:text-slate-950">
-                  <input
-                    type="radio"
-                    name="category"
-                    checked={selectCategories === "all"}
-                    onChange={() => setSelectCategories("all")}
-                    className="size-4 accent-primary"
-                  />
+                <Collapse
+                  ghost
+                  defaultActiveKey={["categories"]}
+                  items={[
+                    {
+                      key: "categories",
+                      label: (
+                        <h3 className="text-sm font-semibold text-slate-900">
+                          Categories
+                        </h3>
+                      ),
+                      children: (
+                        <div>
+                          <label className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 text-sm text-slate-600 transition hover:bg-slate-50 hover:text-slate-950">
+                            <input
+                              type="radio"
+                              name="category"
+                              checked={selectCategories === "all"}
+                              onChange={() => setSelectCategories("all")}
+                              className="size-4 accent-primary"
+                            />
 
-                  <span>All Products</span>
-                </label>
+                            <span>All Products</span>
+                          </label>
+                          {/* Categories */}
+                          {categories.map((category) => (
+                            <label
+                              key={category}
+                              className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 text-sm capitalize text-slate-600 transition hover:bg-slate-50 hover:text-slate-950"
+                            >
+                              <Radio
+                                type="radio"
+                                name="category"
+                                checked={selectCategories === category}
+                                onChange={() => setSelectCategories(category)}
+                                className="size-4 accent-primary"
+                              />
 
-                {/* Categories */}
-                {categories.map((category) => (
-                  <label
-                    key={category}
-                    className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 text-sm capitalize text-slate-600 transition hover:bg-slate-50 hover:text-slate-950"
-                  >
-                    <Radio
-                      type="radio"
-                      name="category"
-                      checked={selectCategories === category}
-                      onChange={() => setSelectCategories(category)}
-                      className="size-4 accent-primary"
-                    />
-
-                    <span>{category.replaceAll("-", " ")}</span>
-                  </label>
-                ))}
+                              <span>{category.replaceAll("-", " ")}</span>
+                            </label>
+                          ))}
+                        </div>
+                      ),
+                    },
+                  ]}
+                ></Collapse>
               </div>
             </section>
 
