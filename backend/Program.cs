@@ -69,6 +69,7 @@ builder.Services.AddSingleton<MongoDbContext>();
 builder.Services.AddScoped<ProductServices>();
 builder.Services.AddScoped<PasswordService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<AddressService>();
 builder.Services.AddScoped<TokenService>();
 
 // Controllers
