@@ -357,7 +357,7 @@ public class AddressService
                         new BsonArray
                         {
                             "$$item._id",
-                            addressIdString
+                             new BsonObjectId(addressId)
                         }
                     )
                 }

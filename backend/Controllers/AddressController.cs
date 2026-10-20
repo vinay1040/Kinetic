@@ -62,7 +62,8 @@ public class AddressController : ControllerBase
         }
         return Ok(addresses);
     }
-    [HttpPut]
+
+    [HttpPut("{addressId}")]
     public async Task<IActionResult> UpdateAddress([FromRoute] string addressId, [FromBody] AddressRequest request)
     {
         var userIdClaim = User.FindFirstValue("sub") ??
@@ -93,12 +94,12 @@ public class AddressController : ControllerBase
         var userIdClaim = User.FindFirstValue("sub") ??
         User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if(string.IsNullOrWhiteSpace(userIdClaim) ||
-        !ObjectId.TryParse(userIdClaim,out var userId))
+        if (string.IsNullOrWhiteSpace(userIdClaim) ||
+        !ObjectId.TryParse(userIdClaim, out var userId))
         {
             return Unauthorized();
         }
-        if(!ObjectId.TryParse(addressId,out var parsedAddressId))
+        if (!ObjectId.TryParse(addressId, out var parsedAddressId))
         {
             return BadRequest(new
             {
@@ -106,7 +107,14 @@ public class AddressController : ControllerBase
             });
         }
         var result = await _addressService.DeleteAddress(userId, parsedAddressId);
-        return Ok(result);
+        if (!result)
+        {
+            return NotFound(new
+            {
+                message = "Address not found"
+            });
+        }
+        return NoContent();
     }
 
 }
