@@ -253,7 +253,7 @@ public class AddressService
             "$mergeObjects",
             new BsonArray
             {
-                "$items",
+                "$$item",
                 updatedFields,
                 new BsonDocument(
                     "IsDefault",
@@ -265,7 +265,7 @@ public class AddressService
             "$mergeObjects",
             new BsonArray
             {
-                "$items",
+                "$$item",
                 new BsonDocument(
                     "IsDefault",
                     new BsonDocument(

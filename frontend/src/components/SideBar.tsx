@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { RotateCcw, SlidersHorizontal, ChevronDown } from "lucide-react";
-import { Button, Collapse, Dropdown, Input, Radio } from "antd";
+import { Button, Collapse, Input, Radio } from "antd";
 
 interface FilterCategories {
   categories: string[];

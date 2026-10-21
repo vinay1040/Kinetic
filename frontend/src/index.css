@@ -1,3 +1,32 @@
 body {
   background: white;
 }
+
+/* Product sorting dropdown options */
+.product-sort-dropdown .ant-select-item-option {
+  background-color: #ffffff;
+  color: #1f2937;
+}
+
+/* Hovered option */
+.product-sort-dropdown .ant-select-item-option-active:not(
+  .ant-select-item-option-disabled
+) {
+  background-color: #f3f4f6;
+}
+
+/* Selected option */
+.product-sort-dropdown .ant-select-item-option-selected:not(
+  .ant-select-item-option-disabled
+) {
+  background-color: #e5e7eb;
+  color: #111827;
+  font-weight: 600;
+}
+
+/* Selected option when hovered */
+.product-sort-dropdown
+  .ant-select-item-option-selected:not(.ant-select-item-option-disabled)
+  .ant-select-item-option-state {
+  color: #111827;
+}

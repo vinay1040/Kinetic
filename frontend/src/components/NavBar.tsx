@@ -1,5 +1,5 @@
 import { CircleUser, Heart, Menu, ShoppingBag, X } from "lucide-react";
-import { Button, Dropdown } from "antd";
+import { Button } from "antd";
 import { Link } from "react-router";
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
@@ -7,39 +7,39 @@ import { useAuth } from "@/context/AuthContext";
 const NavBar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const { user, isAuthenticated, logout } = useAuth();
+  const { isAuthenticated } = useAuth();
 
-  const userMenu = [
-    {
-      key: "user",
-      label: (
-        <div className="px-2 py-1">
-          <p className="font-medium text-slate-900">{user?.name}</p>
-          <p className="text-xs text-slate-500">{user?.email}</p>
-        </div>
-      ),
-      disabled: true,
-    },
-    {
-      type: "divider" as const,
-    },
-    {
-      key: "wishlist",
-      label: <Link to="/wishlist">Wishlist</Link>,
-    },
-    {
-      key: "cart",
-      label: <Link to="/cart">Cart</Link>,
-    },
-    {
-      type: "divider" as const,
-    },
-    {
-      key: "logout",
-      label: "Logout",
-      onClick: logout,
-    },
-  ];
+  // const userMenu = [
+  //   {
+  //     key: "user",
+  //     label: (
+  //       <div className="px-2 py-1">
+  //         <p className="font-medium text-slate-900">{user?.name}</p>
+  //         <p className="text-xs text-slate-500">{user?.email}</p>
+  //       </div>
+  //     ),
+  //     disabled: true,
+  //   },
+  //   {
+  //     type: "divider" as const,
+  //   },
+  //   {
+  //     key: "wishlist",
+  //     label: <Link to="/wishlist">Wishlist</Link>,
+  //   },
+  //   {
+  //     key: "cart",
+  //     label: <Link to="/cart">Cart</Link>,
+  //   },
+  //   {
+  //     type: "divider" as const,
+  //   },
+  //   {
+  //     key: "logout",
+  //     label: "Logout",
+  //     onClick: logout,
+  //   },
+  // ];
 
   const navLinks = [
     { name: "Home", path: "/" },

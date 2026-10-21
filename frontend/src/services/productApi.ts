@@ -69,6 +69,12 @@ export const getData = async (
   if (filters.minRating !== undefined && filters.minRating > 0) {
     params.set("minRating", String(filters.minRating));
   }
+  if(filters.sortBy){
+    params.set("sortBy",filters.sortBy)
+  }
+  if(filters.sortOrder){
+    params.set("sortOrder",filters.sortOrder)
+  }
   const response = await AuthApi.get<ProductResponse>(
     `/Product?${params.toString()}`,
   );

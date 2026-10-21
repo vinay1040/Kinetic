@@ -1,7 +1,8 @@
 import { getData, type Product } from "@/services/productApi";
 import { createContext, useContext, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-
+export type ProductSortBy = "price" | "rating" | "stock" | "title";
+export type SortOrder = "asc" | "desc";
 type ProductContextType = {
   products: Product[];
   filters: ProductFilters;
@@ -20,7 +21,10 @@ export interface ProductFilters {
   minPrice?: number;
   maxPrice?: number;
   minRating?: number;
-}
+
+  sortBy?: ProductSortBy;
+  sortOrder?: SortOrder;
+} 
 
 const ProductContext = createContext<ProductContextType | null>(null);
 
