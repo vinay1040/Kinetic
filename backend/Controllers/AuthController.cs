@@ -28,10 +28,10 @@ public class AuthController : ControllerBase
 
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginRequest request)
-    {   
+    {
         var result = await _authService.Login(request);
 
-        if(result is null)
+        if (result is null)
         {
             return Unauthorized("Invalid email or password");
         }
@@ -43,25 +43,25 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Refresh(RefreshRequest request)
     {
         var result = await _authService.Refresh(request);
-        if(result is null) return Unauthorized(new
+        if (result is null) return Unauthorized(new
         {
             message = "Invalid or exxpired refresh token"
         });
 
         return Ok(result);
     }
-    
-    [HttpPut("updateProfile/{id}")]
+
+    [HttpPut("updateProfile")]
     [Authorize]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
     {
-        var  userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
         if (string.IsNullOrWhiteSpace(userId))
         {
             return Unauthorized();
         }
-        var updated = await _authService.UpdateUser(userId,request);
-        if(!updated) return NotFound("User not found");
+        var updated = await _authService.UpdateUser(userId, request);
+        if (!updated) return BadRequest("Profile could not be updated.Check whether the email is already in use.");
         return Ok("Profile updated");
     }
     [HttpPost("logout")]
@@ -76,4 +76,30 @@ public class AuthController : ControllerBase
 
         return Ok("logged Out");
     }
+
+    [HttpDelete("account")]
+    [Authorize]
+    public async Task<IActionResult> DeactivateAccount()
+    {
+        var userId = User.FindFirstValue("sub");
+
+        if (string.IsNullOrWhiteSpace(userId) ||
+            !MongoDB.Bson.ObjectId.TryParse(userId, out _))
+        {
+            return Unauthorized();
+        }
+
+        var deactivated = await _authService.DeactivateUser(userId);
+
+        if (!deactivated)
+        {
+            return NotFound(new
+            {
+                message = "Active account not found"
+            });
+        }
+
+        return NoContent();
+    }
+
 }

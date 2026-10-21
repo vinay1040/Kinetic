@@ -21,7 +21,7 @@ public class ProductController : ControllerBase
 
 
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "ActiveUser", Roles = "Admin")]
     public async Task<IActionResult> CreateProduct(
         [FromBody] CreateProductRequest request)
     {
@@ -99,7 +99,7 @@ public class ProductController : ControllerBase
 
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "ActiveUser", Roles = "Admin")]
     public async Task<IActionResult> UpdateProduct(
         [FromRoute] string id,
         [FromBody] ReplaceProductRequest request)
@@ -136,7 +136,7 @@ public class ProductController : ControllerBase
     }
 
     [HttpPatch("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "ActiveUser", Roles = "Admin")]
     public async Task<IActionResult> UpdateProductPartial(
         string id,
         [FromBody] UpdateProductRequest request)
@@ -158,7 +158,7 @@ public class ProductController : ControllerBase
                 message = "At least one field must be provided for update."
             });
         }
-        
+
         var result = await _productService.UpdateProductPartial(id, request);
 
         if (result.Status == ProductUpdateStatus.InvalidId)
@@ -189,8 +189,8 @@ public class ProductController : ControllerBase
         });
     }
 
-    [Authorize(Roles = "Admin")]
     [HttpDelete("{id}")]
+    [Authorize(Policy = "ActiveUser", Roles = "Admin")]
     public async Task<IActionResult> DeleteProduct([FromRoute] string id)
     {
         var result = await _productService.DeleteProduct(id);

@@ -13,6 +13,22 @@ public class MongoDbContext
         _database = client.GetDatabase(settings.DatabaseName);
 
     }
+
+    public async Task EnsureIndexesAsync()
+    {
+        var emailIndex = new CreateIndexModel<User>(
+            Builders<User>.IndexKeys
+                .Ascending(user => user.Email),
+            new CreateIndexOptions
+            {
+                Unique = true,
+                Name = "Unique_User_Email"
+            }
+        );
+
+        await Users.Indexes.CreateOneAsync(emailIndex);
+    }
+
     public IMongoCollection<User> Users => _database.GetCollection<User>("Users");
     public IMongoCollection<Product> Products => _database.GetCollection<Product>("Products");
     public IMongoCollection<RefreshToken> RefreshTokens => _database.GetCollection<RefreshToken>("RefreshTokens");

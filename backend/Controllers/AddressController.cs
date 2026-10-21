@@ -6,7 +6,7 @@ using MongoDB.Bson;
 using System.Security.Claims;
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Policy = "ActiveUser")]
 
 public class AddressController : ControllerBase
 {

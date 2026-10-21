@@ -44,7 +44,7 @@ type AuthContextType = {
   register: (name: string, email: string, password: string) => Promise<void>;
   login: (email: string, password: string) => Promise<User>;
   logout: () => Promise<void>;
-  updateProfile: (data: UpdateProfileData) => void;
+  updateProfile: (data: UpdateProfileData) => Promise<void>;
   isAuthenticated: boolean;
 };
 const SESSION_KEY = "kinetic_auth_session";
@@ -137,11 +137,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       throw new Error("You must be logged in to update your profile.");
     }
 
-    await updateUserPRofile(session.user.id, {
+    await updateUserPRofile({
       name: data.name ?? session.user.name,
       email: data.email ?? session.user.email,
     });
-
     setSession((currentSession) => {
       if (!currentSession) return null;
 

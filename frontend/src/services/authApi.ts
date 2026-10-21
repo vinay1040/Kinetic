@@ -119,10 +119,9 @@ export const refreshUser = async (
 };
 
 export const updateUserPRofile = async (
-  id: string,
   profile: UpdateProfileRequest,
 ): Promise<void> => {
-  await AuthApi.put(`/auth/updateProfile/${encodeURIComponent(id)}`, profile);
+  await AuthApi.put("/auth/updateProfile", profile);
 };
 export const logoutUser = async (refreshToken: string): Promise<void> => {
   await AuthApi.post("/auth/logout", { refreshToken });

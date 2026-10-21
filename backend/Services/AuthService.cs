@@ -1,4 +1,4 @@
-using System.Security.Cryptography.X509Certificates;
+
 using backend.data;
 using backend.Models;
 using backend.Models.DTOs;
@@ -28,7 +28,7 @@ public class AuthService
             .Find(user => user.Email == normalizeEmail)
             .FirstOrDefaultAsync();
         if (existingUser is not null) return false;
-        
+
         var user = new User
         {
             Name = request.name,
@@ -38,17 +38,38 @@ public class AuthService
         };
         user.PasswordHash = _passwordService.HashPassword(user, request.password);
 
-        await _dbcontext.Users.InsertOneAsync(user);
-        return true;
+        try
+        {
+            await _dbcontext.Users.InsertOneAsync(user);
+            return true;
+        }
+        catch (MongoWriteException ex)
+        when (ex.WriteError?.Category == ServerErrorCategory.DuplicateKey)
+        {
+            return false;
+        }
     }
     public async Task<LoginResponse?> Login(LoginRequest request)
     {
+        var normalizedEmail = request.Email.Trim().ToLowerInvariant();
         var user = await _dbcontext.Users
-       .Find(user => user.Email == request.Email)
-       .FirstOrDefaultAsync();
+            .Find(user => user.Email == normalizedEmail)
+            .FirstOrDefaultAsync();
 
         if (user is null || !user.IsActive) return null;
         if (!_passwordService.VerifyPassword(user, request.Password, user.PasswordHash)) return null;
+        if (_passwordService.NeedsRehash(user, request.Password, user.PasswordHash))
+        {
+            var newPasswordHash = _passwordService.HashPassword(
+                user,
+                request.Password
+            );
+            var parrwordUpdate = Builders<User>.Update.Set(user => user.PasswordHash, newPasswordHash);
+            await _dbcontext.Users.UpdateOneAsync(
+                existingUser => existingUser.Id == user.Id,
+                parrwordUpdate
+            );
+        }
         var token = _tokenService.GenerateToken(user);
         var refreshToken = _tokenService.CreateRefreshToken();
         var refreshTokenHash = _tokenService.HashToken(refreshToken);
@@ -77,17 +98,56 @@ public class AuthService
             .Find(token => token.TokenHash == tokenHash)
             .FirstOrDefaultAsync();
 
-        if (storedToken is null || !storedToken.IsActive)
+        if (storedToken is null)
         {
-            return null!;
+            return null;
+        }
+
+        if (!storedToken.IsActive)
+        {
+            // A revoked token that was replaced may indicate token reuse.
+            if (storedToken.ReplacedByTokenId.HasValue)
+            {
+                // Revoke active refresh tokens belonging to this user.
+                var revocationTime = DateTime.UtcNow;
+
+                var activeTokensFilter = Builders<RefreshToken>.Filter.Eq(
+                    token => token.UserId, storedToken.UserId
+                ) & Builders<RefreshToken>.Filter.Eq(
+                    token => token.RevokedAt, (DateTime?)null
+                ) & Builders<RefreshToken>.Filter.Gt(
+                    token => token.ExpiresAt, revocationTime
+                );
+
+                var revokeAllUpdate = Builders<RefreshToken>.Update
+                    .Set(token => token.RevokedAt, revocationTime);
+
+                await _dbcontext.RefreshTokens.UpdateManyAsync(
+                    activeTokensFilter,
+                    revokeAllUpdate
+                );
+            }
+
+            return null;
         }
 
         var user = await _dbcontext.Users
             .Find(user => user.Id == storedToken.UserId)
             .FirstOrDefaultAsync();
-        
-        if (user is null) return null!;
+
+        if (user is null || !user.IsActive)
+        {
+            var revokeInactiveUser = Builders<RefreshToken>.Filter.Eq(
+                token => token.Id, storedToken.Id
+            ) & Builders<RefreshToken>.Filter.Eq(
+                token => token.RevokedAt, (DateTime?)null
+            );
+            var update = Builders<RefreshToken>.Update.Set(token => token.RevokedAt, DateTime.UtcNow);
+            await _dbcontext.RefreshTokens.UpdateOneAsync(revokeInactiveUser, update);
+            return null;
+        }
         var now = DateTime.UtcNow;
+
         var revokeFilters = Builders<RefreshToken>.Filter.Eq(
             token => token.Id, storedToken.Id
         ) & Builders<RefreshToken>.Filter.Eq(
@@ -95,10 +155,7 @@ public class AuthService
         ) & Builders<RefreshToken>.Filter.Gt(
             token => token.ExpiresAt, now
         );
-        var revokeUpdate = Builders<RefreshToken>.Update.Set(token => token.RevokedAt, now);
 
-        var revokeResult = await _dbcontext.RefreshTokens.UpdateOneAsync(revokeFilters, revokeUpdate);
-        if(revokeResult.ModifiedCount != 1) return null;
         var newAccessToken = _tokenService.GenerateToken(user);
         var newRefreshToken = _tokenService.CreateRefreshToken();
 
@@ -106,11 +163,39 @@ public class AuthService
         {
             UserId = user.Id,
             TokenHash = _tokenService.HashToken(newRefreshToken),
-            ExpiresAt = DateTime.UtcNow.AddDays(7)
+            ExpiresAt = now.AddDays(7)
         };
 
+        // Insert the replacement first so its ID is available.
         await _dbcontext.RefreshTokens.InsertOneAsync(newRefreshTokenEntity);
 
+        // Revoke the old token and link it to its replacement atomically.
+        var revokeUpdate = Builders<RefreshToken>.Update
+            .Set(token => token.RevokedAt, now)
+            .Set(token => token.ReplacedByTokenId, newRefreshTokenEntity.Id);
+
+        var revokeResult = await _dbcontext.RefreshTokens.UpdateOneAsync(
+            revokeFilters,
+            revokeUpdate
+        );
+
+        if (!revokeResult.IsAcknowledged || revokeResult.ModifiedCount != 1)
+        {
+            // The replacement must not remain usable if rotation loses the race.
+            var cleanupFilter = Builders<RefreshToken>.Filter.Eq(
+                token => token.Id, newRefreshTokenEntity.Id
+            );
+
+            var cleanupUpdate = Builders<RefreshToken>.Update
+                .Set(token => token.RevokedAt, DateTime.UtcNow);
+
+            await _dbcontext.RefreshTokens.UpdateOneAsync(
+                cleanupFilter,
+                cleanupUpdate
+            );
+
+            return null;
+        }
         return new LoginResponse
         {
             AccessToken = newAccessToken,
@@ -119,7 +204,6 @@ public class AuthService
             Role = user.Role
         };
     }
-
     public async Task<bool> UpdateUser(string id, UpdateProfileRequest request)
     {
         if (!ObjectId.TryParse(id, out var objectId))
@@ -127,8 +211,9 @@ public class AuthService
             return false;
         }
 
+        var normalizedEmail = request.Email.Trim().ToLowerInvariant();
         var emailAlreadyUsed = await _dbcontext.Users
-            .Find(existingUser => existingUser.Email == request.Email && existingUser.Id != objectId)
+            .Find(existingUser => existingUser.Email == normalizedEmail && existingUser.Id != objectId)
             .AnyAsync();
 
         if (emailAlreadyUsed) return false;
@@ -140,7 +225,7 @@ public class AuthService
         if (user is null || !user.IsActive) return false;
 
         user.Name = request.Name;
-        user.Email = request.Email;
+        user.Email = request.Email.Trim().ToLowerInvariant();
 
         var result = await _dbcontext.Users.ReplaceOneAsync(
             existingUser => existingUser.Id == objectId,
@@ -152,16 +237,42 @@ public class AuthService
     {
         var tokenHash = _tokenService.HashToken(request.RefreshToken);
         var now = DateTime.UtcNow;
-            var filters = Builders<RefreshToken>.Filter.Eq(
-                token => token.TokenHash,tokenHash
-            ) & Builders<RefreshToken>.Filter.Eq(
-                token => token.RevokedAt,(DateTime?)null
-            ) & Builders<RefreshToken>.Filter.Gt(
-                token => token.ExpiresAt,now
-            );
+        var filters = Builders<RefreshToken>.Filter.Eq(
+            token => token.TokenHash, tokenHash
+        ) & Builders<RefreshToken>.Filter.Eq(
+            token => token.RevokedAt, (DateTime?)null
+        ) & Builders<RefreshToken>.Filter.Gt(
+            token => token.ExpiresAt, now
+        );
 
-        var Update = Builders<RefreshToken>.Update.Set(token => token.RevokedAt,now);
-        var result = await _dbcontext.RefreshTokens.UpdateOneAsync(filters,Update);
-        return true;
+        var Update = Builders<RefreshToken>.Update.Set(token => token.RevokedAt, now);
+        var result = await _dbcontext.RefreshTokens.UpdateOneAsync(filters, Update);
+
+        return result.IsAcknowledged && result.MatchedCount == 1;
     }
+
+    public async Task<bool> DeactivateUser(string id)
+    {
+        if (!ObjectId.TryParse(id, out var objectId))
+        {
+            return false;
+        }
+
+        var filter = Builders<User>.Filter.Eq(
+            user => user.Id, objectId
+        ) & Builders<User>.Filter.Eq(
+            user => user.IsActive, true
+        );
+
+        var update = Builders<User>.Update
+            .Set(user => user.IsActive, false);
+
+        var result = await _dbcontext.Users.UpdateOneAsync(
+            filter,
+            update
+        );
+
+        return result.IsAcknowledged && result.MatchedCount == 1;
+    }
+
 }

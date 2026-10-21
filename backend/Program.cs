@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Authorization;
+using backend.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,25 +23,25 @@ var jwtSetting = builder.Configuration
     .Get<JwtSettings>();
 
 // JWT Authentication
+
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(option =>
+    .AddJwtBearer(options =>
     {
-        option.TokenValidationParameters = new TokenValidationParameters
+        options.MapInboundClaims = false;
+        options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidIssuer = jwtSetting!.Issuer,
 
             ValidateAudience = true,
-            ValidAudience = builder.Configuration["Jwt:Audience"],
+            ValidAudience = jwtSetting.Audience,
 
             ValidateLifetime = true,
 
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(
-                    builder.Configuration["Jwt:Key"]!
-                )
+                Encoding.UTF8.GetBytes(jwtSetting.Key)
             ),
 
             ClockSkew = TimeSpan.FromSeconds(30)
@@ -46,8 +49,16 @@ builder.Services
     });
 
 // Authorization
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(option =>
+{
+    option.AddPolicy("ActiveUser", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.AddRequirements(new ActiveUserRequirement());
 
+    });
+});
+builder.Services.AddSingleton<IAuthorizationHandler, ActiveUserHandler>();
 // CORS configuration
 builder.Services.AddCors(options =>
 {
@@ -119,7 +130,13 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider
+        .GetRequiredService<MongoDbContext>();
 
+    await dbContext.EnsureIndexesAsync();
+}
 // Middleware order
 app.UseRouting();
 

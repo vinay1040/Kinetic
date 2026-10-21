@@ -1,3 +1,4 @@
+
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
@@ -16,6 +17,9 @@ public class RefreshToken
 
     public DateTime? RevokedAt { get; set; }
 
+    public ObjectId? ReplacedByTokenId { get; set; }
+
     public bool IsActive =>
         RevokedAt == null && ExpiresAt > DateTime.UtcNow;
 }
+ 
