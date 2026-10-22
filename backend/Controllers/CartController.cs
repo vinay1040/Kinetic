@@ -101,14 +101,17 @@ public class CartController : ControllerBase
     public async Task<IActionResult> DeleteCartItem(string productId)
     {
         var userId = GetCurrentUserId();
-        if(string.IsNullOrWhiteSpace(userId) || 
-        !ObjectId.TryParse(userId,out _)) return Unauthorized();
-        if(!ObjectId.TryParse(productId,out _))
+        if (string.IsNullOrWhiteSpace(userId) ||
+        !ObjectId.TryParse(userId, out _)) return Unauthorized();
+        if (!ObjectId.TryParse(productId, out _))
         {
-            return BadRequest(new{message = "Invalid Product Id"});
+            return BadRequest(new { message = "Invalid Product Id" });
         }
-        var cart = await _cartService.RemoveItemAsync(userId,productId);
-        if(cart is null) return NotFound(new {massege = "Cart Not Found"});
+        var cart = await _cartService.RemoveItemAsync(userId, productId);
+        if (cart is null)
+        {
+            return NotFound(new { message = "Cart or cart item not found" });
+        }
         return Ok(cart);
     }
 }

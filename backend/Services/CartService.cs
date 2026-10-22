@@ -76,7 +76,8 @@ public class CartService
         var user = await _context.Users.Find(u => u.Id == userObjectId).FirstOrDefaultAsync();
         if (user is null) return null;
         var product = await _context.Products.Find(p => p.Id == productObjectId).FirstOrDefaultAsync();
-        if (product is null || product.Stock > quantity) return null;
+        if (product is null || product.Stock < quantity || product.Stock <= 0)
+            return null;
         var update = Builders<Cart>.Update.Set("Items.$.Quantity", quantity)
           .Set(c => c.UpdatedAt, DateTime.UtcNow);
 
@@ -88,15 +89,21 @@ public class CartService
 
     public async Task<Cart?> RemoveItemAsync(string userId, string productId)
     {
-        
+
         if (!ObjectId.TryParse(userId, out var userObjectId) ||
             !ObjectId.TryParse(productId, out _))
             return null;
-        
+
         var user = await _context.Users.Find(u => u.Id == userObjectId && u.IsActive).FirstOrDefaultAsync();
-        if(user is null) return null;
-        var update = Builders<Cart>.Update.PullFilter(c => c.Items,item => item.ProductId == productId).Set(c => c.UpdatedAt,DateTime.UtcNow);
-        var result = await _context.Cart.UpdateOneAsync(c => c.UserId == userId,update);
+        if (user is null) return null;
+        var cart = await _context.Cart.Find(c => c.UserId == userId).FirstOrDefaultAsync();
+        if (cart is null || !cart.Items.Any(item => item.ProductId == productId)) return null;
+        var update = Builders<Cart>.Update.PullFilter(c => c.Items, item => item.ProductId == productId).Set(c => c.UpdatedAt, DateTime.UtcNow);
+        var result = await _context.Cart.UpdateOneAsync(c => c.UserId == userId, update);
+        if (result.MatchedCount == 0 || result.ModifiedCount == 0)
+        {
+            return null;
+        }
         return await GetCartAsync(userId);
     }
 }
