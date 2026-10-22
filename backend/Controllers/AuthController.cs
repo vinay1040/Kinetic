@@ -52,7 +52,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPut("updateProfile")]
-    [Authorize]
+    [Authorize(Policy = "ActiveUser")]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
@@ -78,7 +78,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpDelete("account")]
-    [Authorize]
+    [Authorize(Policy = "ActiveUser")]
     public async Task<IActionResult> DeactivateAccount()
     {
         var userId = User.FindFirstValue("sub");
