@@ -20,56 +20,6 @@ var mongoSetting = builder.Configuration
     .Get<MongoDbSettings>();
 
 // TEMPORARY: Reset an existing admin password in Development only.
-if (builder.Environment.IsDevelopment() &&
-    builder.Configuration["AdminReset:Enabled"] == "true")
-{
-    var email = builder.Configuration["AdminReset:Email"]?
-        .Trim()
-        .ToLowerInvariant();
-
-    var newPassword = builder.Configuration["AdminReset:NewPassword"];
-
-    if (string.IsNullOrWhiteSpace(email) ||
-        string.IsNullOrWhiteSpace(newPassword) ||
-        newPassword.Length < 12)
-    {
-        throw new InvalidOperationException(
-            "Provide an admin email and a password of at least 12 characters.");
-    }
-
-    if (mongoSetting is null)
-        throw new InvalidOperationException("MongoDB configuration is missing.");
-
-    var db = new MongoDbContext(mongoSetting);
-
-    var user = await db.Users
-        .Find(u => u.Email.ToLower() == email)
-        .FirstOrDefaultAsync();
-
-    if (user is null || user.Role != UserRole.Admin || !user.IsActive)
-    {
-        throw new InvalidOperationException(
-            "No active admin account was found for that email.");
-    }
-
-    var passwordService = new PasswordService();
-    var newHash = passwordService.HashPassword(user, newPassword);
-
-    var filter = Builders<User>.Filter.Eq(u => u.Id, user.Id)
-        & Builders<User>.Filter.Eq(u => u.Role, UserRole.Admin)
-        & Builders<User>.Filter.Eq(u => u.IsActive, true);
-
-    var update = Builders<User>.Update
-        .Set(u => u.PasswordHash, newHash);
-
-    var result = await db.Users.UpdateOneAsync(filter, update);
-
-    if (result.MatchedCount != 1)
-        throw new InvalidOperationException("Admin password reset failed.");
-
-    Console.WriteLine("Admin password reset successfully.");
-    return;
-}
 
 // MongoDB configuration
 // var mongoSetting = builder.Configuration
@@ -141,6 +91,7 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<AddressService>();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<CartService>();
+builder.Services.AddScoped<AdminSeeder>();
 // Controllers
 builder.Services.AddControllers()
     .ConfigureApiBehaviorOptions(options =>
@@ -188,12 +139,21 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider
         .GetRequiredService<MongoDbContext>();
 
     await dbContext.EnsureIndexesAsync();
+
+    if (app.Environment.IsDevelopment())
+    {
+        var adminSeeder = scope.ServiceProvider
+            .GetRequiredService<AdminSeeder>();
+
+        await adminSeeder.SeedAsync();
+    }
 }
 // Middleware order
 app.UseRouting();
