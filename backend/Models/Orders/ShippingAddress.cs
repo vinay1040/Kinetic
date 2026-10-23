@@ -1,5 +1,5 @@
 
-namespace backend.Models;
+namespace backend.Models.Orders;
 
 public class ShippingAddress
 {

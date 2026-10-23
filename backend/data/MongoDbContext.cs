@@ -1,18 +1,20 @@
 using MongoDB.Driver;
 using backend.Models;
 using backend.Configuration;
-
+using backend.Models.Orders;
 namespace backend.data;
 
 public class MongoDbContext
 {
+    public IMongoClient _client;
     private readonly IMongoDatabase _database;
-    public MongoDbContext(MongoDbSettings settings)
+    public MongoDbContext(MongoDbSettings settings,)
     {
-        var client = new MongoClient(settings.ConnectionString);
-        _database = client.GetDatabase(settings.DatabaseName);
+        _client = new MongoClient(settings.ConnectionString);
+        _database = _client.GetDatabase(settings.DatabaseName);
 
     }
+    public IMongoClient Client => _client;
 
     public async Task EnsureIndexesAsync()
     {
@@ -39,4 +41,5 @@ public class MongoDbContext
     public IMongoCollection<Product> Products => _database.GetCollection<Product>("Products");
     public IMongoCollection<RefreshToken> RefreshTokens => _database.GetCollection<RefreshToken>("RefreshTokens");
     public IMongoCollection<Cart> Cart => _database.GetCollection<Cart>("Cart");
+    public IMongoCollection<Order> Order => _database.GetCollection<Order>("Order");
 }

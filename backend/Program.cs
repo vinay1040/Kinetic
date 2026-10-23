@@ -91,6 +91,7 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<AddressService>();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<CartService>();
+builder.Services.AddScoped<OrderService>();
 builder.Services.AddScoped<AdminSeeder>();
 // Controllers
 builder.Services.AddControllers()
