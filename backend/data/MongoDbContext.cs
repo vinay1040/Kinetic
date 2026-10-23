@@ -12,6 +12,7 @@ public class MongoDbContext
     {
         _client = new MongoClient(settings.ConnectionString);
         _database = _client.GetDatabase(settings.DatabaseName);
+
     }
     public IMongoClient Client => _client;
 
