@@ -8,11 +8,10 @@ public class MongoDbContext
 {
     public IMongoClient _client;
     private readonly IMongoDatabase _database;
-    public MongoDbContext(MongoDbSettings settings,)
+    public MongoDbContext(MongoDbSettings settings)
     {
         _client = new MongoClient(settings.ConnectionString);
         _database = _client.GetDatabase(settings.DatabaseName);
-
     }
     public IMongoClient Client => _client;
 
