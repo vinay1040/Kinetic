@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
-[Route("order/[controller]")]
+[Route("api/[controller]")]
 [Authorize]
 public class OrderController : ControllerBase
 {

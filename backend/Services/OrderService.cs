@@ -83,7 +83,7 @@ public class OrderService
 
             await _context.Order.InsertOneAsync(session, order);
 
-            var cartUpdate = Builders<Cart>.Update.Set(c => c.UserId == userId, new());
+            var cartUpdate = Builders<Cart>.Update.Set(c => c.Items, new List<CartItem>()).Set(c => c.UpdatedAt, DateTime.UtcNow);
 
             await _context.Cart.UpdateOneAsync(session, c => c.UserId == userId, cartUpdate);
 
