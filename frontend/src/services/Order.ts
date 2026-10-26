@@ -43,18 +43,19 @@ export interface CreateOrderResponse {
 }
 
 export const createOrder = async (
-    request : CreateOrderRequest
-) => {
-    const response = await AuthApi.post<CreateOrderRequest>("/Order",request);
-    return response.data;
+  request: CreateOrderRequest,
+): Promise<CreateOrderResponse> => {
+  const response = await AuthApi.post<CreateOrderResponse>("/Order", request);
+
+  return response.data;
 };
 
 export const getOrderData = async (): Promise<Order[]> => {
   const response = await AuthApi.get<Order[]>("/Order");
   return response.data;
-}
+};
 
-export const getOrderById = async (id:string) => {
-    const response = await AuthApi.get(`Order/${encodeURIComponent(id)}`);
-    return response.data;
-}
+export const getOrderById = async (id: string) => {
+  const response = await AuthApi.get(`Order/${encodeURIComponent(id)}`);
+  return response.data;
+};
