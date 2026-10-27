@@ -1,4 +1,4 @@
-import { useCart } from "@/context/CartContext";
+import { useCartContext } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { Button } from "antd";
 import { getProductById} from "@/services/productApi";
@@ -13,7 +13,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";import { Link, useParams } from "react-router";
+import { useState } from "react";import { Link, useNavigate, useParams } from "react-router";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -35,8 +35,9 @@ const ProductDetail = () => {
 
   const [selectedImage, setSelectedImage] = useState("");
   const [quantity, setQuantity] = useState(1);
-  const { addToCart } = useCart();
+  const { addToCart } = useCartContext();
   const { isWishlisted, toggleWishlist } = useWishlist();
+  const navigate = useNavigate();
   // useEffect(() => {
   //   const fetchProduct = async () => {
   //     if (!id) return;
@@ -116,20 +117,8 @@ const ProductDetail = () => {
   return (
     <main className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-6 flex items-center gap-2 text-sm text-slate-500">
-          <Link to="/store" className="transition hover:text-primary">
-            Store
-          </Link>
-
-          <span>/</span>
-
-          <span className="capitalize">
-            {product.category.replaceAll("-", " ")}
-          </span>
-
-          <span>/</span>
-
-          <span className="truncate text-slate-900">{product.title}</span>
+        <div className="mb-6 flex gap-2 text-sm text-slate-500">
+          <button className="flex items-center gap-1 transition hover:text-primary" onClick={() => navigate(-1)}><ArrowLeft/>Continue Shoping</button>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">

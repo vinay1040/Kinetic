@@ -4,11 +4,34 @@ import { Trash2 } from "lucide-react";
 import CartItem from "@/components/cart/CartItems";
 import CartSummary from "@/components/cart/CartSummary";
 import EmptyCart from "@/components/cart/EmptyCart";
-import { useCart } from "@/context/CartContext";
+import { useCartContext } from "@/context/CartContext";
 
 const Cart = () => {
-  const { cart, clearCart } = useCart();
+  const { cart, clearCart, loading, error, retry } = useCartContext();
+  if (loading) {
+    return (
+      <main className="mx-auto max-w-7xl px-4 py-10">
+        <h1 className="text-3xl font-bold">Your Cart</h1>
+        <p className="mt-4 text-gray-500">Loading your cart...</p>
+      </main>
+    );
+  }
+  if (error) {
+    return (
+      <main className="mx-auto max-w-7xl px-4 py-10">
+        <h1 className="text-3xl font-bold">Your Cart</h1>
 
+        <p className="mt-4 text-red-600">{error}</p>
+
+        <button
+          onClick={retry}
+          className="mt-4 rounded-lg bg-black px-5 py-2 text-white"
+        >
+          Try Again
+        </button>
+      </main>
+    );
+  }
   if (cart.length === 0) {
     return (
       <main className="mx-auto max-w-7xl px-4 py-10">

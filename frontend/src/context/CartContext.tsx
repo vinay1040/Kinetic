@@ -2,11 +2,16 @@ import { message } from "antd";
 import {
   createContext,
   useContext,
-  useEffect,
-  useState,
   type ReactNode,
 } from "react";
-import type { Product } from "@/services/productApi";
+import { getProductById, type Product } from "@/services/productApi";
+import { useAuth } from "./AuthContext";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
+import { useCart } from "@/hooks/CartHook/useCart";
+import { useAddCartItem } from "@/hooks/CartHook/useAddCartItem";
+import { useRemoveCartItem } from "@/hooks/CartHook/useRemoveCartItem";
+import { useUpdateCartItem } from "@/hooks/CartHook/useUpdateCartItem";
+import { useClearCart } from "@/hooks/CartHook/useClearCart";
 
 export type CartItem = {
   product: Product;
@@ -15,77 +20,131 @@ export type CartItem = {
 
 export type CartContextType = {
   cart: CartItem[];
+  loading: boolean;
+  error: string | null;
+  retry: () => void;
   addToCart: (product: Product, quantity: number) => void;
   removeFromCart: (productID: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
+  clearing: Boolean;
 };
 
 export const CartContext = createContext<CartContextType | null>(null);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [cart, setCart] = useState<CartItem[]>(() => {
-    const savedCart = localStorage.getItem("cart");
+  const { isAuthenticated } = useAuth();
+  const queryClient = useQueryClient();
 
-    return savedCart ? JSON.parse(savedCart) : [];
+  const cartdata = useCart();
+  const addToCartItem = useAddCartItem();
+  const removeCartItem = useRemoveCartItem();
+  const updateCart = useUpdateCartItem();
+  const clearAllCart = useClearCart();
+  const Items = cartdata.data?.items ?? [];
+
+  const productQueries = useQueries({
+    queries: Items.map((item) => ({
+      queryKey: ["product", item.productId],
+      queryFn: () => getProductById(item.productId),
+      enabled: isAuthenticated && Boolean(item.productId),
+      staleTime: 60_000,
+    })),
   });
 
-  useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cart));
-  }, [cart]);
+  const cart: CartItem[] = Items.flatMap((item, index) => {
+    const product = productQueries[index]?.data;
+    return product ? [{ product, quantity: item.quantity }] : [];
+  });
+
   const addToCart = (product: Product, quantity: number) => {
-    message.success(`${product.title} has been added to your cart.`);
-
-    setCart((currentCart) => {
-      const existingCart = currentCart.find(
-        (item) => item.product.id === product.id,
-      );
-
-      if (existingCart) {
-        return currentCart.map((item) =>
-          item.product.id === product.id
-            ? {
-                ...item,
-                quantity: item.quantity + quantity,
-              }
-            : item,
-        );
-      }
-      return [
-        ...currentCart,
-        {
-          product,
-          quantity,
+    if (!isAuthenticated) {
+      message.warning("Please log in to add items to your cart.");
+      return;
+    }
+    addToCartItem.mutate(
+      { productId: product.id, quantity: quantity },
+      {
+        onSuccess: () => {
+          message.success(`${product.title} added to your cart.`);
         },
-      ];
-    });
-  };
-  const removeFromCart = (productId: string) => {
-    setCart((currentCart) =>
-      currentCart.filter((item) => item.product.id !== productId),
+        onError: () => {
+          message.error("Could not add this product to your cart.");
+        },
+      },
     );
+  };
+
+  const removeFromCart = (productId: string) => {
+    removeCartItem.mutate(productId, {
+      onError: () => {
+        message.error("Could not remove this item.");
+      },
+    });
   };
   const updateQuantity = (productId: string, quantity: number) => {
     if (quantity < 1) return;
-    setCart((currentCart) =>
-      currentCart.map((item) =>
-        item.product.id === productId ? { ...item, quantity } : item,
-      ),
+    updateCart.mutate(
+      { productId: productId, quantity: quantity },
+      {
+        onError: () => {
+          message.error(
+            "Could not update the quantity. Check available stock.",
+          );
+        },
+      },
     );
   };
   const clearCart = () => {
-    setCart([]);
+    if(clearAllCart.isPending) return;
+
+    clearAllCart.mutate(undefined,{
+      onSuccess: () => {
+        message.success("Your cart has been cleared.");
+      },
+      onError: () => {
+        message.error("Failed to clear your cart. Please try again.");
+      },
+    });
+  };
+
+  const loading =
+    isAuthenticated &&
+    (cartdata.isPending || productQueries.some((query) => query.isPending));
+
+  const isProductError = productQueries.some((query) => query.isError);
+  const error =
+    cartdata.isError || isProductError
+      ? "Unable to load your cart. Please try again."
+      : null;
+  const retry = () => {
+    void queryClient.invalidateQueries({
+      queryKey: ["cart"],
+    });
+    void queryClient.invalidateQueries({
+      queryKey: ["product"],
+    });
   };
   return (
     <CartContext.Provider
-      value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart }}
+      value={{
+        cart,
+        loading,
+        error,
+        retry,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+        clearing: clearAllCart.isPending,
+      }}
     >
       {children}
     </CartContext.Provider>
   );
 };
 
-export const useCart = () => {
+export const useCartContext = () => {
   const context = useContext(CartContext);
 
   if (!context) {

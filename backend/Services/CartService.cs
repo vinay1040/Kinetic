@@ -106,4 +106,19 @@ public class CartService
         }
         return await GetCartAsync(userId);
     }
+    public async Task<bool> ClearCartAsync(string userId)
+    {
+        if (!ObjectId.TryParse(userId, out var userObjectId)) return false;
+        var user = _context.Users.Find(u => u.Id == userObjectId && u.IsActive).FirstOrDefaultAsync();
+        if (user is null) return false;
+        var update = Builders<Cart>.Update.Set(c => c.Items, new List<CartItem>()).Set(c => c.UpdatedAt, DateTime.UtcNow);
+        try
+        {
+            await _context.Cart.UpdateOneAsync(c => c.UserId == userId, update);
+            return true;
+        } catch (Exception ex)
+        {
+            throw new InvalidOperationException("Failed to clear cart", ex);
+        }
+    }
 }

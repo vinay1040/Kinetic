@@ -114,4 +114,25 @@ public class CartController : ControllerBase
         }
         return Ok(cart);
     }
+    [HttpDelete]
+    public async Task<IActionResult> ClearCart()
+    {
+        var userId = GetCurrentUserId();
+        if (string.IsNullOrWhiteSpace(userId) || !ObjectId.TryParse(userId, out _)) return Unauthorized();
+        var cleared = await _cartService.ClearCartAsync(userId);
+        if (!cleared)
+        {
+            if (!cleared)
+            {
+                return NotFound(new
+                {
+                    message = "Active user not found"
+                });
+            }
+        }
+        return Ok(new
+        {
+            message = "Cart cleared successfully"
+        });
+    }
 }

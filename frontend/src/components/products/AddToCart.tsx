@@ -1,4 +1,4 @@
-import { useCart } from "@/context/CartContext";
+import { useCartContext } from "@/context/CartContext";
 import type { Product } from "@/services/productApi";
 import { Button } from "antd";
 import { ShoppingBag } from "lucide-react";
@@ -9,7 +9,7 @@ type AddToCart = {
 };
 
 export const AddToCart = ({ product, variant }: AddToCart) => {
-  const { addToCart } = useCart();
+  const { addToCart } = useCartContext();
   const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();

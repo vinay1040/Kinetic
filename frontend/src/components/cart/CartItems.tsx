@@ -1,12 +1,12 @@
 
 import { Trash2 } from "lucide-react";
 import QuantitySelector from "./QuantitySelector";
-import { useCart, type CartItem } from "@/context/CartContext";
+import { useCartContext, type CartItem } from "@/context/CartContext";
 type CartItemProps = {
   item: CartItem;
 };
 const CartItems = ({ item }: CartItemProps) => {
-  const { removeFromCart, updateQuantity } = useCart();
+  const { removeFromCart, updateQuantity } = useCartContext();
   const { product, quantity } = item;
   const handleIncrease = () => {
     updateQuantity(product.id, quantity + 1);

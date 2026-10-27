@@ -13,6 +13,7 @@ import {
   updateUserPRofile,
   type ApiUserRole,
 } from "../services/authApi";
+import { useQueryClient } from "@tanstack/react-query";
 
 type Address = {
   street: string;
@@ -81,7 +82,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<AuthSession | null>(() =>
     readSession(),
   );
-
+  const queryClient = useQueryClient();
   const user = session?.user ?? null;
   const isAuthenticated = Boolean(session?.accessToken && user);
 
@@ -122,6 +123,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async (): Promise<void> => {
     const refreshToken = session?.refreshToken;
+    queryClient.removeQueries({
+      queryKey: ["cart"],
+    });
     setSession(null);
     if (refreshToken) {
       try {
