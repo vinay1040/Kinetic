@@ -1,5 +1,12 @@
 import { getData, type Product } from "@/services/productApi";
-import { createContext, useContext, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import { useDebounce } from "use-debounce";
 import { useQuery } from "@tanstack/react-query";
 export type ProductSortBy = "price" | "rating" | "stock" | "title";
 export type SortOrder = "asc" | "desc";
@@ -24,7 +31,7 @@ export interface ProductFilters {
 
   sortBy?: ProductSortBy;
   sortOrder?: SortOrder;
-} 
+}
 
 const ProductContext = createContext<ProductContextType | null>(null);
 
@@ -36,16 +43,35 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
   const pageSize = 40;
   const [filters, setFilters] = useState<ProductFilters>({});
   const updateFilter = (newFilter: React.SetStateAction<ProductFilters>) => {
-    setFilters(newFilter),
+    setFilters(newFilter);
     setPage(1);
-  }
+  };
+  const [debouncedSearch] = useDebounce(filters.search ?? "", 300);
+  const priceRange = useMemo(
+    () => ({
+      minPrice: filters.minPrice,
+      maxPrice: filters.maxPrice,
+    }),
+    [filters.minPrice, filters.maxPrice],
+  );
+  const [debouncePriceRange] = useDebounce(priceRange, 300);
+  const queryFilters = useMemo<ProductFilters>(
+    () => ({
+      ...filters,
+      search: debouncedSearch.trim() || "",
+      minPrice: debouncePriceRange.minPrice,
+      maxPrice: debouncePriceRange.maxPrice,
+    }),
+    [filters, debouncedSearch, debouncePriceRange],
+  );
   // const [totalPages, setTotalPages] = useState(0);
   // const [totalProducts, settotalProducts] = useState(0);
   const { data, isPending, isError } = useQuery({
-    queryKey: ["products", page, pageSize, filters],
-    queryFn: () => getData(page, pageSize, filters),
+    queryKey: ["products", page, pageSize, queryFilters],
+    queryFn: () => getData(page, pageSize, queryFilters),
     staleTime: 60_000,
   });
+
   // useEffect(() => {
   //   const loadData = async () => {
   //     try {
@@ -78,7 +104,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
         products,
         page,
         filters,
-        setFilters:updateFilter,
+        setFilters: updateFilter,
         pageSize,
         totalPages,
         totalProducts,

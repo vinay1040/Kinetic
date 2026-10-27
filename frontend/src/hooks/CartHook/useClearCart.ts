@@ -1,6 +1,6 @@
 import { clearCart } from '@/services/CartService';
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import React from 'react'
+
 
 export const useClearCart = () => {
   const queryClient = useQueryClient();
