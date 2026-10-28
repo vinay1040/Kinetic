@@ -24,7 +24,7 @@ type ProductContextType = {
 };
 export interface ProductFilters {
   search?: string;
-  category?: string;
+  categories?: string[];
   minPrice?: number;
   maxPrice?: number;
   minRating?: number;

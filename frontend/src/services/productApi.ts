@@ -57,9 +57,9 @@ export const getData = async (
   if (filters.search?.trim()) {
     params.set("search", filters.search?.trim());
   }
-  if (filters.category?.trim() && filters.category !== "all") {
-    params.set("category", filters.category?.trim());
-  }
+  (filters.categories ?? []).forEach((category) => {
+    params.append("categories", category);
+  });
   if (filters.minPrice !== undefined) {
     params.set("minPrice", String(filters.minPrice));
   }
@@ -69,11 +69,11 @@ export const getData = async (
   if (filters.minRating !== undefined && filters.minRating > 0) {
     params.set("minRating", String(filters.minRating));
   }
-  if(filters.sortBy){
-    params.set("sortBy",filters.sortBy)
+  if (filters.sortBy) {
+    params.set("sortBy", filters.sortBy);
   }
-  if(filters.sortOrder){
-    params.set("sortOrder",filters.sortOrder)
+  if (filters.sortOrder) {
+    params.set("sortOrder", filters.sortOrder);
   }
   const response = await AuthApi.get<ProductResponse>(
     `/Product?${params.toString()}`,

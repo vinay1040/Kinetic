@@ -26,7 +26,7 @@ const Store = () => {
     queryFn: getCategory,
     staleTime: 5 * 60 * 1000,
   });
-  const selectCategories = filters.category ?? "all";
+  const selectCategories = filters.categories ?? [];
   const minPrice = filters.minPrice ?? 0;
   const maxPrice = filters.maxPrice ?? Infinity;
   const minRating = filters.minRating ?? 0;
@@ -112,9 +112,13 @@ const Store = () => {
               products found
             </div>
           </div>
-          <div className="flex w-full flex-col items-start gap-2 sm:w-auto sm:items-end">
-            <Button className="md:hidden" onClick={() => setFilterOpen(true)} icon={<SlidersHorizontal size={16} />}>
-              <span className="font-medium text-slate-600 text-sm">
+          <div className="flex w-full flex-wrap items-center justify-between gap-3 sm:w-auto sm:flex-nowrap">
+            <Button
+              className="!h-9 !w-fit !shrink-0"
+              onClick={() => setFilterOpen(true)}
+              icon={<SlidersHorizontal size={16} />}
+            >
+              <span className="whitespace-nowrap font-medium text-sm text-slate-600">
                 FILTERS
               </span>
             </Button>
@@ -132,7 +136,7 @@ const Store = () => {
                 setSelectCategories={(category) =>
                   setFilters((current) => ({
                     ...current,
-                    category: category === "all" ? undefined : category,
+                    category: category.length > 0 ? category : undefined,
                   }))
                 }
                 minPrice={minPrice}
@@ -159,33 +163,33 @@ const Store = () => {
               />
             </Drawer>
             <div ref={sortDropdownRef} className="relative w-full sm:w-56">
-            <button
-              type="button"
-              aria-label="Sort products"
-              aria-haspopup="listbox"
-              aria-expanded={isSortOpen}
-              onClick={() => setIsSortOpen((open) => !open)}
-              className={`flex h-9 w-full items-center justify-between rounded-lg border bg-white px-3 text-left text-sm font-medium shadow-sm outline-none transition focus:ring-2 focus:ring-slate-200 ${
-                isSortOpen
-                  ? "border-slate-400"
-                  : "border-slate-200 hover:border-slate-300"
-              }`}
-            >
-              <span
-                className={selectedSort ? "text-slate-800" : "text-slate-500"}
-              >
-                {selectedSort
-                  ? sortByValue.find(([value]) => value === selectedSort)?.[1]
-                  : "Sort by"}
-              </span>
-              <ChevronDown
-                aria-hidden="true"
-                size={16}
-                className={`shrink-0 text-slate-400 transition-transform ${
-                  isSortOpen ? "rotate-180" : ""
+              <button
+                type="button"
+                aria-label="Sort products"
+                aria-haspopup="listbox"
+                aria-expanded={isSortOpen}
+                onClick={() => setIsSortOpen((open) => !open)}
+                className={`flex h-9 w-full items-center justify-between rounded-lg border bg-white px-3 text-left text-sm font-medium shadow-sm outline-none transition focus:ring-2 focus:ring-slate-200 ${
+                  isSortOpen
+                    ? "border-slate-400"
+                    : "border-slate-200 hover:border-slate-300"
                 }`}
-              />
-            </button>
+              >
+                <span
+                  className={selectedSort ? "text-slate-800" : "text-slate-500"}
+                >
+                  {selectedSort
+                    ? sortByValue.find(([value]) => value === selectedSort)?.[1]
+                    : "Sort by"}
+                </span>
+                <ChevronDown
+                  aria-hidden="true"
+                  size={16}
+                  className={`shrink-0 text-slate-400 transition-transform ${
+                    isSortOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
               {isSortOpen && (
                 <div
                   role="listbox"
@@ -242,43 +246,10 @@ const Store = () => {
             </div>
           </div>
         </div>
-        <div className="mt-6 flex min-w-0 flex-col gap-6 md:flex-row">
-          <div className="hidden shrink-0 md:block">
-            <SideBar
-              categories={categories}
-              selectCategories={selectCategories}
-              setSelectCategories={(category) =>
-                setFilters((current) => ({
-                  ...current,
-                  category: category === "all" ? undefined : category,
-                }))
-              }
-              minPrice={minPrice}
-              setMinPrice={(price) =>
-                setFilters((current) => ({
-                  ...current,
-                  minPrice: price > 0 ? price : undefined,
-                }))
-              }
-              maxPrice={maxPrice}
-              setMaxPrice={(price) =>
-                setFilters((current) => ({
-                  ...current,
-                  maxPrice: Number.isFinite(price) ? price : undefined,
-                }))
-              }
-              minRating={minRating}
-              setMinRating={(rating) =>
-                setFilters((current) => ({
-                  ...current,
-                  minRating: rating > 0 ? rating : undefined,
-                }))
-              }
-            />
-          </div>
+        <div className="mt-6  min-w-0">
           <section className="min-w-0 flex-1">
             {products.length > 0 ? (
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 {products.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}

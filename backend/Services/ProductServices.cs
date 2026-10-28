@@ -41,15 +41,26 @@ public class ProductServices
         var skip = (page - 1) * pageSize;
         var filter = Builders<Product>.Filter.Empty;
 
-        var category = request.Category?.Trim();
+        var categories = (request.Categories ?? new List<string>())
+            .Select(category => category.Trim())
+            .Where(category => !string.IsNullOrWhiteSpace(category) &&
+            !string.Equals(
+                category,
+                "all",
+                StringComparison.OrdinalIgnoreCase))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
 
-        if (!string.IsNullOrWhiteSpace(category) && !string.Equals(category, "all", StringComparison.OrdinalIgnoreCase))
+        if (categories.Count > 0)
         {
-            filter &= Builders<Product>.Filter.Regex(
-                product => product.Category,
-                new BsonRegularExpression($"^{Regex.Escape(category)}$",
-            "i")
-            );
+            var categoryFilters = categories.Select(category =>
+                Builders<Product>.Filter.Regex(
+                    product => product.Category,
+                    new BsonRegularExpression(
+                        $"^{Regex.Escape(category)}$",
+                        "i")));
+
+            filter &= Builders<Product>.Filter.Or(categoryFilters);
         }
         var search = request.Search?.Trim();
         if (!string.IsNullOrWhiteSpace(search))
@@ -65,20 +76,20 @@ public class ProductServices
                 Builders<Product>.Filter.Regex(product => product.Category, searchPattern)
             );
         }
-        if (request.MinPrice is not null)
+        if (request.MinPrice.HasValue)
         {
             filter &= Builders<Product>.Filter.Gte(
                 product => product.Price,
                 request.MinPrice.Value);
         }
 
-        if (request.MaxPrice is not null)
+        if (request.MaxPrice.HasValue)
         {
             filter &= Builders<Product>.Filter.Lte(
                 product => product.Price,
                 request.MaxPrice.Value);
         }
-        if (request.MinRating is not null)
+        if (request.MinRating.HasValue )
         {
             filter &= Builders<Product>.Filter.Gte(
                 product => product.Rating,

@@ -3,8 +3,8 @@ import { ChevronDown, Search, X } from "lucide-react";
 
 interface FilterCategories {
   categories: string[];
-  selectCategories: string;
-  setSelectCategories: (category: string) => void;
+  selectCategories: string[];
+  setSelectCategories: (categories: string[]) => void;
   minPrice: number;
   setMinPrice: (price: number) => void;
   maxPrice: number;
@@ -67,14 +67,14 @@ export const SideBar = ({
   };
 
   const clearFilters = () => {
-    setSelectCategories("all");
+    setSelectCategories([]);
     setMinPrice(0);
     setMaxPrice(Infinity);
     setMinRating(0);
   };
 
   const activeFilters =
-    (selectCategories !== "all" ? 1 : 0) +
+    selectCategories.length +
     (minPrice > 0 || maxPrice !== Infinity ? 1 : 0) +
     (minRating > 0 ? 1 : 0);
 
@@ -96,7 +96,9 @@ export const SideBar = ({
         </span>
         <ChevronDown size={16} className={mobileOpen ? "rotate-180" : ""} />
       </button>
-      <div className={`${mobileOpen || alwaysOpen ? "block" : "hidden"} md:block`}>
+      <div
+        className={`${mobileOpen || alwaysOpen ? "block" : "hidden"} md:block`}
+      >
         {/* Active filters */}
         <section className="border-b border-slate-200 pb-4">
           <div className="flex items-center justify-between gap-2 py-3">
@@ -113,18 +115,23 @@ export const SideBar = ({
           </div>
 
           <div className="flex flex-wrap gap-1.5">
-            {selectCategories !== "all" && (
+            {selectCategories.map((category) => (
               <button
+                key={category}
                 type="button"
-                onClick={() => setSelectCategories("all")}
+                onClick={() =>
+                  setSelectCategories(
+                    selectCategories.filter((item) => item !== category),
+                  )
+                }
                 className="inline-flex items-center gap-1 rounded-full bg-blue-700 px-2.5 py-1 text-[10px] font-medium text-white"
               >
                 <span className="capitalize">
-                  {selectCategories.replaceAll("-", " ")}
+                  {category.replaceAll("-", " ")}
                 </span>
                 <X size={12} />
               </button>
-            )}
+            ))}
 
             {(minPrice > 0 || maxPrice !== Infinity) && (
               <button
@@ -158,6 +165,7 @@ export const SideBar = ({
         </section>
 
         {/* Categories */}
+        {/* Categories */}
         <section className="border-b border-slate-200 pb-2">
           <SectionTitle
             title="Categories"
@@ -167,28 +175,31 @@ export const SideBar = ({
 
           {openSections.categories && (
             <div className="space-y-2 pb-3">
-              <label className="flex cursor-pointer items-center gap-2 text-xs text-slate-600 hover:text-slate-950">
-                <input
-                  type="radio"
-                  name="category"
-                  checked={selectCategories === "all"}
-                  onChange={() => setSelectCategories("all")}
-                  className="size-3.5 accent-blue-600"
-                />
-                <span>All products</span>
-              </label>
               {categories.map((category) => (
                 <label
                   key={category}
                   className="flex cursor-pointer items-center gap-2 text-xs text-slate-600 hover:text-slate-950"
                 >
                   <input
-                    type="radio"
-                    name="category"
-                    checked={selectCategories === category}
-                    onChange={() => setSelectCategories(category)}
+                    type="checkbox"
+                    checked={selectCategories.includes(category)}
+                    onChange={(event) => {
+                      if (event.target.checked) {
+                        setSelectCategories([
+                          ...selectCategories,
+                          category,
+                        ]);
+                      } else {
+                        setSelectCategories(
+                          selectCategories.filter(
+                            (item) => item !== category,
+                          ),
+                        );
+                      }
+                    }}
                     className="size-3.5 accent-blue-600"
                   />
+
                   <span className="capitalize">
                     {category.replaceAll("-", " ")}
                   </span>
