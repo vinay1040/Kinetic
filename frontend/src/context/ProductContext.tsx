@@ -46,7 +46,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     setFilters(newFilter);
     setPage(1);
   };
-  const [debouncedSearch] = useDebounce(filters.search ?? "", 300);
+  const [debouncedSearch] = useDebounce(filters.search ?? "", 500);
   const priceRange = useMemo(
     () => ({
       minPrice: filters.minPrice,
@@ -54,7 +54,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     }),
     [filters.minPrice, filters.maxPrice],
   );
-  const [debouncePriceRange] = useDebounce(priceRange, 300);
+  const [debouncePriceRange] = useDebounce(priceRange, 500);
   const queryFilters = useMemo<ProductFilters>(
     () => ({
       ...filters,

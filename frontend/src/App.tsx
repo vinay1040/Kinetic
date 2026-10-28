@@ -15,11 +15,11 @@ import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import AccountLayout from "./layouts/accountLayout";
 import AccountOverview from "./components/account/accountOverview";
 import Orders from "./components/account/Orders";
-import Setting from "./pages/Setting";
 import OrderDetail from "./components/account/OrderDetail";
 import AdminLayout from "./layouts/AdminLayouts";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import { ProductProvider } from "./context/ProductContext";
+import { SettingPage } from "./components/settings/settingPage";
 
 const App = () => {
   return (
@@ -51,7 +51,7 @@ const App = () => {
                           path="/profile/orders/:orderId"
                           element={<OrderDetail />}
                         />
-                        <Route path="/profile/settings" element={<Setting />} />
+                        <Route path="/profile/settings" element={<SettingPage />} />
                       </Route>
 
                       <Route path="/wishlist" element={<Wishlist />} />

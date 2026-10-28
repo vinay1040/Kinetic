@@ -126,6 +126,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     queryClient.removeQueries({
       queryKey: ["cart"],
     });
+    queryClient.removeQueries({
+      queryKey:["addresses"],
+    });
     setSession(null);
     if (refreshToken) {
       try {

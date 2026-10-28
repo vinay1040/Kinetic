@@ -1,4 +1,4 @@
-import { Button, Form, Input } from "antd";
+import { Button, Form, Input, message } from "antd";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useAuth } from "@/context/AuthContext";
@@ -7,10 +7,17 @@ const validationSchema = Yup.object({
   name: Yup.string()
     .min(2, "name must atleast 2 characters")
     .required("Name is required"),
-  email: Yup.string().email("Invalid email").required("email is required"),
+  email: Yup.string()
+    .trim()
+    .email("Invalid email")
+    .required("email is required"),
 });
 
-export const ProfileForm = () => {
+interface ProfileFormProp {
+  onCancel: () => void;
+}
+
+export const ProfileForm = ({ onCancel }: ProfileFormProp) => {
   const { user, updateProfile } = useAuth();
   const formik = useFormik({
     initialValues: {
@@ -22,43 +29,44 @@ export const ProfileForm = () => {
 
     validationSchema,
 
-    onSubmit: (values) => {
-      updateProfile({
-        name: values.name,
-        email: values.email,
-      });
+    onSubmit: async (values) => {
+      try {
+        await updateProfile({
+          name: values.name.trim(),
+          email: values.email.trim(),
+        });
+        message.success("Profile Updated successfully");
+        onCancel();
+      } catch {
+        message.error("Unable to update your profile.Please Try again");
+      }
     },
   });
   return (
     <Form layout="vertical" onFinish={formik.handleSubmit}>
       <Form.Item
-        label="Name"
+        label="Full name"
         validateStatus={
           formik.touched.name && formik.errors.name ? "error" : ""
         }
-        help={
-          formik.touched.name && formik.errors.name ? formik.errors.name : null
-        }
+        help={formik.touched.name && formik.errors.name}
       >
         <Input
           name="name"
           value={formik.values.name}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
-          placeholder="John Doe"
+          placeholder="Enter your full name"
+          autoComplete="name"
         />
       </Form.Item>
 
       <Form.Item
-        label="Email"
+        label="Email address"
         validateStatus={
           formik.touched.email && formik.errors.email ? "error" : ""
         }
-        help={
-          formik.touched.email && formik.errors.email
-            ? formik.errors.email
-            : null
-        }
+        help={formik.touched.email && formik.errors.email}
       >
         <Input
           name="email"
@@ -66,13 +74,20 @@ export const ProfileForm = () => {
           value={formik.values.email}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
-          placeholder="john@example.com"
+          placeholder="you@example.com"
+          autoComplete="email"
         />
       </Form.Item>
 
-      <Button type="primary" htmlType="submit">
-        Update Profile
-      </Button>
+      <div className="flex flex-wrap justify-end gap-3">
+        <Button onClick={onCancel} disabled={formik.isSubmitting}>
+          Cancel
+        </Button>
+
+        <Button type="primary" htmlType="submit" loading={formik.isSubmitting}>
+          Save changes
+        </Button>
+      </div>
     </Form>
   );
 };
