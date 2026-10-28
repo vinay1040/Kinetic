@@ -20,8 +20,9 @@ export const AddToCart = ({ product, variant }: AddToCart) => {
     return (
       <Button
         type="primary"
+        aria-label={`Add ${product.title} to cart`}
         onClick={handleAddToCart}
-        className="cursor-pointer rounded-lg bg-black px-4 py-2 text-sm text-white"
+        className="h-9 min-w-9 cursor-pointer rounded-lg bg-black px-3 py-2 text-sm text-white"
       >
         <ShoppingBag size={18} />
       </Button>

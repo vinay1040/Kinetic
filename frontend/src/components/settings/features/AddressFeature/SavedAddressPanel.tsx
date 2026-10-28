@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   Alert,
@@ -18,15 +17,13 @@ import {
 } from "antd";
 import { MapPin, Plus, Pencil, Trash2 } from "lucide-react";
 
-import {
-  type Address,
-  type AddressRequest,
-} from "@/services/AddressService";
+import { type Address, type AddressRequest } from "@/services/AddressService";
 import { useAddress } from "@/hooks/AddressHook/useAddress";
 import { useAddAddress } from "@/hooks/AddressHook/useAddAddress";
 import { useUpdateAddress } from "@/hooks/AddressHook/useUpdateAddress";
 import { useAddressDelete } from "@/hooks/AddressHook/useAddressDelete";
 import { AddressForm } from "@/components/auth/address-form";
+import { AddAddressCard } from "./AddAddressCard";
 
 const { Text } = Typography;
 
@@ -144,11 +141,7 @@ export const SavedAddressesPanel = () => {
           </p>
         </div>
 
-        <Button
-          type="primary"
-          icon={<Plus size={16} />}
-          onClick={openAddModal}
-        >
+        <Button type="primary" icon={<Plus size={16} />} onClick={openAddModal}>
           Add address
         </Button>
       </div>
@@ -163,9 +156,7 @@ export const SavedAddressesPanel = () => {
           showIcon
           message="Could not load your addresses"
           description={
-            error instanceof Error
-              ? error.message
-              : "Please try again."
+            error instanceof Error ? error.message : "Please try again."
           }
           action={
             <Button size="small" onClick={() => void refetch()}>
@@ -193,9 +184,7 @@ export const SavedAddressesPanel = () => {
                 <Space wrap>
                   <MapPin size={17} />
                   <span>{address.label}</span>
-                  {address.isDefault && (
-                    <Tag color="green">Default</Tag>
-                  )}
+                  {address.isDefault && <Tag color="green">Default</Tag>}
                 </Space>
               }
               extra={
@@ -250,7 +239,11 @@ export const SavedAddressesPanel = () => {
         footer={null}
         destroyOnHidden
       >
-        <AddressForm></AddressForm>
+        <AddAddressCard
+          isSaving={isSaving}
+          onSubmit={handleSave}
+          onCancel={closeModal}
+        />
       </Modal>
     </section>
   );

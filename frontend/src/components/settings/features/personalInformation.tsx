@@ -12,7 +12,7 @@ export const PersonalInformation = ({
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-start gap-5 border-b border-slate-200 px-5 py-7 text-left transition hover:bg-slate-50"
+      className="flex w-full items-start gap-5 border-b border-slate-200 px-2 py-3 text-left transition hover:bg-slate-50"
     >
       <UserRound className="mt-1 shrink-0" size={25} />
 

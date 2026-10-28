@@ -23,7 +23,7 @@ import { SettingPage } from "./components/settings/settingPage";
 
 const App = () => {
   return (
-    <div>
+    <div className="bg-blue-25">
       <ProductProvider>
         <AuthProvider>
           <CartProvider>

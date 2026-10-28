@@ -14,7 +14,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
   return (
     <Link to={`/product/${product.id}`} className="group block h-full">
       <div className="flex h-full flex-col overflow-hidden rounded-xl border bg-white shadow-sm">
-        <div className="relative h-60 shrink-0 overflow-hidden bg-gray-100">
+        <div className="relative aspect-[4/3] shrink-0 overflow-hidden bg-gray-100 sm:aspect-auto sm:h-60">
           <button
             type="button"
             aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
@@ -36,21 +36,18 @@ const ProductCard = ({ product }: ProductCardProps) => {
             className="h-full w-full object-cover"
           />
         </div>
-        <div className="flex flex-1 flex-col p-4">
-          <h2 className="line-clamp-1 min-h-7 text-lg font-semibold">
+        <div className="flex flex-1 flex-col p-3 sm:p-4">
+          <h2 className="line-clamp-1 min-h-6 text-base font-semibold sm:min-h-7 sm:text-lg">
             {product.title}
           </h2>
-          <p className="mt-2 line-clamp-2 min-h-10 text-sm text-gray-500">
-            {product.description}
-          </p>
 
           <div className="mt-3 flex items-center gap-1">
             <span className="text-yellow-500">★</span>
             <span className="text-sm font-medium">{product.rating}</span>
           </div>
 
-          <div className="mt-auto md:flex items-center justify-between pt-4">
-            <span className="text-lg my-2 font-bold">${product.price}</span>
+          <div className="mt-auto flex flex-wrap items-center justify-between gap-2 pt-4">
+            <span className="text-lg font-bold">${product.price}</span>
 
             <AddToCart product={product} variant="card" />
           </div>
