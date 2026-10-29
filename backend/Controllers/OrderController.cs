@@ -20,8 +20,8 @@ public class OrderController : ControllerBase
     public async Task<IActionResult> CreateOrder([FromBody] OrderRequest request)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if(string.IsNullOrWhiteSpace(userId)) return Unauthorized();
-        var order = await _orderService.CreateOrderAsync(userId,request);
+        if (string.IsNullOrWhiteSpace(userId)) return Unauthorized();
+        var order = await _orderService.CreateOrderAsync(userId, request);
         if (order is null)
         {
             return BadRequest(new
@@ -40,7 +40,7 @@ public class OrderController : ControllerBase
     public async Task<IActionResult> GetOrder()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if(string.IsNullOrWhiteSpace(userId)) return Unauthorized();
+        if (string.IsNullOrWhiteSpace(userId)) return Unauthorized();
         var order = await _orderService.GetOrdersAsync(userId);
         return Ok(order);
     }
@@ -49,9 +49,9 @@ public class OrderController : ControllerBase
     public async Task<IActionResult> GetOrderById(string id)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if(string.IsNullOrWhiteSpace(userId)) return Unauthorized();
-        var order = await _orderService.GetOrderByIdAsync(userId,id);
-        if(order is null)
+        if (string.IsNullOrWhiteSpace(userId)) return Unauthorized();
+        var order = await _orderService.GetOrderByIdAsync(userId, id);
+        if (order is null)
         {
             return NotFound(new
             {
@@ -60,4 +60,57 @@ public class OrderController : ControllerBase
         }
         return Ok(order);
     }
+
+
+    // POST: api/order/{id}/confirm
+    [HttpPost("{id}/confirm")]
+    [Authorize(Policy = "ActiveUser", Roles = "Admin")]
+    public async Task<IActionResult> ConfirmOrder(string id)
+    {
+        var order = await _orderService.ConfirmOrderAsync(id);
+
+        if (order is null)
+        {
+            return BadRequest(new
+            {
+                message = "Order not found, not pending, or inventory reservation failed."
+            });
+        }
+
+        return Ok(new
+        {
+            message = "Order confirmed successfully.",
+            order
+        });
+    }
+
+    // POST: api/order/{id}/cancel
+    [HttpPost("{id}/cancel")]
+    [Authorize(Policy = "ActiveUser")]
+    public async Task<IActionResult> CancelOrder(string id)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return Unauthorized();
+        }
+
+        var order = await _orderService.CancelOrderAsync(id, userId);
+
+        if (order is null)
+        {
+            return NotFound(new
+            {
+                message = "Order not found, does not belong to you, or cannot be cancelled."
+            });
+        }
+
+        return Ok(new
+        {
+            message = "Order cancelled successfully.",
+            order
+        });
+    }
+
 }

@@ -204,9 +204,7 @@ public class OrderService
             .ToListAsync();
     }
 
-    public async Task<Order?> GetOrderByIdAsync(
-        string userId,
-        string orderId)
+    public async Task<Order?> GetOrderByIdAsync(string userId, string orderId)
     {
         if (!ObjectId.TryParse(
                 orderId,
@@ -220,5 +218,152 @@ public class OrderService
                 o.Id == orderObjectId &&
                 o.UserId == userId)
             .FirstOrDefaultAsync();
+    }
+
+    public async Task<Order?> ConfirmOrderAsync(string orderId)
+    {
+        if (!ObjectId.TryParse(orderId, out var orderObjectId))
+            return null;
+
+        using var session = await _context.Client.StartSessionAsync();
+        session.StartTransaction();
+
+        var committed = false;
+
+        try
+        {
+            var order = await _context.Order
+                .Find(session, o => o.Id == orderObjectId)
+                .FirstOrDefaultAsync();
+
+            if (order is null || order.Status != OrderStatus.Pending)
+                return null;
+
+            // Convert each reservation into a completed stock deduction.
+            foreach (var item in order.Items)
+            {
+                if (!ObjectId.TryParse(item.ProductId, out var productObjectId))
+                    return null;
+
+                var filter = Builders<Inventory>.Filter.And(
+                    Builders<Inventory>.Filter.Eq(
+                        inventory => inventory.ProductId, productObjectId),
+                    Builders<Inventory>.Filter.Gte(
+                        inventory => inventory.ReservedQuantity, item.Quantity),
+                    Builders<Inventory>.Filter.Gte(
+                        inventory => inventory.OnHandQuantity, item.Quantity));
+
+                var update = Builders<Inventory>.Update
+                    .Inc(inventory => inventory.OnHandQuantity, -item.Quantity)
+                    .Inc(inventory => inventory.ReservedQuantity, -item.Quantity)
+                    .Set(inventory => inventory.UpdatedAt, DateTime.UtcNow);
+
+                var result = await _context.Inventory.UpdateOneAsync(
+                    session, filter, update);
+
+                if (result.ModifiedCount != 1)
+                    return null;
+            }
+
+            var orderUpdate = Builders<Order>.Update
+                .Set(o => o.Status, OrderStatus.Confirmed)
+                .Set(o => o.UpdatedAt, DateTime.UtcNow);
+
+            await _context.Order.UpdateOneAsync(
+                session,
+                o => o.Id == orderObjectId &&
+                     o.Status == OrderStatus.Pending,
+                orderUpdate);
+
+            await session.CommitTransactionAsync();
+            committed = true;
+
+            order.Status = OrderStatus.Confirmed;
+            order.UpdatedAt = DateTime.UtcNow;
+
+            return order;
+        }
+        finally
+        {
+            if (!committed && session.IsInTransaction)
+                await session.AbortTransactionAsync();
+        }
+    }
+
+    public async Task<Order?> CancelOrderAsync(
+        string orderId,
+        string? requestingUserId = null)
+    {
+        if (!ObjectId.TryParse(orderId, out var orderObjectId))
+            return null;
+
+        using var session = await _context.Client.StartSessionAsync();
+        session.StartTransaction();
+
+        var committed = false;
+
+        try
+        {
+            var filter = Builders<Order>.Filter.And(
+                Builders<Order>.Filter.Eq(o => o.Id, orderObjectId),
+                Builders<Order>.Filter.In(
+                    o => o.Status,
+                    new[] { OrderStatus.Pending, OrderStatus.Confirmed }),
+                requestingUserId is null
+                    ? Builders<Order>.Filter.Empty
+                    : Builders<Order>.Filter.Eq(o => o.UserId, requestingUserId));
+
+            var order = await _context.Order
+                .Find(session, filter)
+                .FirstOrDefaultAsync();
+
+            if (order is null)
+                return null;
+
+            foreach (var item in order.Items)
+            {
+                if (!ObjectId.TryParse(item.ProductId, out var productObjectId))
+                    return null;
+
+                var inventoryFilter = Builders<Inventory>.Filter.And(
+                    Builders<Inventory>.Filter.Eq(
+                        inventory => inventory.ProductId, productObjectId),
+                    Builders<Inventory>.Filter.Gte(
+                        inventory => inventory.ReservedQuantity, item.Quantity));
+
+                var inventoryUpdate = Builders<Inventory>.Update
+                    .Inc(inventory => inventory.ReservedQuantity, -item.Quantity)
+                    .Set(inventory => inventory.UpdatedAt, DateTime.UtcNow);
+
+                var result = await _context.Inventory.UpdateOneAsync(
+                    session, inventoryFilter, inventoryUpdate);
+
+                if (result.ModifiedCount != 1)
+                    return null;
+            }
+
+            var orderUpdate = Builders<Order>.Update
+                .Set(o => o.Status, OrderStatus.Cancelled)
+                .Set(o => o.UpdatedAt, DateTime.UtcNow);
+
+            await _context.Order.UpdateOneAsync(
+                session,
+                o => o.Id == orderObjectId &&
+                     o.Status == order.Status,
+                orderUpdate);
+
+            await session.CommitTransactionAsync();
+            committed = true;
+
+            order.Status = OrderStatus.Cancelled;
+            order.UpdatedAt = DateTime.UtcNow;
+
+            return order;
+        }
+        finally
+        {
+            if (!committed && session.IsInTransaction)
+                await session.AbortTransactionAsync();
+        }
     }
 }
