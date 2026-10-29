@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from "react";
 import ProductCard from "@/components/products/ProductCard";
 import { SideBar } from "@/components/SideBar";
@@ -11,6 +12,7 @@ const Store = () => {
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [isFilterOpen, setFilterOpen] = useState(false);
   const sortDropdownRef = useRef<HTMLDivElement>(null);
+
   const {
     products,
     page,
@@ -26,10 +28,12 @@ const Store = () => {
     queryFn: getCategory,
     staleTime: 5 * 60 * 1000,
   });
+
   const selectCategories = filters.categories ?? [];
   const minPrice = filters.minPrice ?? 0;
   const maxPrice = filters.maxPrice ?? Infinity;
   const minRating = filters.minRating ?? 0;
+
   const selectedSort =
     filters.sortBy && filters.sortOrder
       ? `${filters.sortBy}-${filters.sortOrder}`
@@ -44,45 +48,27 @@ const Store = () => {
         setIsSortOpen(false);
       }
     };
+
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setIsSortOpen(false);
+      if (event.key === "Escape") {
+        setIsSortOpen(false);
+      }
     };
 
     document.addEventListener("mousedown", closeOnOutsideClick);
     document.addEventListener("keydown", closeOnEscape);
+
     return () => {
       document.removeEventListener("mousedown", closeOnOutsideClick);
       document.removeEventListener("keydown", closeOnEscape);
     };
   }, []);
-  // const [selectCategories, setSelectCategories] = useState("all");
 
-  // const [minPrice, setMinPrice] = useState(0);
-  // const [maxPrice, setMaxPrice] = useState(Infinity);
-  // const [minRating, setMinRating] = useState(0);
-
-  // const [search, setSearch] = useState("");
-
-  // const filteredProducts = useMemo(() => {
-  //   return products?.filter((product) => {
-  //     const categoryMatch =
-  //       selectCategories === "all" || product.category === selectCategories;
-
-  //     const priceMatch = product.price >= minPrice && product.price <= maxPrice;
-
-  //     const ratingMatch = product.rating >= minRating;
-
-  //     const searchMatch = (product.title ?? "")
-  //       .toLowerCase()
-  //       .includes(search.toLowerCase());
-
-  //     return categoryMatch && priceMatch && ratingMatch && searchMatch;
-  //   });
-  // }, [products, selectCategories, minPrice, maxPrice, minRating, search]);
   const pageNumbers = Array.from(
     { length: totalPages },
     (_, index) => index + 1,
   );
+
   const sortByValue = [
     ["default", "Default"],
     ["price-asc", "Price: Low to High"],
@@ -94,17 +80,21 @@ const Store = () => {
     ["title-asc", "Title: A to Z"],
     ["title-desc", "Title: Z to A"],
   ];
+
   return (
     <main className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
+        {/* Header */}
         <div className="flex w-full flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">
               Computing Gear
             </h1>
+
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
               Discover precision-engineered technology designed for modern life.
             </p>
+
             <div className="text-left text-sm text-slate-500">
               <span className="font-semibold text-slate-900">
                 {totalProducts}
@@ -112,9 +102,11 @@ const Store = () => {
               products found
             </div>
           </div>
-          <div className="flex w-full flex-wrap items-center justify-between gap-3 sm:w-auto sm:flex-nowrap">
+
+          {/* Filter button and sort dropdown */}
+          <div className="flex w-full items-center gap-3 sm:w-auto sm:flex-nowrap">
             <Button
-              className="!h-9 !w-fit !shrink-0"
+              className="!h-9 !shrink-0"
               onClick={() => setFilterOpen(true)}
               icon={<SlidersHorizontal size={16} />}
             >
@@ -122,46 +114,7 @@ const Store = () => {
                 FILTERS
               </span>
             </Button>
-            <Drawer
-              title="Filters"
-              placement="left"
-              open={isFilterOpen}
-              onClose={() => setFilterOpen(false)}
-              width="min(88vw, 360px)"
-            >
-              <SideBar
-                alwaysOpen
-                categories={categories}
-                selectCategories={selectCategories}
-                setSelectCategories={(category) =>
-                  setFilters((current) => ({
-                    ...current,
-                    category: category.length > 0 ? category : undefined,
-                  }))
-                }
-                minPrice={minPrice}
-                setMinPrice={(price) =>
-                  setFilters((current) => ({
-                    ...current,
-                    minPrice: price > 0 ? price : undefined,
-                  }))
-                }
-                maxPrice={maxPrice}
-                setMaxPrice={(price) =>
-                  setFilters((current) => ({
-                    ...current,
-                    maxPrice: Number.isFinite(price) ? price : undefined,
-                  }))
-                }
-                minRating={minRating}
-                setMinRating={(rating) =>
-                  setFilters((current) => ({
-                    ...current,
-                    minRating: rating > 0 ? rating : undefined,
-                  }))
-                }
-              />
-            </Drawer>
+
             <div ref={sortDropdownRef} className="relative w-full sm:w-56">
               <button
                 type="button"
@@ -182,6 +135,7 @@ const Store = () => {
                     ? sortByValue.find(([value]) => value === selectedSort)?.[1]
                     : "Sort by"}
                 </span>
+
                 <ChevronDown
                   aria-hidden="true"
                   size={16}
@@ -190,6 +144,7 @@ const Store = () => {
                   }`}
                 />
               </button>
+
               {isSortOpen && (
                 <div
                   role="listbox"
@@ -199,6 +154,7 @@ const Store = () => {
                   <p className="px-2.5 pb-1.5 pt-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
                     Sort products
                   </p>
+
                   {sortByValue.map(([value, label]) => (
                     <button
                       key={value}
@@ -221,11 +177,13 @@ const Store = () => {
                           "price" | "rating" | "stock" | "title",
                           "asc" | "desc",
                         ];
+
                         setFilters((current) => ({
                           ...current,
                           sortBy,
                           sortOrder,
                         }));
+
                         setPage(1);
                         setIsSortOpen(false);
                       }}
@@ -236,6 +194,7 @@ const Store = () => {
                       }`}
                     >
                       {label}
+
                       {selectedSort === value && (
                         <Check size={15} className="text-slate-700" />
                       )}
@@ -246,7 +205,78 @@ const Store = () => {
             </div>
           </div>
         </div>
-        <div className="mt-6  min-w-0">
+
+        {/* Drawer is outside the header */}
+        
+{isFilterOpen && (
+  <div
+    className="fixed inset-0 z-[1000] bg-black/40"
+    onClick={() => setFilterOpen(false)}
+  >
+    <aside
+      role="dialog"
+      aria-modal="true"
+      aria-label="Product filters"
+      className="absolute inset-y-0 left-0 flex w-[min(88vw,360px)] flex-col overflow-y-auto overscroll-contain border-r border-slate-200 bg-white shadow-xl"
+      onClick={(event) => event.stopPropagation()}
+    >
+      <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b border-slate-200 bg-white px-5 py-4">
+        <h2 className="text-lg font-semibold text-slate-900">
+          Filters
+        </h2>
+
+        <button
+          type="button"
+          aria-label="Close filters"
+          onClick={() => setFilterOpen(false)}
+          className="rounded-md p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+        >
+          <span aria-hidden="true" className="text-2xl leading-none">
+            ×
+          </span>
+        </button>
+      </div>
+
+      <div className="min-h-0 flex-1 px-4">
+        <SideBar
+          categories={categories}
+          selectCategories={selectCategories}
+          setSelectCategories={(selected) =>
+            setFilters((current) => ({
+              ...current,
+              categories: selected.length > 0 ? selected : undefined,
+            }))
+          }
+          minPrice={minPrice}
+          setMinPrice={(price) =>
+            setFilters((current) => ({
+              ...current,
+              minPrice: price > 0 ? price : undefined,
+            }))
+          }
+          maxPrice={maxPrice}
+          setMaxPrice={(price) =>
+            setFilters((current) => ({
+              ...current,
+              maxPrice: Number.isFinite(price) ? price : undefined,
+            }))
+          }
+          minRating={minRating}
+          setMinRating={(rating) =>
+            setFilters((current) => ({
+              ...current,
+              minRating: rating > 0 ? rating : undefined,
+            }))
+          }
+        />
+      </div>
+    </aside>
+  </div>
+)}
+
+
+        {/* Product grid */}
+        <div className="mt-6 min-w-0">
           <section className="min-w-0 flex-1">
             {products.length > 0 ? (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -265,9 +295,13 @@ const Store = () => {
                 </p>
               </div>
             )}
+
             <div className="mt-6 overflow-x-auto pb-1">
               <div className="flex w-max min-w-full items-center justify-center gap-2">
-                <Button disabled={page === 1} onClick={() => setPage(page - 1)}>
+                <Button
+                  disabled={page === 1}
+                  onClick={() => setPage(page - 1)}
+                >
                   Previous
                 </Button>
 

@@ -1,10 +1,11 @@
+
+using System.Text.RegularExpressions;
 using backend.data;
 using backend.DTOs.Products;
 using backend.Models;
-using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using System.Text.RegularExpressions;
+
 namespace backend.Services;
 
 public class ProductServices
@@ -21,33 +22,38 @@ public class ProductServices
         return new ProductResponse
         {
             Id = product.Id.ToString(),
-            Images = product.Images,
-            Thumbnail = product.Thumbnail,
             Title = product.Title,
-            Description = product.Description,
-            Price = product.Price,
-            DiscountPercentage = product.DiscountPercentage,
+            MainCategory = product.MainCategory,
+            SubCategory = product.SubCategory,
             Category = product.Category,
-            Stock = product.Stock,
+            Thumbnail = product.Thumbnail,
+            Images = product.Images,
+            Price = product.Price,
+            OriginalPrice = product.OriginalPrice,
             Rating = product.Rating,
-            Brand = product.Brand
+            NumberOfRatings = product.NumberOfRatings,
+            ExternalUrl = product.ExternalUrl
         };
     }
 
-    public async Task<PaginationResponse> GetProducts([FromQuery] ProductPaginationRequest request)
+    public async Task<PaginationResponse> GetProducts(
+        ProductPaginationRequest request)
     {
-        var page = request.Page;
-        var pageSize = request.PageSize;
+        var page = Math.Max(1, request.Page);
+        var pageSize = Math.Clamp(request.PageSize, 1, 100);
         var skip = (page - 1) * pageSize;
+
         var filter = Builders<Product>.Filter.Empty;
 
+        // Multi-category filtering: match any selected category.
         var categories = (request.Categories ?? new List<string>())
+            .Where(category => !string.IsNullOrWhiteSpace(category))
             .Select(category => category.Trim())
-            .Where(category => !string.IsNullOrWhiteSpace(category) &&
-            !string.Equals(
-                category,
-                "all",
-                StringComparison.OrdinalIgnoreCase))
+            .Where(category =>
+                !string.Equals(
+                    category,
+                    "all",
+                    StringComparison.OrdinalIgnoreCase))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
 
@@ -62,20 +68,27 @@ public class ProductServices
 
             filter &= Builders<Product>.Filter.Or(categoryFilters);
         }
+
+        // Search product title and category hierarchy.
         var search = request.Search?.Trim();
+
         if (!string.IsNullOrWhiteSpace(search))
         {
             var searchPattern = new BsonRegularExpression(
                 Regex.Escape(search),
-                "i"
-            );
+                "i");
+
             filter &= Builders<Product>.Filter.Or(
-                Builders<Product>.Filter.Regex(product => product.Title, searchPattern),
-                Builders<Product>.Filter.Regex(product => product.Description, searchPattern),
-                Builders<Product>.Filter.Regex(product => product.Brand, searchPattern),
-                Builders<Product>.Filter.Regex(product => product.Category, searchPattern)
-            );
+                Builders<Product>.Filter.Regex(
+                    product => product.Title, searchPattern),
+                Builders<Product>.Filter.Regex(
+                    product => product.Category, searchPattern),
+                Builders<Product>.Filter.Regex(
+                    product => product.MainCategory, searchPattern),
+                Builders<Product>.Filter.Regex(
+                    product => product.SubCategory, searchPattern));
         }
+
         if (request.MinPrice.HasValue)
         {
             filter &= Builders<Product>.Filter.Gte(
@@ -89,62 +102,47 @@ public class ProductServices
                 product => product.Price,
                 request.MaxPrice.Value);
         }
-        if (request.MinRating.HasValue )
+
+        if (request.MinRating.HasValue)
         {
             filter &= Builders<Product>.Filter.Gte(
                 product => product.Rating,
                 request.MinRating.Value);
         }
-        var totalProducts = await _context.Products.CountDocumentsAsync(filter);
-        var sortOrder = request.SortOrder?.ToLower();
-        SortDefinition<Product>? sort = null;
-        switch (request.SortBy?.ToLower())
-        {
-            case "price":
-                sort = sortOrder == "desc"
-                    ? Builders<Product>.Sort.Descending(product => product.Price)
-                    : Builders<Product>.Sort.Ascending(product => product.Price);
-                break;
 
-            case "rating":
-                sort = sortOrder == "desc"
-                    ? Builders<Product>.Sort.Descending(product => product.Rating)
-                    : Builders<Product>.Sort.Ascending(product => product.Rating);
-                break;
+        var totalProducts =
+            await _context.Products.CountDocumentsAsync(filter);
 
-            case "stock":
-                sort = sortOrder == "desc"
-                    ? Builders<Product>.Sort.Descending(product => product.Stock)
-                    : Builders<Product>.Sort.Ascending(product => product.Stock);
-                break;
+        var sortOrder = request.SortOrder?.ToLowerInvariant();
+        var descending = sortOrder == "desc";
 
-            case "title":
-                sort = sortOrder == "desc"
-                    ? Builders<Product>.Sort.Descending(product => product.Title)
-                    : Builders<Product>.Sort.Ascending(product => product.Title);
-                break;
-        }
-        var query = _context.Products.Find(filter);
+        SortDefinition<Product> sort = request.SortBy?.ToLowerInvariant()
+            switch
+            {
+                "price" => descending
+                    ? Builders<Product>.Sort.Descending(p => p.Price)
+                    : Builders<Product>.Sort.Ascending(p => p.Price),
 
-        if (sort is not null)
-        {
-            var combinedSort = Builders<Product>.Sort.Combine(
-                sort,
-                Builders<Product>.Sort.Ascending(product => product.Id)
-            );
+                "rating" => descending
+                    ? Builders<Product>.Sort.Descending(p => p.Rating)
+                    : Builders<Product>.Sort.Ascending(p => p.Rating),
 
-            query = query.Sort(combinedSort);
-        }
-        else
-        {
-            query = query.Sort(
-                Builders<Product>.Sort.Ascending(product => product.Id));
-        }
-        var products = await query
+                "title" => descending
+                    ? Builders<Product>.Sort.Descending(p => p.Title)
+                    : Builders<Product>.Sort.Ascending(p => p.Title),
+
+                _ => Builders<Product>.Sort.Ascending(p => p.Id)
+            };
+
+        var products = await _context.Products
+            .Find(filter)
+            .Sort(sort)
             .Skip(skip)
             .Limit(pageSize)
             .ToListAsync();
-        var totalPage = (int)Math.Ceiling((double)totalProducts / pageSize);
+
+        var totalPages = (int)Math.Ceiling(
+            (double)totalProducts / pageSize);
 
         return new PaginationResponse
         {
@@ -152,7 +150,7 @@ public class ProductServices
             Page = page,
             PageSize = pageSize,
             TotalProducts = totalProducts,
-            TotalPages = totalPage
+            TotalPages = totalPages
         };
     }
 
@@ -186,12 +184,14 @@ public class ProductServices
             Product = MapToResponse(product)
         };
     }
+
     public async Task<List<string>> GetCategories()
     {
-        var categories = await _context.Products.Distinct<string>(
-                "Category",
-                Builders<Product>.Filter.Empty
-        ).ToListAsync();
+        var categories = await _context.Products
+            .Distinct<string>(
+                new ExpressionFieldDefinition<Product, string>(product => product.Category),
+                Builders<Product>.Filter.Empty)
+            .ToListAsync();
 
         return categories
             .Where(category => !string.IsNullOrWhiteSpace(category))
@@ -205,25 +205,27 @@ public class ProductServices
         return MapToResponse(product);
     }
 
-    public async Task<bool> UpdateProduct(string id, Product updatedProduct)
+    public async Task<bool> UpdateProduct(
+        string id,
+        Product updatedProduct)
     {
         if (!ObjectId.TryParse(id, out var objectId))
         {
             return false;
         }
 
-        updatedProduct.Id = objectId;
-
         var update = Builders<Product>.Update
-            .Set(product => product.Title, updatedProduct.Title)
-            .Set(product => product.Description, updatedProduct.Description)
-            .Set(product => product.Price, updatedProduct.Price)
-            .Set(product => product.DiscountPercentage, updatedProduct.DiscountPercentage)
-            .Set(product => product.Category, updatedProduct.Category)
-            .Set(product => product.Stock, updatedProduct.Stock)
-            .Set(product => product.Brand, updatedProduct.Brand)
-            .Set(product => product.Thumbnail, updatedProduct.Thumbnail)
-            .Set(product => product.Images, updatedProduct.Images);
+            .Set(p => p.Title, updatedProduct.Title)
+            .Set(p => p.MainCategory, updatedProduct.MainCategory)
+            .Set(p => p.SubCategory, updatedProduct.SubCategory)
+            .Set(p => p.Category, updatedProduct.Category)
+            .Set(p => p.Thumbnail, updatedProduct.Thumbnail)
+            .Set(p => p.Images, updatedProduct.Images)
+            .Set(p => p.Price, updatedProduct.Price)
+            .Set(p => p.OriginalPrice, updatedProduct.OriginalPrice)
+            .Set(p => p.Rating, updatedProduct.Rating)
+            .Set(p => p.NumberOfRatings, updatedProduct.NumberOfRatings)
+            .Set(p => p.ExternalUrl, updatedProduct.ExternalUrl);
 
         var result = await _context.Products.UpdateOneAsync(
             product => product.Id == objectId,
@@ -231,7 +233,10 @@ public class ProductServices
 
         return result.IsAcknowledged && result.MatchedCount > 0;
     }
-    public async Task<ProductUpdateResult> UpdateProductPartial(string id, UpdateProductRequest request)
+
+    public async Task<ProductUpdateResult> UpdateProductPartial(
+        string id,
+        UpdateProductRequest request)
     {
         if (!ObjectId.TryParse(id, out var objectId))
         {
@@ -241,25 +246,52 @@ public class ProductServices
                 WasModified = false
             };
         }
+
         var updates = new List<UpdateDefinition<Product>>();
+
         if (request.Title is not null)
-            updates.Add(Builders<Product>.Update.Set(p => p.Title, request.Title));
-        if (request.Description is not null)
-            updates.Add(Builders<Product>.Update.Set(p => p.Description, request.Description));
-        if (request.Price is not null)
-            updates.Add(Builders<Product>.Update.Set(p => p.Price, request.Price.Value));
-        if (request.DiscountPercentage is not null)
-            updates.Add(Builders<Product>.Update.Set(p => p.DiscountPercentage, request.DiscountPercentage.Value));
+            updates.Add(Builders<Product>.Update.Set(
+                p => p.Title, request.Title));
+
+        if (request.MainCategory is not null)
+            updates.Add(Builders<Product>.Update.Set(
+                p => p.MainCategory, request.MainCategory));
+
+        if (request.SubCategory is not null)
+            updates.Add(Builders<Product>.Update.Set(
+                p => p.SubCategory, request.SubCategory));
+
         if (request.Category is not null)
-            updates.Add(Builders<Product>.Update.Set(p => p.Category, request.Category));
-        if (request.Stock is not null)
-            updates.Add(Builders<Product>.Update.Set(p => p.Stock, request.Stock.Value));
-        if (request.Brand is not null)
-            updates.Add(Builders<Product>.Update.Set(p => p.Brand, request.Brand));
+            updates.Add(Builders<Product>.Update.Set(
+                p => p.Category, request.Category));
+
         if (request.Thumbnail is not null)
-            updates.Add(Builders<Product>.Update.Set(p => p.Thumbnail, request.Thumbnail));
+            updates.Add(Builders<Product>.Update.Set(
+                p => p.Thumbnail, request.Thumbnail));
+
         if (request.Images is not null)
-            updates.Add(Builders<Product>.Update.Set(p => p.Images, request.Images));
+            updates.Add(Builders<Product>.Update.Set(
+                p => p.Images, request.Images));
+
+        if (request.Price.HasValue)
+            updates.Add(Builders<Product>.Update.Set(
+                p => p.Price, request.Price.Value));
+
+        if (request.OriginalPrice.HasValue)
+            updates.Add(Builders<Product>.Update.Set(
+                p => p.OriginalPrice, request.OriginalPrice.Value));
+
+        if (request.Rating.HasValue)
+            updates.Add(Builders<Product>.Update.Set(
+                p => p.Rating, request.Rating.Value));
+
+        if (request.NumberOfRatings.HasValue)
+            updates.Add(Builders<Product>.Update.Set(
+                p => p.NumberOfRatings, request.NumberOfRatings.Value));
+
+        if (request.ExternalUrl is not null)
+            updates.Add(Builders<Product>.Update.Set(
+                p => p.ExternalUrl, request.ExternalUrl));
 
         if (updates.Count == 0)
         {
@@ -269,6 +301,7 @@ public class ProductServices
                 WasModified = false
             };
         }
+
         var result = await _context.Products.UpdateOneAsync(
             product => product.Id == objectId,
             Builders<Product>.Update.Combine(updates));
@@ -281,13 +314,13 @@ public class ProductServices
                 WasModified = false
             };
         }
+
         return new ProductUpdateResult
         {
             Status = ProductUpdateStatus.Updated,
             WasModified = result.ModifiedCount > 0
         };
     }
-
 
     public async Task<ProductDeleteResult> DeleteProduct(string id)
     {
@@ -315,5 +348,4 @@ public class ProductServices
             Status = ProductDeleteStatus.Deleted
         };
     }
-
 }

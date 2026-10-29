@@ -20,7 +20,7 @@ export const SettingPage = () => {
         </p>
       </header>
 
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+      <div className="overflow-hidden  border-slate-200 bg-white">
         {activeSection === null ? (
           <>
             <PersonalInformation onClick={() => setActiveSection("profile")} />

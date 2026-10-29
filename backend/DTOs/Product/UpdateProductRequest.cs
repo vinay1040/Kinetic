@@ -1,40 +1,51 @@
-namespace backend.DTOs.Products;
 
 using System.ComponentModel.DataAnnotations;
 
+namespace backend.DTOs.Products;
+
 public class UpdateProductRequest
 {
-    [MinLength(2)]
-    [MaxLength(150)]
+    [MinLength(2), MaxLength(250)]
     public string? Title { get; set; }
-    [MinLength(10)]
-    [MaxLength(2000)]
-    public string? Description { get; set; }
-    [Range(0, int.MaxValue)]
-    public decimal? Price { get; set; }
-    [Range(0, 100)]
-    public decimal? DiscountPercentage { get; set; }
 
-    [MinLength(2)]
-    [MaxLength(100)]
+    public string? MainCategory { get; set; }
+
+    public string? SubCategory { get; set; }
+
     public string? Category { get; set; }
-    [Range(0, int.MaxValue)]
-    public int? Stock { get; set; }
-    public string? Brand { get; set; }
+
+    [Url]
     public string? Thumbnail { get; set; }
+
     public List<string>? Images { get; set; }
+
+    [Range(typeof(decimal), "0", "999999999")]
+    public decimal? Price { get; set; }
+
+    [Range(typeof(decimal), "0", "999999999")]
+    public decimal? OriginalPrice { get; set; }
+
+    [Range(0, 5)]
+    public double? Rating { get; set; }
+
+    [Range(0, int.MaxValue)]
+    public int? NumberOfRatings { get; set; }
+
+    [Url]
+    public string? ExternalUrl { get; set; }
 
     public bool HasUpdates()
     {
         return Title is not null
-            || Description is not null
-            || Price.HasValue
-            || DiscountPercentage.HasValue
+            || MainCategory is not null
+            || SubCategory is not null
             || Category is not null
-            || Stock.HasValue
-            || Brand is not null
             || Thumbnail is not null
-            || Images is not null;
+            || Images is not null
+            || Price.HasValue
+            || OriginalPrice.HasValue
+            || Rating.HasValue
+            || NumberOfRatings.HasValue
+            || ExternalUrl is not null;
     }
-
 }

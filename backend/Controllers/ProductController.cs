@@ -1,66 +1,41 @@
-using backend.Services;
-using backend.Models;
+
 using backend.DTOs.Products;
+using backend.Models;
+using backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Driver;
 
 namespace backend.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-
 public class ProductController : ControllerBase
 {
     private readonly ProductServices _productService;
 
-    public ProductController(ProductServices productServices)
+    public ProductController(ProductServices productService)
     {
-        _productService = productServices;
+        _productService = productService;
     }
 
-
-    [HttpPost]
-    [Authorize(Policy = "ActiveUser", Roles = "Admin")]
-    public async Task<IActionResult> CreateProduct(
-        [FromBody] CreateProductRequest request)
-    {
-        var product = new Product
-        {
-            Title = request.Title,
-            Description = request.Description,
-            Price = request.Price,
-            DiscountPercentage = request.DiscountPercentage,
-            Category = request.Category,
-            Stock = request.Stock,
-            Brand = request.Brand,
-            Thumbnail = request.Thumbnail,
-            Images = request.Images
-        };
-
-        var createdProduct = await _productService.CreateProduct(product);
-
-        return CreatedAtAction(
-            nameof(GetProductById),
-            new { id = createdProduct.Id },
-            createdProduct
-        );
-    }
-
-
+    // GET: api/product
     [HttpGet]
-    public async Task<IActionResult> GetProducts([FromQuery] ProductPaginationRequest request)
+    public async Task<IActionResult> GetProducts(
+        [FromQuery] ProductPaginationRequest request)
     {
         var products = await _productService.GetProducts(request);
         return Ok(products);
     }
 
+    // GET: api/product/categories
     [HttpGet("categories")]
-    public async Task<IActionResult> GetCategory()
+    public async Task<IActionResult> GetCategories()
     {
-        var result = await _productService.GetCategories();
-        return Ok(result);
+        var categories = await _productService.GetCategories();
+        return Ok(categories);
     }
+
+    // GET: api/product/{id}
     [HttpGet("{id}")]
     public async Task<IActionResult> GetProductById(string id)
     {
@@ -84,8 +59,7 @@ public class ProductController : ControllerBase
             });
         }
 
-        if (result.Status == ProductLookupStatus.Found &&
-            result.Product is not null)
+        if (result.Product is not null)
         {
             return Ok(result.Product);
         }
@@ -97,69 +71,95 @@ public class ProductController : ControllerBase
         });
     }
 
+    // POST: api/product
+    [HttpPost]
+    [Authorize(Policy = "ActiveUser", Roles = "Admin")]
+    public async Task<IActionResult> CreateProduct(
+        [FromBody] CreateProductRequest request)
+    {
+        var product = new Product
+        {
+            Title = request.Title,
+            MainCategory = request.MainCategory,
+            SubCategory = request.SubCategory,
+            Category = request.Category,
+            Thumbnail = request.Thumbnail,
+            Images = request.Images,
+            Price = request.Price,
+            OriginalPrice = request.OriginalPrice,
+            Rating = request.Rating,
+            NumberOfRatings = request.NumberOfRatings,
+            ExternalUrl = request.ExternalUrl
+        };
 
+        var createdProduct =
+            await _productService.CreateProduct(product);
+
+        return CreatedAtAction(
+            nameof(GetProductById),
+            new { id = createdProduct.Id },
+            createdProduct
+        );
+    }
+
+    // PUT: api/product/{id}
     [HttpPut("{id}")]
     [Authorize(Policy = "ActiveUser", Roles = "Admin")]
-    public async Task<IActionResult> UpdateProduct(
+    public async Task<IActionResult> ReplaceProduct(
         [FromRoute] string id,
         [FromBody] ReplaceProductRequest request)
     {
-        var updatedProduct = new Product
+        var product = new Product
         {
             Title = request.Title,
-            Description = request.Description,
-            Price = request.Price,
-            DiscountPercentage = request.DiscountPercentage,
+            MainCategory = request.MainCategory,
+            SubCategory = request.SubCategory,
             Category = request.Category,
-            Stock = request.Stock,
-            Brand = request.Brand,
             Thumbnail = request.Thumbnail,
-            Images = request.Images
+            Images = request.Images,
+            Price = request.Price,
+            OriginalPrice = request.OriginalPrice,
+            Rating = request.Rating,
+            NumberOfRatings = request.NumberOfRatings,
+            ExternalUrl = request.ExternalUrl
         };
 
-        var updated = await _productService.UpdateProduct(id, updatedProduct);
+        var updated = await _productService.UpdateProduct(id, product);
 
         if (!updated)
         {
             return NotFound(new
             {
                 status = 404,
-                message = "Product not found"
+                message = "Product not found or ID is invalid"
             });
         }
 
         return Ok(new
         {
             status = 200,
-            message = "Product updated successfully"
+            message = "Product replaced successfully"
         });
     }
 
+    // PATCH: api/product/{id}
     [HttpPatch("{id}")]
     [Authorize(Policy = "ActiveUser", Roles = "Admin")]
     public async Task<IActionResult> UpdateProductPartial(
-        string id,
+        [FromRoute] string id,
         [FromBody] UpdateProductRequest request)
     {
-        if (request is null)
+        if (request is null || !request.HasUpdates())
         {
             return BadRequest(new
             {
                 status = 400,
-                message = "Request cannot be null"
+                message = "Provide at least one field to update."
             });
         }
 
-        if (!request.HasUpdates())
-        {
-            return BadRequest(new
-            {
-                status = 400,
-                message = "At least one field must be provided for update."
-            });
-        }
-
-        var result = await _productService.UpdateProductPartial(id, request);
+        var result =
+            await _productService.UpdateProductPartial(id, request);
 
         if (result.Status == ProductUpdateStatus.InvalidId)
         {
@@ -189,11 +189,14 @@ public class ProductController : ControllerBase
         });
     }
 
+    // DELETE: api/product/{id}
     [HttpDelete("{id}")]
     [Authorize(Policy = "ActiveUser", Roles = "Admin")]
-    public async Task<IActionResult> DeleteProduct([FromRoute] string id)
+    public async Task<IActionResult> DeleteProduct(
+        [FromRoute] string id)
     {
         var result = await _productService.DeleteProduct(id);
+
         if (result.Status == ProductDeleteStatus.InvalidId)
         {
             return BadRequest(new
@@ -202,6 +205,7 @@ public class ProductController : ControllerBase
                 message = "Invalid product ID"
             });
         }
+
         if (result.Status == ProductDeleteStatus.NotFound)
         {
             return NotFound(new
@@ -210,11 +214,11 @@ public class ProductController : ControllerBase
                 message = "Product not found"
             });
         }
+
         return Ok(new
         {
             status = 200,
             message = "Product deleted successfully"
         });
     }
-
 }
