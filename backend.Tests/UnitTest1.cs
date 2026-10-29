@@ -123,17 +123,19 @@ public class ReplaceProductRequestTests
         var request = new ReplaceProductRequest
         {
             Title = "Test Product",
-            Description = "A test product description",
+            MainCategory = "Electronics",
+            SubCategory = "Phones",
+            Category = "smartphones",
             Price = 0,
-            DiscountPercentage = 0,
-            Category = "electronics",
-            Stock = 10,
-            Brand = "Test Brand",
+            OriginalPrice = 100,
+            Rating = 4,
+            NumberOfRatings = 10,
             Thumbnail = "https://example.com/product.jpg",
             Images = new List<string>
-            {
-                "https://example.com/product.jpg"
-            }
+    {
+        "https://example.com/product.jpg"
+    },
+            ExternalUrl = "https://example.com"
         };
 
         var results = new List<ValidationResult>();

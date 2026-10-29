@@ -22,7 +22,7 @@ public class ReplaceProductRequest
 
     public List<string> Images { get; set; } = new();
 
-    [Range(typeof(decimal), "0", "999999999")]
+    [Range(typeof(decimal), "0.01", "999999999")]
     public decimal Price { get; set; }
 
     [Range(typeof(decimal), "0", "999999999")]
