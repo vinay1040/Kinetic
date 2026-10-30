@@ -1,4 +1,3 @@
-
 using System.Text.RegularExpressions;
 using backend.data;
 using backend.DTOs.Products;
@@ -118,21 +117,21 @@ public class ProductServices
 
         SortDefinition<Product> sort = request.SortBy?.ToLowerInvariant()
             switch
-            {
-                "price" => descending
-                    ? Builders<Product>.Sort.Descending(p => p.Price)
-                    : Builders<Product>.Sort.Ascending(p => p.Price),
+        {
+            "price" => descending
+                ? Builders<Product>.Sort.Descending(p => p.Price)
+                : Builders<Product>.Sort.Ascending(p => p.Price),
 
-                "rating" => descending
-                    ? Builders<Product>.Sort.Descending(p => p.Rating)
-                    : Builders<Product>.Sort.Ascending(p => p.Rating),
+            "rating" => descending
+                ? Builders<Product>.Sort.Descending(p => p.Rating)
+                : Builders<Product>.Sort.Ascending(p => p.Rating),
 
-                "title" => descending
-                    ? Builders<Product>.Sort.Descending(p => p.Title)
-                    : Builders<Product>.Sort.Ascending(p => p.Title),
+            "title" => descending
+                ? Builders<Product>.Sort.Descending(p => p.Title)
+                : Builders<Product>.Sort.Ascending(p => p.Title),
 
-                _ => Builders<Product>.Sort.Ascending(p => p.Id)
-            };
+            _ => Builders<Product>.Sort.Ascending(p => p.Id)
+        };
 
         var products = await _context.Products
             .Find(filter)

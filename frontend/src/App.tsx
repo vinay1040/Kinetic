@@ -20,6 +20,7 @@ import AdminLayout from "./layouts/AdminLayouts";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import { ProductProvider } from "./context/ProductContext";
 import { SettingPage } from "./components/settings/settingPage";
+import Checkout from "./pages/Checkout";
 
 const App = () => {
   return (
@@ -51,12 +52,16 @@ const App = () => {
                           path="/profile/orders/:orderId"
                           element={<OrderDetail />}
                         />
-                        <Route path="/profile/settings" element={<SettingPage />} />
+                        <Route
+                          path="/profile/settings"
+                          element={<SettingPage />}
+                        />
                       </Route>
 
                       <Route path="/wishlist" element={<Wishlist />} />
 
                       <Route path="/cart" element={<Cart />} />
+                  <Route path="/checkout" element={<Checkout />} />
                     </Route>
                   </Route>
                   <Route element={<ProtectedRoute allowedRole="admin" />}>

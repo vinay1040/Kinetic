@@ -75,7 +75,11 @@ public class OrderService
 
                 if (product is null)
                     return null;
+                // A product without a price cannot be purchased.
+                if (!product.Price.HasValue || product.Price.Value <= 0)
+                    return null;
 
+                var unitPrice = product.Price.Value;
                 // 2. Reserve inventory atomically.
                 // Available stock = OnHandQuantity - ReservedQuantity.
                 var inventoryFilter =
@@ -129,9 +133,9 @@ public class OrderService
                     ProductId = product.Id.ToString(),
                     ProductTitle = product.Title,
                     Thumbnail = product.Thumbnail,
-                    UnitPrice = product.Price,
+                    UnitPrice = unitPrice,
                     Quantity = cartItem.Quantity,
-                    LineTotal = product.Price * cartItem.Quantity
+                    LineTotal = unitPrice * cartItem.Quantity
                 });
             }
 
@@ -269,11 +273,13 @@ public class OrderService
                 .Set(o => o.Status, OrderStatus.Confirmed)
                 .Set(o => o.UpdatedAt, DateTime.UtcNow);
 
-            await _context.Order.UpdateOneAsync(
+            var orderResult = await _context.Order.UpdateOneAsync(
                 session,
                 o => o.Id == orderObjectId &&
-                     o.Status == OrderStatus.Pending,
+                o.Status == OrderStatus.Pending,
                 orderUpdate);
+
+            if (orderResult.ModifiedCount != 1) return null;
 
             await session.CommitTransactionAsync();
             committed = true;
@@ -325,32 +331,58 @@ public class OrderService
                 if (!ObjectId.TryParse(item.ProductId, out var productObjectId))
                     return null;
 
-                var inventoryFilter = Builders<Inventory>.Filter.And(
-                    Builders<Inventory>.Filter.Eq(
-                        inventory => inventory.ProductId, productObjectId),
-                    Builders<Inventory>.Filter.Gte(
-                        inventory => inventory.ReservedQuantity, item.Quantity));
+                var inventoryFilter = Builders<Inventory>.Filter.Eq(inventory => inventory.ProductId, productObjectId);
 
-                var inventoryUpdate = Builders<Inventory>.Update
-                    .Inc(inventory => inventory.ReservedQuantity, -item.Quantity)
-                    .Set(inventory => inventory.UpdatedAt, DateTime.UtcNow);
+                var inventoryUpdate =
+                    Builders<Inventory>.Update
+                        .Set(inventory => inventory.UpdatedAt, DateTime.UtcNow);
+
+                if (order.Status == OrderStatus.Pending)
+                {
+                    // Stock is reserved but has not been deducted.
+                    inventoryFilter = Builders<Inventory>.Filter.And(
+                        inventoryFilter,
+                        Builders<Inventory>.Filter.Gte(
+                            inventory => inventory.ReservedQuantity,
+                            item.Quantity));
+
+                    inventoryUpdate = inventoryUpdate.Inc(
+                        inventory => inventory.ReservedQuantity,
+                        -item.Quantity);
+                }
+                else if (order.Status == OrderStatus.Confirmed)
+                {
+                    // Confirmation already deducted the stock.
+                    inventoryUpdate = inventoryUpdate.Inc(
+                        inventory => inventory.OnHandQuantity,
+                        item.Quantity);
+                }
 
                 var result = await _context.Inventory.UpdateOneAsync(
-                    session, inventoryFilter, inventoryUpdate);
+                    session,
+                    inventoryFilter,
+                    inventoryUpdate);
 
                 if (result.ModifiedCount != 1)
+                {
                     return null;
+                }
             }
 
             var orderUpdate = Builders<Order>.Update
                 .Set(o => o.Status, OrderStatus.Cancelled)
                 .Set(o => o.UpdatedAt, DateTime.UtcNow);
 
-            await _context.Order.UpdateOneAsync(
+            var orderResult = await _context.Order.UpdateOneAsync(
                 session,
                 o => o.Id == orderObjectId &&
                      o.Status == order.Status,
                 orderUpdate);
+
+            if (orderResult.ModifiedCount != 1)
+            {
+                return null;
+            }
 
             await session.CommitTransactionAsync();
             committed = true;

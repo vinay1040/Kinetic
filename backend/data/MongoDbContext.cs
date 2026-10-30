@@ -36,12 +36,12 @@ public class MongoDbContext
             }
         );
         var cartUserIndex = new CreateIndexModel<Cart>(
-            Builders<Cart>.IndexKeys.Ascending(cart => cart.UserId),
-            new CreateIndexOptions
-            {
-                Unique = true,
-                Name = "Unique_Cart_UserId"
-            });
+    Builders<Cart>.IndexKeys.Ascending(cart => cart.UserId),
+    new CreateIndexOptions
+    {
+        Unique = true,
+        Name = "UserId_1"
+    });
 
         var inventoryProductIndex = new CreateIndexModel<Inventory>(
             Builders<Inventory>.IndexKeys.Ascending(item => item.ProductId),
