@@ -166,9 +166,58 @@ public class InventoryService
                 nameof(quantity),
                 "Quantity must be greater than zero.");
         }
-        var filter = Builders<Inventory>.Filter.Eq(i => i.ProductId,productObjectId);
-        var update = Builders<Inventory>.Update.Inc(i => i.OnHandQuantity,quantity).Set(i => i.UpdatedAt,DateTime.UtcNow);
-        var result = await _context.Inventory.UpdateOneAsync(filter,update);
+        var filter = Builders<Inventory>.Filter.Eq(i => i.ProductId, productObjectId);
+        var update = Builders<Inventory>.Update.Inc(i => i.OnHandQuantity, quantity).Set(i => i.UpdatedAt, DateTime.UtcNow);
+        var result = await _context.Inventory.UpdateOneAsync(filter, update);
         return result.ModifiedCount == 1;
     }
+
+    public async Task<long> InitializeAllInventoryAsync(
+        int onHandQuantity = 100,
+        int reorderLevel = 10)
+    {
+        if (onHandQuantity < 0)
+            throw new ArgumentOutOfRangeException(nameof(onHandQuantity));
+
+        if (reorderLevel < 0)
+            throw new ArgumentOutOfRangeException(nameof(reorderLevel));
+
+        // Find all products that already have inventory.
+        var existingProductIds = await _context.Inventory
+            .Find(FilterDefinition<Inventory>.Empty)
+            .Project(item => item.ProductId)
+            .ToListAsync();
+
+        var existingIds = existingProductIds.ToHashSet();
+
+        // Find products that are missing inventory records.
+        var productsWithoutInventory = await _context.Products
+            .Find(product => !existingIds.Contains(product.Id))
+            .Project(product => product.Id)
+            .ToListAsync();
+
+        if (productsWithoutInventory.Count == 0)
+            return 0;
+
+        var now = DateTime.UtcNow;
+
+        var inventoryRecords = productsWithoutInventory
+            .Select(productId => new Inventory
+            {
+                ProductId = productId,
+                OnHandQuantity = onHandQuantity,
+                ReservedQuantity = 0,
+                ReorderLevel = reorderLevel,
+                CreatedAt = now,
+                UpdatedAt = now
+            })
+            .ToList();
+
+        await _context.Inventory.InsertManyAsync(
+            inventoryRecords,
+            new InsertManyOptions { IsOrdered = false });
+
+        return inventoryRecords.Count;
+    }
+
 }

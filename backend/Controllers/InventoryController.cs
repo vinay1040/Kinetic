@@ -1,4 +1,3 @@
-
 using backend.Services;
 using Kinetic.DTOs.Inventory;
 using Microsoft.AspNetCore.Authorization;
@@ -9,13 +8,19 @@ namespace backend.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Policy = "ActiveUser", Roles = "Admin")]
-public class InventoryController(InventoryService service) : ControllerBase
+public class InventoryController : ControllerBase
 {
+    public InventoryController(InventoryService service) : base()
+    {
+        _service = service;
+    }
+
+    private readonly InventoryService _service;
     // GET: api/inventory/{productId}
     [HttpGet("{productId}")]
     public async Task<IActionResult> GetInventory(string productId)
     {
-        var inventory = await service.GetByProductIdAsync(productId);
+        var inventory = await _service.GetByProductIdAsync(productId);
 
         if (inventory is null)
         {
@@ -49,7 +54,7 @@ public class InventoryController(InventoryService service) : ControllerBase
             });
         }
 
-        var inventory = await service.InitializeInventoryAsync(
+        var inventory = await _service.InitializeInventoryAsync(
             request.ProductId,
             request.OnHandQuantity,
             request.ReorderLevel);
@@ -74,11 +79,11 @@ public class InventoryController(InventoryService service) : ControllerBase
             });
         }
 
-        var isAvailable = await service.HasAvailableQuantityAsync(
+        var isAvailable = await _service.HasAvailableQuantityAsync(
             productId,
             quantity);
 
-        var inventory = await service.GetByProductIdAsync(productId);
+        var inventory = await _service.GetByProductIdAsync(productId);
 
         if (inventory is null)
         {
@@ -110,7 +115,7 @@ public class InventoryController(InventoryService service) : ControllerBase
             });
         }
 
-        var updated = await service.AddStockAsync(
+        var updated = await _service.AddStockAsync(
             productId,
             request.Quantity);
 
@@ -122,7 +127,7 @@ public class InventoryController(InventoryService service) : ControllerBase
             });
         }
 
-        var inventory = await service.GetByProductIdAsync(productId);
+        var inventory = await _service.GetByProductIdAsync(productId);
 
         return Ok(new
         {
@@ -130,5 +135,32 @@ public class InventoryController(InventoryService service) : ControllerBase
             inventory
         });
     }
+
+    [HttpPost("initialize-all")]
+    public async Task<IActionResult> InitializeAllInventory()
+    {
+        try
+        {
+            var createdCount =
+                await _service.InitializeAllInventoryAsync(
+                    onHandQuantity: 100,
+                    reorderLevel: 10);
+
+            return Ok(new
+            {
+                message = "Inventory initialization completed.",
+                createdCount
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                message = "Inventory initialization failed.",
+                error = ex.Message
+            });
+        }
+    }
+
 }
 
