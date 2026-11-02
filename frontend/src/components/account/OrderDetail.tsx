@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router";
 import { useOrderById } from "@/hooks/OrderHook/useOrderById";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { formatOrderDate, getOrderStatus } from "@/utils/orderUtils";
+import { useCancelOrder } from "@/hooks/OrderHook/useCancelOrder";
 
 const OrderDetail = () => {
   const { orderId = "" } = useParams();
@@ -13,7 +14,21 @@ const OrderDetail = () => {
     refetch,
     isFetching,
   } = useOrderById(orderId);
+  const cancelOrderMutation = useCancelOrder();
 
+  const canCancelOrder = order?.status === 0 || order?.status === 1;
+
+  const handleCancelOrder = () => {
+    if (!order || !canCancelOrder) return;
+
+    const confirmed = window.confirm(
+      "Are you sure you want to cancel this order?",
+    );
+
+    if (confirmed) {
+      cancelOrderMutation.mutate(order.id);
+    }
+  };
   if (isLoading) {
     return (
       <div className="rounded-xl border bg-white p-8 text-center">
@@ -73,6 +88,8 @@ const OrderDetail = () => {
   }
 
   const status = getOrderStatus(order.status);
+  const items = Array.isArray(order.items) ? order.items : [];
+  const shippingAddress = order.shippingAddress;
 
   return (
     <div className="space-y-6">
@@ -93,18 +110,35 @@ const OrderDetail = () => {
       </div>
 
       {/* Order Status */}
+
+      {/* Order Status */}
       <div className="rounded-xl border border-slate-200 bg-white p-6">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="text-sm text-gray-500">Order Status</p>
             <p className="mt-1 font-semibold">{status.label}</p>
           </div>
 
-          <span
-            className={`rounded-full px-3 py-1 text-xs font-medium ${status.style}`}
-          >
-            {status.label}
-          </span>
+          <div className="flex flex-wrap items-center gap-3">
+            <span
+              className={`rounded-full px-3 py-1 text-xs font-medium ${status.style}`}
+            >
+              {status.label}
+            </span>
+
+            {canCancelOrder && (
+              <button
+                type="button"
+                onClick={handleCancelOrder}
+                disabled={cancelOrderMutation.isPending}
+                className="rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {cancelOrderMutation.isPending
+                  ? "Cancelling..."
+                  : "Cancel Order"}
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -115,7 +149,7 @@ const OrderDetail = () => {
         </div>
 
         <div className="divide-y">
-          {order.items.map((item) => (
+          {items.map((item) => (
             <div key={item.productId} className="flex gap-4 p-5">
               <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-slate-50">
                 {item.thumbnail ? (
@@ -175,25 +209,31 @@ const OrderDetail = () => {
       <div className="rounded-xl border border-slate-200 bg-white p-5">
         <h2 className="font-semibold">Shipping Address</h2>
 
-        <div className="mt-3 space-y-1 text-sm text-gray-600">
-          <p className="font-medium text-gray-900">
-            {order.shippingAddress.fullName}
+        {shippingAddress ? (
+          <div className="mt-3 space-y-1 text-sm text-gray-600">
+            <p className="font-medium text-gray-900">
+              {shippingAddress.fullName}
+            </p>
+
+            <p>{shippingAddress.phone}</p>
+            <p>{shippingAddress.addressLine1}</p>
+
+            {shippingAddress.addressLine2 && (
+              <p>{shippingAddress.addressLine2}</p>
+            )}
+
+            <p>
+              {shippingAddress.city}, {shippingAddress.state}{" "}
+              {shippingAddress.postalCode}
+            </p>
+
+            <p>{shippingAddress.country}</p>
+          </div>
+        ) : (
+          <p className="mt-3 text-sm text-gray-500">
+            Shipping address unavailable.
           </p>
-
-          <p>{order.shippingAddress.phone}</p>
-          <p>{order.shippingAddress.addressLine1}</p>
-
-          {order.shippingAddress.addressLine2 && (
-            <p>{order.shippingAddress.addressLine2}</p>
-          )}
-
-          <p>
-            {order.shippingAddress.city}, {order.shippingAddress.state}{" "}
-            {order.shippingAddress.postalCode}
-          </p>
-
-          <p>{order.shippingAddress.country}</p>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -19,7 +19,10 @@ export interface ShippingAddress {
   postalCode: string;
   country: string;
 }
-
+export interface CancelOrderResponse {
+  message: string;
+  order: Order;
+}
 export interface Order {
   id: string;
   userId: string;
@@ -55,7 +58,12 @@ export const getOrderData = async (): Promise<Order[]> => {
   return response.data;
 };
 
-export const getOrderById = async (id: string) :Promise<Order> => {
+export const getOrderById = async (id: string): Promise<Order> => {
   const response = await AuthApi.get(`Order/${encodeURIComponent(id)}`);
   return response.data;
 };
+
+export const cancelOrder = async (id:string) : Promise<CancelOrderResponse> => {
+  const response = await AuthApi.post(`/Order/${encodeURIComponent(id)}/cancel`);
+  return response.data;
+}

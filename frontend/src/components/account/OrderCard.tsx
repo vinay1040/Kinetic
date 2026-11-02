@@ -10,8 +10,9 @@ interface OrderCardProps {
 
 const OrderCard = ({ order }: OrderCardProps) => {
   const status = getOrderStatus(order.status);
+  const items = Array.isArray(order.items) ? order.items : [];
 
-  const totalItems = order.items.reduce(
+  const totalItems = items.reduce(
     (total, item) => total + item.quantity,
     0,
   );
