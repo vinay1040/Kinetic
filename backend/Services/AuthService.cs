@@ -90,6 +90,30 @@ public class AuthService
             Role = user.Role
         };
     }
+    public async Task<UserProfileResponse?> GetCurrentUser(string id)
+    {
+        if (!ObjectId.TryParse(id, out var objectId))
+        {
+            return null;
+        }
+
+        var user = await _dbcontext.Users
+            .Find(user => user.Id == objectId && user.IsActive)
+            .FirstOrDefaultAsync();
+
+        if (user is null)
+        {
+            return null;
+        }
+
+        return new UserProfileResponse
+        {
+            Id = user.Id.ToString(),
+            Name = user.Name,
+            Email = user.Email,
+            Role = user.Role
+        };
+    }
     public async Task<LoginResponse?> Refresh(RefreshRequest request)
     {
         var tokenHash = _tokenService.HashToken(request.RefreshToken);

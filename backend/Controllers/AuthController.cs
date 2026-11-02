@@ -38,6 +38,29 @@ public class AuthController : ControllerBase
 
         return Ok(result);
     }
+    [HttpGet("me")]
+    [Authorize(Policy = "ActiveUser")]
+    public async Task<IActionResult> GetCurrentUser()
+    {
+        var userId = User.FindFirstValue("sub");
+
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return Unauthorized();
+        }
+
+        var user = await _authService.GetCurrentUser(userId);
+
+        if (user is null)
+        {
+            return NotFound(new
+            {
+                message = "User not found"
+            });
+        }
+
+        return Ok(user);
+    }
 
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh(RefreshRequest request)

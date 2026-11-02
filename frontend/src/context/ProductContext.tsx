@@ -8,7 +8,7 @@ import {
 } from "react";
 import { useDebounce } from "use-debounce";
 import { useQuery } from "@tanstack/react-query";
-export type ProductSortBy = "price" | "rating" | "stock" | "title";
+export type ProductSortBy = "price" | "rating" | "title";
 export type SortOrder = "asc" | "desc";
 type ProductContextType = {
   products: Product[];

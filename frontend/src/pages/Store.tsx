@@ -1,9 +1,8 @@
-
 import { useEffect, useRef, useState } from "react";
 import ProductCard from "@/components/products/ProductCard";
 import { SideBar } from "@/components/SideBar";
 import { Check, ChevronDown, SlidersHorizontal } from "lucide-react";
-import { Button, Drawer } from "antd";
+import { Button } from "antd";
 import { useProduct } from "@/context/ProductContext";
 import { useQuery } from "@tanstack/react-query";
 import { getCategory } from "@/services/productApi";
@@ -75,8 +74,6 @@ const Store = () => {
     ["price-desc", "Price: High to Low"],
     ["rating-desc", "Rating: Highest First"],
     ["rating-asc", "Rating: Lowest First"],
-    ["stock-asc", "Stock: Lowest First"],
-    ["stock-desc", "Stock: Highest First"],
     ["title-asc", "Title: A to Z"],
     ["title-desc", "Title: Z to A"],
   ];
@@ -174,7 +171,7 @@ const Store = () => {
                         }
 
                         const [sortBy, sortOrder] = value.split("-") as [
-                          "price" | "rating" | "stock" | "title",
+                          "price" | "rating" | "title",
                           "asc" | "desc",
                         ];
 

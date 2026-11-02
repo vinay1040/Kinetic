@@ -3,6 +3,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -12,6 +13,7 @@ import {
   logoutUser,
   updateUserPRofile,
   type ApiUserRole,
+  getCurrentUser,
 } from "../services/authApi";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -83,16 +85,45 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     readSession(),
   );
   const queryClient = useQueryClient();
+  const hydratedTokenRef = useRef<string | null>(null);
   const user = session?.user ?? null;
   const isAuthenticated = Boolean(session?.accessToken && user);
 
   useEffect(() => {
-    if (session) {
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
-    } else {
-      sessionStorage.removeItem(SESSION_KEY);
-    }
-  }, [session]);
+    const accessToken = session?.accessToken;
+    if(!accessToken || hydratedTokenRef.current === accessToken) return;
+    let cancelled = false;
+    const loadCurrentUser = async () => {
+      try{
+        const currentUser = await getCurrentUser();
+
+        const user : User = {
+          id: currentUser.id,
+          name: currentUser.name,
+          email: currentUser.email,
+          role: normalizeRole(currentUser.role),
+        };
+
+        hydratedTokenRef.current = accessToken;
+
+        setSession((currentSession) => {
+          if(!currentSession || currentSession.accessToken !== accessToken) return currentSession;
+          return {
+            ...currentSession,
+            user
+          }
+        });
+       } catch (error) {
+        if (!cancelled) {
+        console.error("Failed to load current user:", error);
+      }
+      }
+    };
+    loadCurrentUser();
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.accessToken]);
 
   const register = async (
     name: string,
@@ -105,20 +136,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string): Promise<User> => {
     const response = await loginUser(email.trim().toLowerCase(), password);
 
-    const nextUser: User = {
-      id: "",
-      name: response.email.split("@")[0],
+    const temporarySession: AuthSession = {
+      user : {
+        id: "",
+      name: "",
       email: response.email,
-      role: normalizeRole(response.role),
+      role: normalizeRole(response.role)
+      },
+      accessToken : response.accessToken,
+      refreshToken : response.refreshToken,
     };
 
-    setSession({
-      user: nextUser,
-      accessToken: response.accessToken,
-      refreshToken: response.refreshToken ?? null,
-    });
+    sessionStorage.setItem(SESSION_KEY,JSON.stringify(temporarySession));
+    try{
+      const currentUser = await getCurrentUser();
 
-    return nextUser;
+      const nextUser : User = {
+        id: currentUser.id,
+        name:  currentUser.name,
+        email: currentUser.email,
+        role: normalizeRole(currentUser.role),
+      };
+
+      hydratedTokenRef.current = response.accessToken;
+
+      setSession({
+        ...temporarySession,
+        user: nextUser,
+      });
+      return nextUser;
+    } catch (error){
+      sessionStorage.removeItem(SESSION_KEY);
+      throw error
+    }
   };
 
   const logout = async (): Promise<void> => {

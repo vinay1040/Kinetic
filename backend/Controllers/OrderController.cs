@@ -19,7 +19,7 @@ public class OrderController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateOrder([FromBody] OrderRequest request)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = User.FindFirstValue("sub");
         if (string.IsNullOrWhiteSpace(userId)) return Unauthorized();
         var order = await _orderService.CreateOrderAsync(userId, request);
         if (order is null)
@@ -39,7 +39,7 @@ public class OrderController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetOrder()
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = User.FindFirstValue("sub");
         if (string.IsNullOrWhiteSpace(userId)) return Unauthorized();
         var order = await _orderService.GetOrdersAsync(userId);
         return Ok(order);
@@ -89,7 +89,7 @@ public class OrderController : ControllerBase
     [Authorize(Policy = "ActiveUser")]
     public async Task<IActionResult> CancelOrder(string id)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = User.FindFirstValue("sub");
 
         if (string.IsNullOrWhiteSpace(userId))
         {

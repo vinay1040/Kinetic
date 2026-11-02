@@ -1,7 +1,30 @@
 import axios from "axios";
 // import { access } from "fs";
 // import { stringify } from "querystring";
+declare module "axios" {
+  export interface InternalAxiosRequestConfig {
+    _retry?: boolean;
+  }
+}
 const API_BASE_URL = "http://localhost:5254/api";
+export type UpdateProfileRequest = {
+  name: string;
+  email: string;
+};
+
+export type ApiUserRole = "Customer" | "Admin" | 0 | 1;
+export type UserProfileResponse = {
+  id: string;
+  name: string;
+  email: string;
+  role: ApiUserRole;
+};
+export type LoginResponse = {
+  accessToken: string;
+  refreshToken: string;
+  email: string;
+  role: ApiUserRole;
+};
 
 export const AuthApi = axios.create({
   baseURL: API_BASE_URL,
@@ -13,17 +36,20 @@ export const AuthApi = axios.create({
 let refreshPromise: Promise<LoginResponse> | null = null;
 
 AuthApi.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   async (error) => {
+    const originalRequest = error.config;
+
     if (
       error.response?.status !== 401 ||
-      error.config?.url === "/auth/refresh"
+      !originalRequest ||
+      originalRequest._retry ||
+      originalRequest.url?.includes("/auth/refresh")
     ) {
       return Promise.reject(error);
     }
 
+    originalRequest._retry = true;
     const savedSession = sessionStorage.getItem("kinetic_auth_session");
 
     if (!savedSession) {
@@ -46,7 +72,11 @@ AuthApi.interceptors.response.use(
         refreshToken: response.refreshToken,
       };
 
-      sessionStorage.setItem("kinetic_auth_session", JSON.stringify(newSession));
+      sessionStorage.setItem(
+        "kinetic_auth_session",
+        JSON.stringify(newSession),
+      );
+      originalRequest.headers.Authorization = `Bearer ${response.accessToken}`;
 
       error.config.headers.Authorization = `Bearer ${response.accessToken}`;
       return AuthApi(error.config);
@@ -77,20 +107,6 @@ AuthApi.interceptors.request.use((config) => {
 
   return config;
 });
-
-export type UpdateProfileRequest = {
-  name: string;
-  email: string;
-};
-
-export type ApiUserRole = "Customer" | "Admin" | 0 | 1;
-
-export type LoginResponse = {
-  accessToken: string;
-  refreshToken: string;
-  email: string;
-  role: ApiUserRole;
-};
 
 export const registerUser = async (
   name: string,
@@ -125,4 +141,9 @@ export const updateUserPRofile = async (
 };
 export const logoutUser = async (refreshToken: string): Promise<void> => {
   await AuthApi.post("/auth/logout", { refreshToken });
+};
+
+export const getCurrentUser = async (): Promise<UserProfileResponse> => {
+  const response = await AuthApi.get<UserProfileResponse>("/auth/me");
+  return response.data;
 };
