@@ -55,7 +55,7 @@ export const getOrderData = async (): Promise<Order[]> => {
   return response.data;
 };
 
-export const getOrderById = async (id: string) => {
+export const getOrderById = async (id: string) :Promise<Order> => {
   const response = await AuthApi.get(`Order/${encodeURIComponent(id)}`);
   return response.data;
 };

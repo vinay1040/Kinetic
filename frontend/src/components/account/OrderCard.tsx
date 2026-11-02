@@ -1,44 +1,20 @@
 import { Link } from "react-router";
 import { Package } from "lucide-react";
 import type { Order } from "@/services/Order";
+import { formatCurrency } from "@/utils/formatCurrency";
+import { formatOrderDate, getOrderStatus } from "@/utils/orderUtils";
 
-const getOrderStatus = (status: number) => {
-  const statuses = [
-    { label: "Pending", style: "bg-yellow-100 text-yellow-700" },
-    { label: "Confirmed", style: "bg-blue-100 text-blue-700" },
-    { label: "Processing", style: "bg-yellow-100 text-yellow-700" },
-    { label: "Shipped", style: "bg-purple-100 text-purple-700" },
-    { label: "Delivered", style: "bg-green-100 text-green-700" },
-    { label: "Cancelled", style: "bg-red-100 text-red-700" },
-  ];
+interface OrderCardProps {
+  order: Order;
+}
 
-  return (
-    statuses[status] ?? {
-      label: "Unknown",
-      style: "bg-gray-100 text-gray-700",
-    }
-  );
-};
-
-const OrderCard = ({ order }: { order: Order }) => {
+const OrderCard = ({ order }: OrderCardProps) => {
   const status = getOrderStatus(order.status);
 
   const totalItems = order.items.reduce(
     (total, item) => total + item.quantity,
     0,
   );
-
-  const formattedDate = new Date(order.createdAt).toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-
-  const formattedTotal = new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 2,
-  }).format(order.total);
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5">
@@ -52,7 +28,7 @@ const OrderCard = ({ order }: { order: Order }) => {
             <h2 className="font-semibold">Order #{order.id}</h2>
 
             <p className="text-sm text-gray-500">
-              {formattedDate} · {totalItems}{" "}
+              {formatOrderDate(order.createdAt)} · {totalItems}{" "}
               {totalItems === 1 ? "item" : "items"}
             </p>
           </div>
@@ -68,8 +44,7 @@ const OrderCard = ({ order }: { order: Order }) => {
       <div className="mt-5 flex items-center justify-between border-t pt-4">
         <div>
           <p className="text-sm text-gray-500">Total</p>
-
-          <p className="font-semibold">{formattedTotal}</p>
+          <p className="font-semibold">{formatCurrency(order.total)}</p>
         </div>
 
         <Link

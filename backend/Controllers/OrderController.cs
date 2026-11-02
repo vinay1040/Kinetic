@@ -48,7 +48,7 @@ public class OrderController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetOrderById(string id)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = User.FindFirstValue("sub");
         if (string.IsNullOrWhiteSpace(userId)) return Unauthorized();
         var order = await _orderService.GetOrderByIdAsync(userId, id);
         if (order is null)

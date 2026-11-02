@@ -7,5 +7,6 @@ export const useOrderById = (id:string) => {
     queryKey: ["orders",id],
     queryFn: () => getOrderById(id),
     enabled: Boolean(id),
+    staleTime: 60 * 1000,
   });
 }

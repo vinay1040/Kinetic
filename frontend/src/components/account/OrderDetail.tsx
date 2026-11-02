@@ -1,16 +1,65 @@
-import { orders } from "@/data/order";
-import { ArrowLeft } from "lucide-react";
-import { Link } from "react-router";
-import { useParams } from "react-router";
+import { ArrowLeft, Package } from "lucide-react";
+import { Link, useParams } from "react-router";
+import { useOrderById } from "@/hooks/OrderHook/useOrderById";
+import { formatCurrency } from "@/utils/formatCurrency";
+import { formatOrderDate, getOrderStatus } from "@/utils/orderUtils";
 
 const OrderDetail = () => {
-  const { orderId } = useParams();
-  const order = orders.find((order) => order.id === orderId);
+  const { orderId = "" } = useParams();
+  const {
+    data: order,
+    isLoading,
+    isError,
+    refetch,
+    isFetching,
+  } = useOrderById(orderId);
+
+  if (isLoading) {
+    return (
+      <div className="rounded-xl border bg-white p-8 text-center">
+        <p className="text-gray-500">Loading order details...</p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="space-y-4 rounded-xl border bg-white p-8 text-center">
+        <h1 className="text-xl font-semibold">Unable to load order</h1>
+
+        <p className="text-sm text-gray-500">
+          Something went wrong while fetching this order.
+        </p>
+
+        <button
+          onClick={() => refetch()}
+          disabled={isFetching}
+          className="rounded-lg bg-black px-5 py-2 text-sm font-medium text-white disabled:opacity-50"
+        >
+          {isFetching ? "Retrying..." : "Try Again"}
+        </button>
+
+        <div>
+          <Link
+            to="/profile/orders"
+            className="inline-flex items-center gap-2 text-sm font-medium"
+          >
+            <ArrowLeft size={16} />
+            Back to Orders
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (!order) {
     return (
-      <div className="space-y-4">
-        <h1 className="text-2xl font-bold">Order Not Found</h1>
+      <div className="space-y-4 rounded-xl border bg-white p-8 text-center">
+        <h1 className="text-xl font-semibold">Order Not Found</h1>
+
+        <p className="text-sm text-gray-500">
+          We couldn't find an order with this ID.
+        </p>
 
         <Link
           to="/profile/orders"
@@ -22,6 +71,9 @@ const OrderDetail = () => {
       </div>
     );
   }
+
+  const status = getOrderStatus(order.status);
+
   return (
     <div className="space-y-6">
       <Link
@@ -35,74 +87,112 @@ const OrderDetail = () => {
       <div>
         <h1 className="text-2xl font-bold">Order #{order.id}</h1>
 
-        <p className="mt-1 text-gray-500">Placed on {order.date}</p>
+        <p className="mt-1 text-gray-500">
+          Placed on {formatOrderDate(order.createdAt)}
+        </p>
       </div>
 
+      {/* Order Status */}
       <div className="rounded-xl border border-slate-200 bg-white p-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-sm text-gray-500">Order Status</p>
-
-            <p className="mt-1 font-semibold">{order.status}</p>
+            <p className="mt-1 font-semibold">{status.label}</p>
           </div>
 
           <span
-            className={`rounded-full px-3 py-1 text-xs font-medium ${
-              order.status === "Delivered"
-                ? "bg-green-100 text-green-700"
-                : "bg-yellow-100 text-yellow-700"
-            }`}
+            className={`rounded-full px-3 py-1 text-xs font-medium ${status.style}`}
           >
-            {order.status}
+            {status.label}
           </span>
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white">
+      {/* Products */}
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
         <div className="border-b p-5">
           <h2 className="font-semibold">Products</h2>
         </div>
 
         <div className="divide-y">
           {order.items.map((item) => (
-            <div key={item.product.id} className="flex gap-4 p-5">
+            <div key={item.productId} className="flex gap-4 p-5">
               <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-slate-50">
-                <img
-                  src={item.product.thumbnail}
-                  alt={item.product.title}
-                  className="h-full w-full object-contain p-2"
-                />
+                {item.thumbnail ? (
+                  <img
+                    src={item.thumbnail}
+                    alt={item.productTitle}
+                    className="h-full w-full object-contain p-2"
+                  />
+                ) : (
+                  <Package className="text-gray-400" size={28} />
+                )}
               </div>
 
               <div className="min-w-0 flex-1">
-                <h3 className="font-medium">{item.product.title}</h3>
+                <h3 className="font-medium">{item.productTitle}</h3>
 
-                <p className="mt-1 text-sm text-gray-500">
-                  {item.product.brand}
+                <p className="mt-2 text-sm text-gray-500">
+                  Quantity: {item.quantity}
                 </p>
 
-                <p className="mt-3 text-sm text-gray-500">
-                  Quantity: {item.quantity}
+                <p className="mt-1 text-sm text-gray-500">
+                  Unit price: {formatCurrency(item.unitPrice)}
                 </p>
               </div>
 
               <div className="text-right">
                 <p className="font-semibold">
-                  ₹{item.product.price.toLocaleString("en-IN")}
+                  {formatCurrency(item.lineTotal)}
                 </p>
-
-                <p className="mt-1 text-xs text-gray-500">× {item.quantity}</p>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="flex items-center justify-between border-t p-5">
-          <span className="font-semibold">Total</span>
+        {/* Price Summary */}
+        <div className="space-y-3 border-t p-5">
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-500">Subtotal</span>
+            <span>{formatCurrency(order.subtotal)}</span>
+          </div>
 
-          <span className="text-xl font-bold">
-            ₹{order.total.toLocaleString("en-IN")}
-          </span>
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-500">Shipping</span>
+            <span>{formatCurrency(order.shippingCost)}</span>
+          </div>
+
+          <div className="flex justify-between border-t pt-3">
+            <span className="font-semibold">Total</span>
+            <span className="text-xl font-bold">
+              {formatCurrency(order.total)}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Shipping Address */}
+      <div className="rounded-xl border border-slate-200 bg-white p-5">
+        <h2 className="font-semibold">Shipping Address</h2>
+
+        <div className="mt-3 space-y-1 text-sm text-gray-600">
+          <p className="font-medium text-gray-900">
+            {order.shippingAddress.fullName}
+          </p>
+
+          <p>{order.shippingAddress.phone}</p>
+          <p>{order.shippingAddress.addressLine1}</p>
+
+          {order.shippingAddress.addressLine2 && (
+            <p>{order.shippingAddress.addressLine2}</p>
+          )}
+
+          <p>
+            {order.shippingAddress.city}, {order.shippingAddress.state}{" "}
+            {order.shippingAddress.postalCode}
+          </p>
+
+          <p>{order.shippingAddress.country}</p>
         </div>
       </div>
     </div>
