@@ -5,9 +5,7 @@ import { useWishlist } from "@/context/WishlistContext";
 import { useMyOrder } from "@/hooks/OrderHook/useMyOrder";
 import { useAddress } from "@/hooks/AddressHook/useAddress";
 import OrderCard from "./OrderCard";
-
-const getOrderStatus = (status: number) => {
-  const statuses = [
+export const statuses = [
     { label: "Pending", style: "bg-yellow-100 text-yellow-700" },
     { label: "Confirmed", style: "bg-blue-100 text-blue-700" },
     { label: "Processing", style: "bg-yellow-100 text-yellow-700" },
@@ -15,30 +13,31 @@ const getOrderStatus = (status: number) => {
     { label: "Delivered", style: "bg-green-100 text-green-700" },
     { label: "Cancelled", style: "bg-red-100 text-red-700" },
   ];
+// const getOrderStatus = (status: number) => {
+  
+//   return (
+//     statuses[status] ?? {
+//       label: "Unknown",
+//       style: "bg-gray-100 text-gray-700",
+//     }
+//   );
+// };
 
-  return (
-    statuses[status] ?? {
-      label: "Unknown",
-      style: "bg-gray-100 text-gray-700",
-    }
-  );
-};
+// const formatCurrency = (amount: number) => {
+//   return new Intl.NumberFormat("en-IN", {
+//     style: "currency",
+//     currency: "INR",
+//     maximumFractionDigits: 2,
+//   }).format(amount);
+// };
 
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 2,
-  }).format(amount);
-};
-
-const formatDate = (date: string) => {
-  return new Date(date).toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-};
+// const formatDate = (date: string) => {
+//   return new Date(date).toLocaleDateString("en-IN", {
+//     day: "numeric",
+//     month: "short",
+//     year: "numeric",
+//   });
+// };
 
 const AccountOverview = () => {
   const { user } = useAuth();
@@ -154,11 +153,9 @@ const AccountOverview = () => {
           )}
           {!ordersLoading &&
             !ordersError &&
-            recentOrder.map((items, index) => {
-              const orderStatus = getOrderStatus(items.status);
-
+            recentOrder.map((items) => {
               return (
-                <OrderCard ></OrderCard>
+                <OrderCard key={items.id} order={items}></OrderCard>
               );
             })}
         </div>
