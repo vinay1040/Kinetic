@@ -46,7 +46,7 @@ const App = () => {
                         <Route path="/profile" element={<AccountOverview />} />
                         <Route
                           path="/profile/orders"
-                          element={<Orders></Orders>}
+                          element={<Orders/>}
                         />
                         <Route
                           path="/profile/orders/:orderId"

@@ -14,8 +14,44 @@ public class OrderService
     {
         _context = context;
     }
+    private static OrderResponse MapToResponse(Order order)
+    {
+        return new OrderResponse
+        {
+            Id = order.Id.ToString(),
+            UserId = order.UserId,
 
-    public async Task<Order?> CreateOrderAsync(
+            Items = order.Items.Select(item => new OrderItemResponse
+            {
+                ProductId = item.ProductId,
+                ProductTitle = item.ProductTitle,
+                Thumbnail = item.Thumbnail,
+                UnitPrice = item.UnitPrice,
+                Quantity = item.Quantity,
+                LineTotal = item.LineTotal
+            }).ToList(),
+
+            ShippingAddress = new ShippingAddressResponse
+            {
+                FullName = order.ShippingAddress.FullName,
+                Phone = order.ShippingAddress.Phone,
+                AddressLine1 = order.ShippingAddress.AddressLine1,
+                AddressLine2 = order.ShippingAddress.AddressLine2,
+                City = order.ShippingAddress.City,
+                State = order.ShippingAddress.State,
+                PostalCode = order.ShippingAddress.PostalCode,
+                Country = order.ShippingAddress.Country
+            },
+
+            Subtotal = order.Subtotal,
+            ShippingCost = order.ShippingCost,
+            Total = order.Total,
+            Status = (int)order.Status,
+            CreatedAt = order.CreatedAt,
+            UpdatedAt = order.UpdatedAt
+        };
+    }
+    public async Task<OrderResponse?> CreateOrderAsync(
         string userId,
         OrderRequest request)
     {
@@ -187,7 +223,7 @@ public class OrderService
 
             transactionCommitted = true;
 
-            return order;
+            return MapToResponse(order);
         }
         finally
         {
@@ -199,16 +235,17 @@ public class OrderService
         }
     }
 
-    public async Task<List<Order>> GetOrdersAsync(
-        string userId)
+    public async Task<List<OrderResponse>> GetOrdersAsync(string userId)
     {
-        return await _context.Order
+        var orders = await _context.Order
             .Find(o => o.UserId == userId)
             .SortByDescending(order => order.CreatedAt)
             .ToListAsync();
+
+        return orders.Select(MapToResponse).ToList();
     }
 
-    public async Task<Order?> GetOrderByIdAsync(string userId, string orderId)
+    public async Task<OrderResponse?> GetOrderByIdAsync(string userId, string orderId)
     {
         if (!ObjectId.TryParse(
                 orderId,
@@ -217,14 +254,16 @@ public class OrderService
             return null;
         }
 
-        return await _context.Order
-            .Find(o =>
-                o.Id == orderObjectId &&
-                o.UserId == userId)
-            .FirstOrDefaultAsync();
+        var order = await _context.Order
+    .Find(o =>
+        o.Id == orderObjectId &&
+        o.UserId == userId)
+    .FirstOrDefaultAsync();
+
+        return order is null ? null : MapToResponse(order);
     }
 
-    public async Task<Order?> ConfirmOrderAsync(string orderId)
+    public async Task<OrderResponse?> ConfirmOrderAsync(string orderId)
     {
         if (!ObjectId.TryParse(orderId, out var orderObjectId))
             return null;
@@ -287,7 +326,7 @@ public class OrderService
             order.Status = OrderStatus.Confirmed;
             order.UpdatedAt = DateTime.UtcNow;
 
-            return order;
+            return MapToResponse(order);
         }
         finally
         {
@@ -296,7 +335,7 @@ public class OrderService
         }
     }
 
-    public async Task<Order?> CancelOrderAsync(
+    public async Task<OrderResponse?> CancelOrderAsync(
         string orderId,
         string? requestingUserId = null)
     {
@@ -390,7 +429,7 @@ public class OrderService
             order.Status = OrderStatus.Cancelled;
             order.UpdatedAt = DateTime.UtcNow;
 
-            return order;
+            return MapToResponse(order);
         }
         finally
         {
