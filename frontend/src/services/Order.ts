@@ -67,3 +67,4 @@ export const cancelOrder = async (id:string) : Promise<CancelOrderResponse> => {
   const response = await AuthApi.post(`/Order/${encodeURIComponent(id)}/cancel`);
   return response.data;
 }
+

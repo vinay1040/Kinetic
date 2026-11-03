@@ -16,10 +16,10 @@ import {
 import { MapPin, Plus, Pencil, Trash2 } from "lucide-react";
 
 import { type Address, type AddressRequest } from "@/services/AddressService";
-import { useAddress } from "@/hooks/AddressHook/useAddress";
-import { useAddAddress } from "@/hooks/AddressHook/useAddAddress";
-import { useUpdateAddress } from "@/hooks/AddressHook/useUpdateAddress";
-import { useAddressDelete } from "@/hooks/AddressHook/useAddressDelete";
+import { useAddress } from "@/hooks/CustomerHook/AddressHook/useAddress";
+import { useAddAddress } from "@/hooks/CustomerHook/AddressHook/useAddAddress";
+import { useUpdateAddress } from "@/hooks/CustomerHook/AddressHook/useUpdateAddress";
+import { useAddressDelete } from "@/hooks/CustomerHook/AddressHook/useAddressDelete";
 import { AddAddressCard } from "./AddAddressCard";
 
 const { Text } = Typography;

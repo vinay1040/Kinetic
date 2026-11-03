@@ -1,4 +1,3 @@
-
 using backend.data;
 using backend.DTOs.Orders;
 using backend.Models;
@@ -234,6 +233,11 @@ public class OrderService
             }
         }
     }
+    public async Task<List<OrderResponse>> GetAllOrderAsync()
+    {
+        var orders = await _context.Order.Find(_ => true).SortByDescending(order => order.CreatedAt).ToListAsync();
+        return orders.Select(MapToResponse).ToList();
+    }
 
     public async Task<List<OrderResponse>> GetOrdersAsync(string userId)
     {
@@ -436,5 +440,25 @@ public class OrderService
             if (!committed && session.IsInTransaction)
                 await session.AbortTransactionAsync();
         }
+    }
+
+    public async Task<List<MonthlyRevenueResponse>> GetMonthlyRevenueResponsesAsync()
+    {
+        var monthlyRevenue = await _context.Order
+            .Aggregate()
+            .Match(order => order.Status != OrderStatus.Cancelled)
+            .Group(order => new
+            {
+                order.CreatedAt.Year,
+                order.CreatedAt.Month
+            },
+            group => new MonthlyRevenueResponse
+            {
+                Year = group.Key.Year,
+                Month = group.Key.Month,
+                Revenue = group.Sum(order => order.Total)
+            }).SortBy(result => result.Year).ThenBy(result => result.Month).ToListAsync();
+
+        return monthlyRevenue;
     }
 }

@@ -1,16 +1,10 @@
-
 import OrderCard from "@/components/account/OrderCard";
-import { useMyOrder } from "@/hooks/OrderHook/useMyOrder";
+import { useMyOrder } from "@/hooks/CustomerHook/OrderHook/useMyOrder";
 import { ShoppingBag } from "lucide-react";
 import { Link } from "react-router";
 
 const Orders = () => {
-  const {
-    data: orders = [],
-    isLoading,
-    isError,
-    refetch,
-  } = useMyOrder();
+  const { data: orders = [], isLoading, isError, refetch } = useMyOrder();
 
   return (
     <div className="space-y-6">
@@ -32,9 +26,7 @@ const Orders = () => {
       {/* Error */}
       {isError && (
         <div className="rounded-xl border bg-white p-8 text-center">
-          <p className="text-red-500">
-            Unable to load your orders.
-          </p>
+          <p className="text-red-500">Unable to load your orders.</p>
 
           <button
             onClick={() => refetch()}
@@ -48,14 +40,9 @@ const Orders = () => {
       {/* Empty state */}
       {!isLoading && !isError && orders.length === 0 && (
         <div className="rounded-xl border bg-white p-10 text-center">
-          <ShoppingBag
-            size={40}
-            className="mx-auto mb-4 text-gray-400"
-          />
+          <ShoppingBag size={40} className="mx-auto mb-4 text-gray-400" />
 
-          <h2 className="text-lg font-semibold">
-            No orders yet
-          </h2>
+          <h2 className="text-lg font-semibold">No orders yet</h2>
 
           <p className="mt-2 text-sm text-gray-500">
             You haven't placed any orders yet.

@@ -1,8 +1,8 @@
 import { Link } from "react-router";
 import { ArrowRight, Heart, MapPin, ShoppingBag } from "lucide-react";
 import { useWishlist } from "@/context/WishlistContext";
-import { useMyOrder } from "@/hooks/OrderHook/useMyOrder";
-import { useAddress } from "@/hooks/AddressHook/useAddress";
+import { useMyOrder } from "@/hooks/CustomerHook/OrderHook/useMyOrder";
+import { useAddress } from "@/hooks/CustomerHook/AddressHook/useAddress";
 import OrderCard from "./OrderCard";
 
 const AccountOverview = () => {

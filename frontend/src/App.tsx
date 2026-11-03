@@ -5,7 +5,7 @@ import Store from "./pages/Store";
 import ProductDetail from "./components/products/ProductDetail";
 import { CartProvider } from "./context/CartContext";
 import { WishlistProvider } from "./context/WishlistContext";
-import Cart from "./pages/Cart";
+import Cart from "./components/cart/Cart";
 import AuthLayout from "./layouts/AuthLayouts";
 import { Login } from "./pages/Login";
 import SignUp from "./pages/SignUp";
@@ -17,10 +17,11 @@ import AccountOverview from "./components/account/accountOverview";
 import Orders from "./components/account/Orders";
 import OrderDetail from "./components/account/OrderDetail";
 import AdminLayout from "./layouts/AdminLayouts";
-import AdminDashboard from "./components/admin/AdminDashboard";
+import AdminDashboard from "./components/admin/Dashboard/AdminDashboard";
 import { ProductProvider } from "./context/ProductContext";
 import { SettingPage } from "./components/settings/settingPage";
 import Checkout from "./pages/Checkout";
+import AdminOrders from "./components/admin/orders/adminOrder";
 
 const App = () => {
   return (
@@ -69,7 +70,7 @@ const App = () => {
                     <Route path="/admin" element={<AdminLayout />}>
                       {" "}
                       <Route index element={<AdminDashboard />} />
-                      <Route path="orders" element={<div>Orders</div>} />
+                      <Route path="orders" element={<AdminOrders/>} />
                       <Route path="products" element={<div>Products</div>} />
                       <Route path="inventry" element={<div>inventry</div>} />
                       <Route path="users" element={<div>Users</div>} />

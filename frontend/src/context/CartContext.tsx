@@ -7,11 +7,11 @@ import {
 import { getProductById, type Product } from "@/services/productApi";
 import { useAuth } from "./AuthContext";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
-import { useCart } from "@/hooks/CartHook/useCart";
-import { useAddCartItem } from "@/hooks/CartHook/useAddCartItem";
-import { useRemoveCartItem } from "@/hooks/CartHook/useRemoveCartItem";
-import { useUpdateCartItem } from "@/hooks/CartHook/useUpdateCartItem";
-import { useClearCart } from "@/hooks/CartHook/useClearCart";
+import { useCart } from "@/hooks/CustomerHook/CartHook/useCart";
+import { useAddCartItem } from "@/hooks/CustomerHook/CartHook/useAddCartItem";
+import { useRemoveCartItem } from "@/hooks/CustomerHook/CartHook/useRemoveCartItem";
+import { useUpdateCartItem } from "@/hooks/CustomerHook/CartHook/useUpdateCartItem";
+import { useClearCart } from "@/hooks/CustomerHook/CartHook/useClearCart";
 
 export type CartItem = {
   product: Product;

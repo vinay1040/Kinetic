@@ -112,5 +112,19 @@ public class OrderController : ControllerBase
             order
         });
     }
+    [HttpGet("admin")]
+    [Authorize(Policy = "ActiveUser", Roles = "Admin")]
+    public async Task<IActionResult> GetAllOrders()
+    {
+        var orders = await _orderService.GetAllOrderAsync();
+        return Ok(orders);
+    }
 
+    [HttpGet("admin/revenue/monthly")]
+    [Authorize(Policy ="ActiveUser" , Roles ="Admin")]
+    public async Task<IActionResult> GetMonthlyRevenue()
+    {
+        var revenue = await _orderService.GetMonthlyRevenueResponsesAsync();
+        return Ok(revenue);
+    }
 }

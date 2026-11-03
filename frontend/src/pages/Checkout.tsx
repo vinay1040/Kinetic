@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { message } from "antd";
@@ -11,8 +10,8 @@ import {
   Truck,
 } from "lucide-react";
 
-import { useAddress } from "@/hooks/AddressHook/useAddress";
-import { useCreateOrder } from "@/hooks/OrderHook/useCreateOrder";
+import { useAddress } from "@/hooks/CustomerHook/AddressHook/useAddress";
+import { useCreateOrder } from "@/hooks/CustomerHook/OrderHook/useCreateOrder";
 import { useCartContext } from "@/context/CartContext";
 import { formatCurrency } from "@/utils/formatCurrency";
 
@@ -21,11 +20,7 @@ const Checkout = () => {
 
   const navigate = useNavigate();
 
-  const {
-    cart,
-    loading: cartLoading,
-    error: cartError,
-  } = useCartContext();
+  const { cart, loading: cartLoading, error: cartError } = useCartContext();
 
   const {
     data: addresses = [],
@@ -39,24 +34,17 @@ const Checkout = () => {
   useEffect(() => {
     if (selectedAddressId || addresses.length === 0) return;
 
-    const defaultAddress = addresses.find(
-      (address) => address.isDefault,
-    );
+    const defaultAddress = addresses.find((address) => address.isDefault);
 
-    setSelectedAddressId(
-      defaultAddress?.id ?? addresses[0].id,
-    );
+    setSelectedAddressId(defaultAddress?.id ?? addresses[0].id);
   }, [addresses, selectedAddressId]);
 
   // Check whether any cart product has an unavailable price.
-  const hasUnavailablePrice = cart.some(
-    (item) => item.product.price === null,
-  );
+  const hasUnavailablePrice = cart.some((item) => item.product.price === null);
 
   // Calculate the estimated subtotal.
   const subtotal = cart.reduce(
-    (total, item) =>
-      total + (item.product.price ?? 0) * item.quantity,
+    (total, item) => total + (item.product.price ?? 0) * item.quantity,
     0,
   );
 
@@ -89,9 +77,7 @@ const Checkout = () => {
         shippingAddressId: selectedAddressId,
       });
 
-      message.success(
-        response.message || "Order placed successfully.",
-      );
+      message.success(response.message || "Order placed successfully.");
 
       navigate(`/profile/orders/${response.order.id}`);
     } catch {
@@ -126,8 +112,7 @@ const Checkout = () => {
           </h1>
 
           <p className="mt-3 text-sm text-slate-500">
-            We couldn't load your cart or address information.
-            Please try again.
+            We couldn't load your cart or address information. Please try again.
           </p>
 
           <Link
@@ -173,7 +158,6 @@ const Checkout = () => {
   return (
     <main className="min-h-screen bg-slate-50/60 px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
-
         {/* Header */}
         <div className="mb-8">
           <Link
@@ -194,10 +178,8 @@ const Checkout = () => {
         </div>
 
         <div className="grid items-start gap-8 lg:grid-cols-[1fr_380px]">
-
           {/* Left Column */}
           <div className="space-y-6">
-
             {/* Shipping Address */}
             <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
               <div className="flex items-center gap-3">
@@ -217,10 +199,7 @@ const Checkout = () => {
 
               {addresses.length === 0 ? (
                 <div className="mt-6 rounded-xl border border-dashed border-slate-300 p-6 text-center">
-                  <MapPin
-                    size={28}
-                    className="mx-auto text-slate-400"
-                  />
+                  <MapPin size={28} className="mx-auto text-slate-400" />
 
                   <p className="mt-3 font-semibold text-slate-800">
                     No saved addresses
@@ -240,8 +219,7 @@ const Checkout = () => {
               ) : (
                 <div className="mt-6 grid gap-4 sm:grid-cols-2">
                   {addresses.map((address) => {
-                    const selected =
-                      selectedAddressId === address.id;
+                    const selected = selectedAddressId === address.id;
 
                     return (
                       <label
@@ -257,9 +235,7 @@ const Checkout = () => {
                           name="shippingAddress"
                           value={address.id}
                           checked={selected}
-                          onChange={() =>
-                            setSelectedAddressId(address.id)
-                          }
+                          onChange={() => setSelectedAddressId(address.id)}
                           className="mt-1 accent-current"
                         />
 
@@ -288,8 +264,7 @@ const Checkout = () => {
                           </p>
 
                           <p className="text-sm text-slate-500">
-                            {address.city}, {address.state}{" "}
-                            {address.postalCode}
+                            {address.city}, {address.state} {address.postalCode}
                           </p>
 
                           <p className="mt-2 text-xs text-slate-500">
@@ -368,15 +343,11 @@ const Checkout = () => {
 
           {/* Right Column - Summary */}
           <aside className="h-fit rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 lg:sticky lg:top-6">
-            <h2 className="text-xl font-bold text-slate-900">
-              Order Summary
-            </h2>
+            <h2 className="text-xl font-bold text-slate-900">Order Summary</h2>
 
             <div className="mt-6 space-y-4">
               <div className="flex justify-between text-sm">
-                <span className="text-slate-500">
-                  Subtotal
-                </span>
+                <span className="text-slate-500">Subtotal</span>
 
                 <span className="font-semibold text-slate-900">
                   {formatCurrency(subtotal)}
@@ -390,15 +361,14 @@ const Checkout = () => {
                 </span>
 
                 <span className="font-semibold text-green-600">
-                  {shipping === 0
-                    ? "Free"
-                    : formatCurrency(shipping)}
+                  {shipping === 0 ? "Free" : formatCurrency(shipping)}
                 </span>
               </div>
 
               {hasUnavailablePrice && (
                 <div className="rounded-xl bg-amber-50 p-3 text-xs leading-5 text-amber-800">
-                  Some products have unavailable prices. Update your cart before placing the order.
+                  Some products have unavailable prices. Update your cart before
+                  placing the order.
                 </div>
               )}
 
@@ -414,7 +384,8 @@ const Checkout = () => {
                 </div>
 
                 <p className="mt-3 text-xs leading-5 text-slate-400">
-                  The final amount is calculated and verified by the server using current product prices.
+                  The final amount is calculated and verified by the server
+                  using current product prices.
                 </p>
               </div>
 
@@ -431,9 +402,7 @@ const Checkout = () => {
               >
                 <ShoppingBag size={18} />
 
-                {createOrder.isPending
-                  ? "Placing Order..."
-                  : "Place Order"}
+                {createOrder.isPending ? "Placing Order..." : "Place Order"}
               </button>
 
               <Link
@@ -446,13 +415,11 @@ const Checkout = () => {
 
             {/* Security Information */}
             <div className="mt-6 flex items-start gap-3 border-t border-slate-100 pt-5">
-              <ShieldCheck
-                size={19}
-                className="shrink-0 text-green-600"
-              />
+              <ShieldCheck size={19} className="shrink-0 text-green-600" />
 
               <p className="text-xs leading-5 text-slate-500">
-                Your order is validated by Kinetic's backend before it is created.
+                Your order is validated by Kinetic's backend before it is
+                created.
               </p>
             </div>
           </aside>
