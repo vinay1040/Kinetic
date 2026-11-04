@@ -16,6 +16,7 @@ import {
   getCurrentUser,
   AUTH_SESSION_UPDATED_EVENT,
   AUTH_SESSION_EXPIRED_EVENT,
+  waitForRefresh,
 } from "../services/authApi";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -209,27 +210,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async (): Promise<void> => {
-    const refreshToken = session?.refreshToken;
-
+    let refreshToken = session?.refreshToken;
+    const savedSession = sessionStorage.getItem(SESSION_KEY);
+    if (savedSession) {
+      try {
+        const storedSession = JSON.parse(savedSession) as AuthSession;
+        refreshToken = storedSession.refreshToken;
+      } catch (error) {
+        console.error("Failed to read session during logout:", error);
+      }
+    }
+    sessionStorage.removeItem(SESSION_KEY);
+    hydratedTokenRef.current = null;
+    queryClient.clear();
+    setSession(null);
     try {
-      // Revoke the refresh token on the backend.
-      if (refreshToken) {
-        await logoutUser(refreshToken);
+      // 3. Wait for an already-running refresh request.
+      const refreshedSession = refreshToken ? await waitForRefresh(refreshToken) : null;
+
+      // 4. Prefer the newly rotated refresh token if refresh succeeded.
+      const tokenToRevoke = refreshedSession?.refreshToken ?? refreshToken;
+
+      // 5. Revoke the latest available token on the backend.
+      if (tokenToRevoke) {
+        await logoutUser(tokenToRevoke);
       }
     } catch (error) {
       console.error("Backend logout failed:", error);
-    } finally {
-      // Remove the persisted session.
-      sessionStorage.removeItem(SESSION_KEY);
-
-      // Reset the hydrated token reference.
-      hydratedTokenRef.current = null;
-
-      // Clear all cached application data.
-      queryClient.clear();
-
-      // Clear the React authentication state.
-      setSession(null);
     }
   };
 

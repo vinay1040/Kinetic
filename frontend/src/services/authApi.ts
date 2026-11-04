@@ -34,7 +34,25 @@ export const AuthApi = axios.create({
   },
 });
 
-let refreshPromise: Promise<LoginResponse> | null = null;
+const refreshPromises = new Map<string, Promise<LoginResponse>>();
+//let refreshPromise: Promise<LoginResponse> | null = null;
+// let refreshTokenInFlight: string | null = null;
+
+export const waitForRefresh = async (
+  refreshToken: string,
+): Promise<LoginResponse | null> => {
+  const pendingRefresh = refreshPromises.get(refreshToken);
+
+  if (!pendingRefresh) {
+    return null;
+  }
+
+  try {
+    return await pendingRefresh;
+  } catch {
+    return null;
+  }
+};
 
 AuthApi.interceptors.response.use(
   (response) => response,
@@ -56,99 +74,54 @@ AuthApi.interceptors.response.use(
     ) {
       return Promise.reject(error);
     }
-
     originalRequest._retry = true;
-
     const savedSession = sessionStorage.getItem("kinetic_auth_session");
-
     if (!savedSession) {
       window.dispatchEvent(new Event(AUTH_SESSION_EXPIRED_EVENT));
       return Promise.reject(error);
     }
-
     let session: LoginResponse & {
       user: UserProfileResponse | Record<string, unknown>;
     };
-
     try {
       session = JSON.parse(savedSession);
     } catch {
       sessionStorage.removeItem("kinetic_auth_session");
-
       window.dispatchEvent(new Event(AUTH_SESSION_EXPIRED_EVENT));
-
       return Promise.reject(error);
     }
-
     if (!session.refreshToken) {
       sessionStorage.removeItem("kinetic_auth_session");
-
       window.dispatchEvent(new Event(AUTH_SESSION_EXPIRED_EVENT));
-
       return Promise.reject(error);
     }
-
-    if (!refreshPromise) {
-      refreshPromise = refreshUser(session.refreshToken);
-    }
-
+    const currentRefreshPromise = getSharedRefresh(session.refreshToken);
     try {
-      const response = await refreshPromise;
-      // Read the session again after waiting for the refresh.
+      const response = await currentRefreshPromise;
+      // Check whether the session still exists.
       const latestSavedSession = sessionStorage.getItem("kinetic_auth_session");
-      // The user may have logged out while refresh was running.
       if (!latestSavedSession) {
         return Promise.reject(error);
       }
-      let latestSession: typeof session;
-      try {
-        latestSession = JSON.parse(latestSavedSession);
-      } catch {
+      // Check whether this refresh result belongs to the current session.
+      const latestSession = JSON.parse(latestSavedSession);
+      if (latestSession.refreshToken !== response.refreshToken) {
         return Promise.reject(error);
       }
-      // Check whether this is still the same login session.
-      const isSameSession = latestSession.refreshToken === session.refreshToken;
-      // Another request may already have saved the rotated token.
-      const isAlreadyRefreshed =
-        latestSession.refreshToken === response.refreshToken;
-      // Don't overwrite a different or newer login session.
-      if (!isSameSession && !isAlreadyRefreshed) {
-        return Promise.reject(error);
-      }
-      // Preserve the latest user data and update its tokens.
-      const newSession = {
-        ...latestSession,
-        accessToken: response.accessToken,
-        refreshToken: response.refreshToken,
-      };
-
-      sessionStorage.setItem(
-        "kinetic_auth_session",
-        JSON.stringify(newSession),
-      );
-
-      // Notify AuthContext that the tokens have changed.
-      window.dispatchEvent(new Event(AUTH_SESSION_UPDATED_EVENT));
-
       // Retry the original request with the new access token.
       originalRequest.headers.Authorization = `Bearer ${response.accessToken}`;
-
       return AuthApi(originalRequest);
     } catch (refreshError) {
       // Read the session that currently exists.
       const latestSavedSession = sessionStorage.getItem("kinetic_auth_session");
-
       if (latestSavedSession) {
         try {
           const latestSession = JSON.parse(latestSavedSession);
-
           // Only expire the session that originally started this refresh.
           const isSameSession =
             latestSession.refreshToken === session.refreshToken;
-
           if (isSameSession) {
             sessionStorage.removeItem("kinetic_auth_session");
-
             // Notify AuthContext that authentication has expired.
             window.dispatchEvent(new Event(AUTH_SESSION_EXPIRED_EVENT));
           }
@@ -156,10 +129,7 @@ AuthApi.interceptors.response.use(
           console.error("Failed to check the current session:", parseError);
         }
       }
-
       return Promise.reject(refreshError);
-    } finally {
-      refreshPromise = null;
     }
   },
 );
@@ -207,6 +177,66 @@ export const refreshUser = async (
 ): Promise<LoginResponse> => {
   const response = await AuthApi.post("/auth/refresh", { refreshToken });
   return response.data;
+};
+const getSharedRefresh = (refreshToken: string): Promise<LoginResponse> => {
+  // Reuse an existing refresh request for this token.
+  const existingPromise = refreshPromises.get(refreshToken);
+
+  if (existingPromise) {
+    return existingPromise;
+  }
+
+  // Start a new refresh operation.
+  const currentPromise = (async () => {
+    const response = await refreshUser(refreshToken);
+
+    const latestSavedSession = sessionStorage.getItem("kinetic_auth_session");
+
+    // Do not restore a session after logout.
+    if (!latestSavedSession) {
+      return response;
+    }
+
+    const latestSession = JSON.parse(latestSavedSession);
+
+    const isSameSession = latestSession.refreshToken === refreshToken;
+
+    const isAlreadyRefreshed =
+      latestSession.refreshToken === response.refreshToken;
+
+    // Do not overwrite another login session.
+    if (!isSameSession && !isAlreadyRefreshed) {
+      return response;
+    }
+
+    const updatedSession = {
+      ...latestSession,
+      accessToken: response.accessToken,
+      refreshToken: response.refreshToken,
+    };
+
+    sessionStorage.setItem(
+      "kinetic_auth_session",
+      JSON.stringify(updatedSession),
+    );
+
+    window.dispatchEvent(new Event(AUTH_SESSION_UPDATED_EVENT));
+
+    return response;
+  })();
+
+  refreshPromises.set(refreshToken, currentPromise);
+
+  const clearRefreshState = () => {
+    // Delete only this operation, not another refresh.
+    if (refreshPromises.get(refreshToken) === currentPromise) {
+      refreshPromises.delete(refreshToken);
+    }
+  };
+
+  currentPromise.then(clearRefreshState, clearRefreshState);
+
+  return currentPromise;
 };
 
 export const updateUserPRofile = async (
