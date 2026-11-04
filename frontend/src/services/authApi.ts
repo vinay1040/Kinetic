@@ -94,9 +94,30 @@ AuthApi.interceptors.response.use(
 
     try {
       const response = await refreshPromise;
-
+      // Read the session again after waiting for the refresh.
+      const latestSavedSession = sessionStorage.getItem("kinetic_auth_session");
+      // The user may have logged out while refresh was running.
+      if (!latestSavedSession) {
+        return Promise.reject(error);
+      }
+      let latestSession: typeof session;
+      try {
+        latestSession = JSON.parse(latestSavedSession);
+      } catch {
+        return Promise.reject(error);
+      }
+      // Check whether this is still the same login session.
+      const isSameSession = latestSession.refreshToken === session.refreshToken;
+      // Another request may already have saved the rotated token.
+      const isAlreadyRefreshed =
+        latestSession.refreshToken === response.refreshToken;
+      // Don't overwrite a different or newer login session.
+      if (!isSameSession && !isAlreadyRefreshed) {
+        return Promise.reject(error);
+      }
+      // Preserve the latest user data and update its tokens.
       const newSession = {
-        ...session,
+        ...latestSession,
         accessToken: response.accessToken,
         refreshToken: response.refreshToken,
       };
@@ -109,14 +130,32 @@ AuthApi.interceptors.response.use(
       // Notify AuthContext that the tokens have changed.
       window.dispatchEvent(new Event(AUTH_SESSION_UPDATED_EVENT));
 
+      // Retry the original request with the new access token.
       originalRequest.headers.Authorization = `Bearer ${response.accessToken}`;
 
       return AuthApi(originalRequest);
     } catch (refreshError) {
-      sessionStorage.removeItem("kinetic_auth_session");
+      // Read the session that currently exists.
+      const latestSavedSession = sessionStorage.getItem("kinetic_auth_session");
 
-      // Notify AuthContext that authentication has expired.
-      window.dispatchEvent(new Event(AUTH_SESSION_EXPIRED_EVENT));
+      if (latestSavedSession) {
+        try {
+          const latestSession = JSON.parse(latestSavedSession);
+
+          // Only expire the session that originally started this refresh.
+          const isSameSession =
+            latestSession.refreshToken === session.refreshToken;
+
+          if (isSameSession) {
+            sessionStorage.removeItem("kinetic_auth_session");
+
+            // Notify AuthContext that authentication has expired.
+            window.dispatchEvent(new Event(AUTH_SESSION_EXPIRED_EVENT));
+          }
+        } catch (parseError) {
+          console.error("Failed to check the current session:", parseError);
+        }
+      }
 
       return Promise.reject(refreshError);
     } finally {
