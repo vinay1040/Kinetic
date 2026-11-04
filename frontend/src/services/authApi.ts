@@ -1,6 +1,7 @@
 import axios from "axios";
-// import { access } from "fs";
-// import { stringify } from "querystring";
+export const AUTH_SESSION_UPDATED_EVENT = "kinetic:auth-session-updated";
+
+export const AUTH_SESSION_EXPIRED_EVENT = "kinetic:auth-session-expired";
 declare module "axios" {
   export interface InternalAxiosRequestConfig {
     _retry?: boolean;
@@ -40,32 +41,60 @@ AuthApi.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    const excludedUrls = [
+      "/auth/login",
+      "/auth/register",
+      "/auth/refresh",
+      "/auth/logout",
+    ];
+
     if (
       error.response?.status !== 401 ||
       !originalRequest ||
       originalRequest._retry ||
-      originalRequest.url?.includes("/auth/refresh")
+      excludedUrls.some((url) => originalRequest.url?.includes(url))
     ) {
       return Promise.reject(error);
     }
 
     originalRequest._retry = true;
+
     const savedSession = sessionStorage.getItem("kinetic_auth_session");
 
     if (!savedSession) {
+      window.dispatchEvent(new Event(AUTH_SESSION_EXPIRED_EVENT));
       return Promise.reject(error);
     }
 
-    const session = JSON.parse(savedSession);
+    let session: LoginResponse & {
+      user: UserProfileResponse | Record<string, unknown>;
+    };
+
+    try {
+      session = JSON.parse(savedSession);
+    } catch {
+      sessionStorage.removeItem("kinetic_auth_session");
+
+      window.dispatchEvent(new Event(AUTH_SESSION_EXPIRED_EVENT));
+
+      return Promise.reject(error);
+    }
 
     if (!session.refreshToken) {
+      sessionStorage.removeItem("kinetic_auth_session");
+
+      window.dispatchEvent(new Event(AUTH_SESSION_EXPIRED_EVENT));
+
       return Promise.reject(error);
     }
+
     if (!refreshPromise) {
       refreshPromise = refreshUser(session.refreshToken);
     }
+
     try {
       const response = await refreshPromise;
+
       const newSession = {
         ...session,
         accessToken: response.accessToken,
@@ -76,12 +105,19 @@ AuthApi.interceptors.response.use(
         "kinetic_auth_session",
         JSON.stringify(newSession),
       );
+
+      // Notify AuthContext that the tokens have changed.
+      window.dispatchEvent(new Event(AUTH_SESSION_UPDATED_EVENT));
+
       originalRequest.headers.Authorization = `Bearer ${response.accessToken}`;
 
-      error.config.headers.Authorization = `Bearer ${response.accessToken}`;
-      return AuthApi(error.config);
+      return AuthApi(originalRequest);
     } catch (refreshError) {
       sessionStorage.removeItem("kinetic_auth_session");
+
+      // Notify AuthContext that authentication has expired.
+      window.dispatchEvent(new Event(AUTH_SESSION_EXPIRED_EVENT));
+
       return Promise.reject(refreshError);
     } finally {
       refreshPromise = null;

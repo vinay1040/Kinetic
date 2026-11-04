@@ -14,6 +14,8 @@ import {
   updateUserPRofile,
   type ApiUserRole,
   getCurrentUser,
+  AUTH_SESSION_UPDATED_EVENT,
+  AUTH_SESSION_EXPIRED_EVENT,
 } from "../services/authApi";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -91,40 +93,75 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const accessToken = session?.accessToken;
-    if(!accessToken || hydratedTokenRef.current === accessToken) return;
+    if (!accessToken || hydratedTokenRef.current === accessToken) {
+      return;
+    }
     let cancelled = false;
     const loadCurrentUser = async () => {
-      try{
+      try {
         const currentUser = await getCurrentUser();
-
-        const user : User = {
+        if (cancelled) return;
+        const user: User = {
           id: currentUser.id,
           name: currentUser.name,
           email: currentUser.email,
           role: normalizeRole(currentUser.role),
         };
-
-        hydratedTokenRef.current = accessToken;
-
         setSession((currentSession) => {
-          if(!currentSession || currentSession.accessToken !== accessToken) return currentSession;
+          if (!currentSession || currentSession.accessToken !== accessToken) {
+            return currentSession;
+          }
           return {
             ...currentSession,
-            user
-          }
+            user,
+          };
         });
-       } catch (error) {
+        hydratedTokenRef.current = accessToken;
+      } catch (error) {
         if (!cancelled) {
-        console.error("Failed to load current user:", error);
-      }
+          console.error("Failed to load current user:", error);
+        }
       }
     };
+
     loadCurrentUser();
+
     return () => {
       cancelled = true;
     };
   }, [session?.accessToken]);
+  useEffect(() => {
+    const handleSessionUpdated = () => {
+      const updatedSession = readSession();
 
+      if (!updatedSession) return;
+
+      hydratedTokenRef.current = updatedSession.accessToken;
+      setSession(updatedSession);
+    };
+
+    const handleSessionExpired = () => {
+      hydratedTokenRef.current = null;
+      queryClient.clear();
+      setSession(null);
+    };
+
+    window.addEventListener(AUTH_SESSION_UPDATED_EVENT, handleSessionUpdated);
+
+    window.addEventListener(AUTH_SESSION_EXPIRED_EVENT, handleSessionExpired);
+
+    return () => {
+      window.removeEventListener(
+        AUTH_SESSION_UPDATED_EVENT,
+        handleSessionUpdated,
+      );
+
+      window.removeEventListener(
+        AUTH_SESSION_EXPIRED_EVENT,
+        handleSessionExpired,
+      );
+    };
+  }, [queryClient]);
   const register = async (
     name: string,
     email: string,
@@ -137,23 +174,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const response = await loginUser(email.trim().toLowerCase(), password);
 
     const temporarySession: AuthSession = {
-      user : {
+      user: {
         id: "",
-      name: "",
-      email: response.email,
-      role: normalizeRole(response.role)
+        name: "",
+        email: response.email,
+        role: normalizeRole(response.role),
       },
-      accessToken : response.accessToken,
-      refreshToken : response.refreshToken,
+      accessToken: response.accessToken,
+      refreshToken: response.refreshToken,
     };
 
-    sessionStorage.setItem(SESSION_KEY,JSON.stringify(temporarySession));
-    try{
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(temporarySession));
+    try {
       const currentUser = await getCurrentUser();
 
-      const nextUser : User = {
+      const nextUser: User = {
         id: currentUser.id,
-        name:  currentUser.name,
+        name: currentUser.name,
         email: currentUser.email,
         role: normalizeRole(currentUser.role),
       };
@@ -165,27 +202,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         user: nextUser,
       });
       return nextUser;
-    } catch (error){
+    } catch (error) {
       sessionStorage.removeItem(SESSION_KEY);
-      throw error
+      throw error;
     }
   };
 
   const logout = async (): Promise<void> => {
     const refreshToken = session?.refreshToken;
-    queryClient.removeQueries({
-      queryKey: ["cart"],
-    });
-    queryClient.removeQueries({
-      queryKey:["addresses"],
-    });
-    setSession(null);
-    if (refreshToken) {
-      try {
+
+    try {
+      // Revoke the refresh token on the backend.
+      if (refreshToken) {
         await logoutUser(refreshToken);
-      } catch (error) {
-        console.error("Backend logout failed:", error);
       }
+    } catch (error) {
+      console.error("Backend logout failed:", error);
+    } finally {
+      // Remove the persisted session.
+      sessionStorage.removeItem(SESSION_KEY);
+
+      // Reset the hydrated token reference.
+      hydratedTokenRef.current = null;
+
+      // Clear all cached application data.
+      queryClient.clear();
+
+      // Clear the React authentication state.
+      setSession(null);
     }
   };
 
