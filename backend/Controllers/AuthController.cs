@@ -125,4 +125,43 @@ public class AuthController : ControllerBase
         return NoContent();
     }
 
+    [HttpPut("change-password")]
+    [Authorize(Policy = "ActiveUser")]
+    public async Task<IActionResult> ChangePassword(
+    [FromBody] ChangePasswordRequest request)
+    {
+        var userId = User.FindFirstValue("sub");
+
+        if (string.IsNullOrWhiteSpace(userId))
+            return Unauthorized();
+
+        try
+        {
+            var changed = await _authService.ChangePasswordAsync(
+                userId,
+                request
+            );
+
+            if (!changed)
+            {
+                return BadRequest(new
+                {
+                    message = "Current password is incorrect or account was not found."
+                });
+            }
+
+            return Ok(new
+            {
+                message = "Password changed successfully."
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new
+            {
+                message = ex.Message
+            });
+        }
+    }
+
 }

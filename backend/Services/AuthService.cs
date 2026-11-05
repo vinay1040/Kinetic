@@ -299,4 +299,31 @@ public class AuthService
         return result.IsAcknowledged && result.MatchedCount == 1;
     }
 
+    public async Task<bool> ChangePasswordAsync(string id, ChangePasswordRequest request)
+    {
+        if (!ObjectId.TryParse(id, out var objectId)) return false;
+        var user = await _dbcontext.Users.Find(u => u.Id == objectId && u.IsActive).FirstOrDefaultAsync();
+        if (user is null) return false;
+        var isCurrentPasswordValid = _passwordService.VerifyPassword(user, request.NewPassword, user.PasswordHash);
+        if (!isCurrentPasswordValid)
+            return false;
+        if (_passwordService.VerifyPassword(
+        user,
+        request.NewPassword,
+        user.PasswordHash))
+        {
+            throw new InvalidOperationException(
+                "New password must be different from the current password."
+            );
+        }
+        var newPasswordHash = _passwordService.HashPassword(user,request.NewPassword);
+        var filter = Builders<User>.Filter.And(
+            Builders<User>.Filter.Eq(u => u.Id,user.Id),
+            Builders<User>.Filter.Eq(u => u.PasswordHash,user.PasswordHash)
+        );
+        var update = Builders<User>.Update.Set(user => user.PasswordHash,newPasswordHash);
+        var result = await _dbcontext.Users.UpdateOneAsync(filter,update);
+        return result.ModifiedCount == 1;
+    }
+
 }
