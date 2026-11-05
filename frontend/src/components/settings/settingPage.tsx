@@ -1,14 +1,15 @@
 import { useState } from "react";
 
 import { ProfileForm } from "@/components/auth/profile-form";
-import { PersonalInformation } from "./features/personalInformation";
-import { SavedAddresses } from "./features/SavedAddress";
-import { AccountSecurity } from "./features/AccountSecurity";
+import { PersonalInformation } from "./features/SettingsList/personalInformation";
+import { SavedAddresses } from "./features/SettingsList/SavedAddress";
+import { AccountSecurity } from "./features/SettingsList/AccountSecurity";
 import { SavedAddressesPanel } from "./features/AddressFeature/SavedAddressPanel";
+import { SecurityPage } from "./features/SecurityPage";
 
 export const SettingPage = () => {
   const [activeSection, setActiveSection] = useState<
-    "profile" | "addresses" | null
+    "profile" | "addresses" | "security" | null
   >(null);
 
   return (
@@ -25,7 +26,7 @@ export const SettingPage = () => {
           <>
             <PersonalInformation onClick={() => setActiveSection("profile")} />
             <SavedAddresses onClick={() => setActiveSection("addresses")} />
-            <AccountSecurity />
+            <AccountSecurity onClick={() => setActiveSection("security")} />
           </>
         ) : (
           <div className="p-6">
@@ -47,6 +48,7 @@ export const SettingPage = () => {
             )}
 
             {activeSection === "addresses" && <SavedAddressesPanel />}
+            {activeSection === "security" && <SecurityPage/>}
           </div>
         )}
       </div>

@@ -1,4 +1,5 @@
 using backend.data;
+using backend.DTOs.Admin;
 using backend.DTOs.Orders;
 using backend.Models;
 using backend.Models.Orders;
@@ -460,5 +461,38 @@ public class OrderService
             }).SortBy(result => result.Year).ThenBy(result => result.Month).ToListAsync();
 
         return monthlyRevenue;
+    }
+    public async Task<AdminDashboardResponse> GetAdminDashboardAsync()
+    {
+        var totalOrders = (int)await _context.Order.CountDocumentsAsync(
+            FilterDefinition<Order>.Empty
+        );
+
+        var validOrdersFilter = Builders<Order>.Filter.Ne(
+            order => order.Status,
+            OrderStatus.Cancelled
+        );
+
+        var validOrders = await _context.Order
+            .Find(validOrdersFilter)
+            .ToListAsync();
+
+        var totalRevenue = validOrders.Sum(order => order.Total);
+
+        var totalCustomers = (int)await _context.Users.CountDocumentsAsync(
+            user => user.Role == UserRole.Customer && user.IsActive
+        );
+
+        var averageOrderValue = validOrders.Count > 0
+            ? totalRevenue / validOrders.Count
+            : 0m;
+
+        return new AdminDashboardResponse
+        {
+            TotalRevenue = totalRevenue,
+            TotalOrders = totalOrders,
+            TotalCustomers = totalCustomers,
+            AverageOrderValue = averageOrderValue
+        };
     }
 }

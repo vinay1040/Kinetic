@@ -12,6 +12,10 @@ export type UpdateProfileRequest = {
   name: string;
   email: string;
 };
+export type ChangePasswordRequest = {
+  currentPassword: string;
+  newPassword: string;
+};
 
 export type ApiUserRole = "Customer" | "Admin" | 0 | 1;
 export type UserProfileResponse = {
@@ -251,4 +255,10 @@ export const logoutUser = async (refreshToken: string): Promise<void> => {
 export const getCurrentUser = async (): Promise<UserProfileResponse> => {
   const response = await AuthApi.get<UserProfileResponse>("/auth/me");
   return response.data;
+};
+
+export const changePassword = async (
+  data: ChangePasswordRequest,
+): Promise<void> => {
+  await AuthApi.put("/auth/change-password", data);
 };

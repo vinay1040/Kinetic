@@ -304,7 +304,7 @@ public class AuthService
         if (!ObjectId.TryParse(id, out var objectId)) return false;
         var user = await _dbcontext.Users.Find(u => u.Id == objectId && u.IsActive).FirstOrDefaultAsync();
         if (user is null) return false;
-        var isCurrentPasswordValid = _passwordService.VerifyPassword(user, request.NewPassword, user.PasswordHash);
+        var isCurrentPasswordValid = _passwordService.VerifyPassword(user, request.CurrentPassword, user.PasswordHash);
         if (!isCurrentPasswordValid)
             return false;
         if (_passwordService.VerifyPassword(
