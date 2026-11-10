@@ -495,4 +495,57 @@ public class OrderService
             AverageOrderValue = averageOrderValue
         };
     }
+    public async Task<List<CategoryRevenueResponse>> GetCategoryRevenueResponsesAsync()
+    {
+        var validOrders = await _context.Order
+        .Find(order => order.Status != OrderStatus.Cancelled)
+        .ToListAsync();
+
+        var productIds = validOrders
+            .SelectMany(order => order.Items)
+            .Select(item => item.ProductId)
+            .Where(id => ObjectId.TryParse(id, out _))
+            .Select(ObjectId.Parse)
+            .Distinct()
+            .ToList();
+
+        if (productIds.Count == 0)
+        {
+            return new List<CategoryRevenueResponse>();
+        }
+        // 3. Fetch the matching products.
+        var products = await _context.Products
+            .Find(product => productIds.Contains(product.Id))
+            .ToListAsync();
+
+        var productCategories = products.ToDictionary(product => product.Id.ToString(), product => product.MainCategory);
+        var categoryRevenue = validOrders
+            .SelectMany(order => order.Items)
+            .Where(item => productCategories.ContainsKey(item.ProductId))
+            .GroupBy(item => productCategories[item.ProductId],
+          StringComparer.OrdinalIgnoreCase)
+            .Select(group => new
+            {
+                Category = group.Key,
+                Revenue = group.Sum(item => item.LineTotal)
+            })
+            .ToList();
+        var totalRevenue = categoryRevenue.Sum(p => p.Revenue);
+        if (totalRevenue <= 0)
+            return new List<CategoryRevenueResponse>();
+
+        // 6. Calculate each category's percentage.
+        return categoryRevenue
+            .Select(item => new CategoryRevenueResponse
+            {
+                Category = item.Category,
+                Revenue = item.Revenue,
+                Percentage = Math.Round(
+                    item.Revenue / totalRevenue * 100,
+                    2
+                )
+            })
+            .OrderByDescending(item => item.Revenue)
+            .ToList();
+    }
 }

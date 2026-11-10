@@ -1,67 +1,89 @@
-import { useAdminDashboard } from "@/hooks/AdminHook/useAdminDashboard";
-import { Alert, Card, Col, Row, Spin } from "antd";
+import { Alert, Card, Col, Row, Skeleton } from "antd";
 import { IndianRupee, ShoppingCart, TrendingUp, Users } from "lucide-react";
 
-export const StatisticCard = () => {
-  const { data, isLoading, isError } = useAdminDashboard();
+import { useAdminDashboard } from "@/hooks/AdminHook/useAdminDashboard";
+import { formatCurrency } from "@/utils/formatCurrency";
 
-  const Statistic = [
+const StatisticCard = () => {
+  const { data, isLoading, isError, refetch } = useAdminDashboard();
+
+  const statistics = [
     {
-      title: "TOTAL REVENUE",
-      value: `${data?.totalRevenue.toLocaleString("en-IN")}`,
+      title: "Total Revenue",
+      value: data ? formatCurrency(data.totalRevenue) : "",
       description: "Excluding cancelled orders",
       icon: IndianRupee,
     },
     {
-      title: "TOTAL ORDERS",
-      value: `${data?.totalOrders.toLocaleString("en-IN")}`,
+      title: "Total Orders",
+      value: data?.totalOrders.toLocaleString("en-IN") ?? "",
       description: "All customer orders",
       icon: ShoppingCart,
     },
     {
-      title: "TOTAL CUSTOMERS",
-      value: `${data?.totalCustomers.toLocaleString("en-IN")}`,
-      description: "Distinct customers",
+      title: "Total Customers",
+      value: data?.totalCustomers.toLocaleString("en-IN") ?? "",
+      description: "Active registered customers",
       icon: Users,
     },
     {
-      title: "AVERAGE ORDER VALUE",
-      value: `${data?.averageOrderValue.toLocaleString("en-IN")}`,
+      title: "Average Order Value",
+      value: data ? formatCurrency(data.averageOrderValue) : "",
       description: "Excluding cancelled orders",
       icon: TrendingUp,
     },
   ];
-  if (isLoading) {
+
+  if (isError) {
     return (
-      <div className="flex min-h-64 items-center justify-center">
-        <Spin size="large" />
-      </div>
+      <Alert
+        type="error"
+        showIcon
+        message="Unable to load dashboard statistics"
+        action={
+          <button onClick={() => refetch()} className="font-medium underline">
+            Retry
+          </button>
+        }
+      />
     );
   }
 
-  if (isError || !data) {
-    return (
-      <Alert type="error" message="Failed to load dashboard statistics." />
-    );
-  }
   return (
     <Row gutter={[16, 16]}>
-      {Statistic.map((stat) => {
+      {statistics.map((stat) => {
         const Icon = stat.icon;
 
         return (
           <Col xs={24} sm={12} xl={6} key={stat.title}>
-            <Card className="h-full">
+            <Card
+              className="h-full !rounded-xl !border-slate-200 !shadow-sm"
+              styles={{ body: { padding: "20px" } }}
+            >
               <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm text-gray-500">{stat.title}</p>
-                  <h2 className="mt-2 text-2xl font-semibold">{stat.value}</h2>
-                </div>
+                <p className="text-sm font-medium text-slate-500">
+                  {stat.title}
+                </p>
 
-                <div className="rounded-lg bg-gray-100 p-3">
-                  <Icon size={22} />
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                  <Icon size={21} strokeWidth={1.8} />
                 </div>
               </div>
+
+              {isLoading ? (
+                <Skeleton
+                  active
+                  title={false}
+                  paragraph={{ rows: 1, width: "75%" }}
+                  className="mt-4"
+                />
+              ) : (
+                <h2 className="mt-4 whitespace-nowrap text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+                  {stat.value}
+                </h2>
+              )}
+
+              <p className="mt-2 text-xs text-slate-400">{stat.description}</p>
             </Card>
           </Col>
         );
@@ -69,3 +91,5 @@ export const StatisticCard = () => {
     </Row>
   );
 };
+
+export default StatisticCard;

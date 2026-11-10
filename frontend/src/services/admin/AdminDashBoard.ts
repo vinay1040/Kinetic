@@ -13,7 +13,11 @@ export interface MonthlyRevenue {
   month: number;
   revenue: number;
 }
-
+export interface CategoryRevenue {
+  category: string;
+  revenue: number;
+  percentage: number;
+}
 export const getAllOrder = async (): Promise<Order[]> => {
   const response = await AuthApi.get("/Order/admin");
   return response.data;
@@ -29,5 +33,12 @@ export const getMonthlyRevenue = async (): Promise<MonthlyRevenue[]> => {
     "/Order/admin/revenue/monthly",
   );
 
+  return response.data;
+};
+
+export const getCategoriesRevenue = async () => {
+  const response = await AuthApi.get<CategoryRevenue[]>(
+    "/Order/admin/revenue/categories",
+  );
   return response.data;
 };

@@ -58,7 +58,7 @@ export const SecurityPage = () => {
           );
         }}
       >
-        {({ isSubmitting }) => (
+        {() => (
           <Form className="max-w-lg space-y-5">
             {[
               {

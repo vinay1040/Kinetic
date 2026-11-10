@@ -135,4 +135,12 @@ public class OrderController : ControllerBase
         var result = await _orderService.GetAdminDashboardAsync();
         return Ok(result);
     }
+
+    [HttpGet("admin/revenue/categories")]
+    [Authorize(Policy ="ActiveUser",Roles ="Admin")]
+    public async Task<IActionResult> GetCategoriesRevenue()
+    {
+        var result = await _orderService.GetCategoryRevenueResponsesAsync();
+        return Ok(result);
+    }
 }
