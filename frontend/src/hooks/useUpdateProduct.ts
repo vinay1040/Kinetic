@@ -1,3 +1,4 @@
+import { productKeys } from "@/lib/queryKeys";
 import {
   updateProduct,
   type Product,
@@ -28,7 +29,7 @@ export const useUpdateProduct = () => {
     mutationFn: ({ id, updateData }) => updateProduct(id, updateData),
 
     onMutate: async ({ id, updateData }) => {
-      const queryKey = ["product", id] as const;
+      const queryKey = productKeys.detail(id);
 
       await queryClient.cancelQueries({ queryKey });
 
@@ -42,8 +43,7 @@ export const useUpdateProduct = () => {
     },
 
     onError: (_error, variables, context) => {
-      const queryKey = ["product", variables.id] as const;
-
+      const queryKey = productKeys.detail(variables.id);
       if (context?.previousProduct !== undefined) {
         queryClient.setQueryData(queryKey, context.previousProduct);
       }
@@ -58,10 +58,11 @@ export const useUpdateProduct = () => {
     onSettled: async (_data, _error, variables) => {
       await Promise.all([
         queryClient.invalidateQueries({
-          queryKey: ["product", variables.id],
+          queryKey: productKeys.detail(variables.id),
         }),
+
         queryClient.invalidateQueries({
-          queryKey: ["products"],
+          queryKey: productKeys.all,
         }),
       ]);
     },

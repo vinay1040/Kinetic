@@ -1,4 +1,3 @@
-
 import type { ProductFilters } from "@/context/ProductContext";
 import { AuthApi } from "./authApi";
 
@@ -24,7 +23,12 @@ export interface ProductResponse {
   totalProducts: number;
   totalPages: number;
 }
+export type ProductCreateRequest = Omit<Product, "id">;
 
+export interface ProductDeleteResponse {
+  status: number;
+  message: string;
+}
 export type ProductUpdateRequest = Partial<
   Pick<
     Product,
@@ -98,9 +102,7 @@ export const getData = async (
   return response.data;
 };
 
-export const getProductById = async (
-  id: string,
-): Promise<Product> => {
+export const getProductById = async (id: string): Promise<Product> => {
   const response = await AuthApi.get<Product>(
     `/Product/${encodeURIComponent(id)}`,
   );
@@ -115,6 +117,22 @@ export const updateProduct = async (
   const response = await AuthApi.patch<ProductUpdateResponse>(
     `/Product/${encodeURIComponent(id)}`,
     updateData,
+  );
+
+  return response.data;
+};
+
+export const createProduct = async (
+  productData: ProductCreateRequest,
+): Promise<Product> => {
+  const response = await AuthApi.post<Product>("/Product/", productData);
+  return response.data;
+};
+export const deleteProduct = async (
+  id: string,
+): Promise<ProductDeleteResponse> => {
+  const response = await AuthApi.delete<ProductDeleteResponse>(
+    `/Product/${encodeURIComponent(id)}`,
   );
 
   return response.data;

@@ -3,7 +3,7 @@ import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { RefreshCw } from "lucide-react";
 
 import { formatCurrency } from "@/utils/formatCurrency";
-import { useCategoriesRevenue } from "@/hooks/AdminHook/useCategoriesRevenue";
+import { useCategoriesRevenue } from "@/hooks/AdminHook/RevenueHook/useCategoriesRevenue";
 
 const COLORS = [
   "#2563EB",

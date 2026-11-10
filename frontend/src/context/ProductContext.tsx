@@ -8,6 +8,7 @@ import {
 } from "react";
 import { useDebounce } from "use-debounce";
 import { useQuery } from "@tanstack/react-query";
+import { productKeys } from "@/lib/queryKeys";
 export type ProductSortBy = "price" | "rating" | "title";
 export type SortOrder = "asc" | "desc";
 type ProductContextType = {
@@ -66,11 +67,11 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
   );
   // const [totalPages, setTotalPages] = useState(0);
   // const [totalProducts, settotalProducts] = useState(0);
-  const { data, isPending, isError } = useQuery({
-    queryKey: ["products", page, pageSize, queryFilters],
-    queryFn: () => getData(page, pageSize, queryFilters),
-    staleTime: 60_000,
-  });
+  const {data, isError, isPending} = useQuery({
+    queryKey: productKeys.list(page, pageSize, queryFilters),
+    queryFn: ()=>getData(page,pageSize,queryFilters),
+    staleTime: 60 * 1000,
+  })
 
   // useEffect(() => {
   //   const loadData = async () => {
