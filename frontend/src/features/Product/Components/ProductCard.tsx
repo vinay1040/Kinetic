@@ -1,9 +1,9 @@
 import { Link } from "react-router";
-import type { Product } from "@/services/productApi";
-import { AddToCart } from "@/components/products/AddToCart";
+import { AddToCart } from "@/features/Product/Components/AddToCart";
 import { useWishlist } from "@/context/WishlistContext";
 import { Heart, Star, ArrowUpRight } from "lucide-react";
 import { formatCurrency } from "@/utils/formatCurrency";
+import type { Product } from "../types/product.type";
 
 type ProductCardProps = {
   product: Product;
@@ -21,8 +21,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
   const discountPercentage = hasDiscount
     ? Math.round(
-        ((product.originalPrice! - product.price!) /
-          product.originalPrice!) *
+        ((product.originalPrice! - product.price!) / product.originalPrice!) *
           100,
       )
     : 0;
@@ -98,10 +97,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
         <div className="mt-3 flex min-h-5 items-center gap-1.5">
           {product.rating !== null ? (
             <>
-              <Star
-                size={15}
-                className="fill-amber-400 text-amber-400"
-              />
+              <Star size={15} className="fill-amber-400 text-amber-400" />
               <span className="text-sm font-semibold text-slate-700">
                 {product.rating.toFixed(1)}
               </span>

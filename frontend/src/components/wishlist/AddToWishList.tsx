@@ -1,24 +1,18 @@
 import { Heart } from "lucide-react";
 
 import { useWishlist } from "@/context/WishlistContext";
-import type { Product } from "@/services/productApi";
+import type { Product } from "@/features/Product/types/product.type";
 
 type AddToWishlistProps = {
   product: Product;
 };
 
 const AddToWishlist = ({ product }: AddToWishlistProps) => {
-  const {
-    addToWishlist,
-    removeFromWishlist,
-    isInWishlist,
-  } = useWishlist();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
 
   const isWishlisted = isInWishlist(product.id);
 
-  const handleWishlist = (
-    e: React.MouseEvent<HTMLButtonElement>
-  ) => {
+  const handleWishlist = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -32,20 +26,12 @@ const AddToWishlist = ({ product }: AddToWishlistProps) => {
   return (
     <button
       onClick={handleWishlist}
-      aria-label={
-        isWishlisted
-          ? "Remove from wishlist"
-          : "Add to wishlist"
-      }
+      aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
       className="rounded-full bg-white p-2 shadow"
     >
       <Heart
         size={20}
-        className={
-          isWishlisted
-            ? "fill-red-500 text-red-500"
-            : "text-gray-700"
-        }
+        className={isWishlisted ? "fill-red-500 text-red-500" : "text-gray-700"}
       />
     </button>
   );

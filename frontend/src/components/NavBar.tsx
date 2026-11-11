@@ -3,13 +3,13 @@ import { Button } from "antd";
 import { Link } from "react-router";
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { useProduct } from "@/context/ProductContext";
+import { useProduct } from "@/features/Product/context/ProductContext";
 
 const NavBar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const { isAuthenticated } = useAuth();
-  const { filters,setFilters } = useProduct();
+  const { filters, setFilters } = useProduct();
   const search = filters.search ?? "";
   // const userMenu = [
   //   {

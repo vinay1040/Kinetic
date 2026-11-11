@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -16,7 +15,7 @@ import {
 
 import { useCartContext } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
-import { getProductById } from "@/services/productApi";
+import { getProductById } from "@/features/Product/services/productApi";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { productKeys } from "@/lib/queryKeys";
 
@@ -97,12 +96,8 @@ const ProductDetail = () => {
     );
   }
 
-  const images = [
-    product.thumbnail,
-    ...product.images,
-  ].filter(
-    (image, index, array) =>
-      Boolean(image) && array.indexOf(image) === index,
+  const images = [product.thumbnail, ...product.images].filter(
+    (image, index, array) => Boolean(image) && array.indexOf(image) === index,
   );
 
   const activeImage = selectedImage || images[0] || "";
@@ -113,14 +108,13 @@ const ProductDetail = () => {
   const hasValidPrice = currentPrice !== null;
 
   const hasDiscount =
-    currentPrice !== null&&
+    currentPrice !== null &&
     orignnalPrice !== null &&
     orignnalPrice > currentPrice;
 
   const discountPercentage = hasDiscount
     ? Math.round(
-        ((product.originalPrice! - product.price!) /
-          product.originalPrice!) *
+        ((product.originalPrice! - product.price!) / product.originalPrice!) *
           100,
       )
     : 0;
@@ -133,7 +127,6 @@ const ProductDetail = () => {
   return (
     <main className="min-h-screen bg-slate-50/60 px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
-
         {/* Navigation */}
         <div className="mb-8 flex items-center gap-2 text-sm text-slate-500">
           <button
@@ -160,11 +153,9 @@ const ProductDetail = () => {
 
         {/* Main Product Section */}
         <div className="grid items-start gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12">
-
           {/* Image Gallery */}
           <section className="min-w-0">
             <div className="group relative flex aspect-square items-center justify-center overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 sm:p-10">
-
               {discountPercentage > 0 && (
                 <span className="absolute left-5 top-5 z-10 rounded-lg bg-red-500 px-3 py-1.5 text-xs font-semibold text-white">
                   {discountPercentage}% OFF
@@ -173,18 +164,14 @@ const ProductDetail = () => {
 
               <button
                 type="button"
-                aria-label={
-                  saved ? "Remove from wishlist" : "Add to wishlist"
-                }
+                aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
                 aria-pressed={saved}
                 onClick={() => toggleWishlist(product)}
                 className="absolute right-5 top-5 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:scale-105 hover:text-red-500"
               >
                 <Heart
                   size={20}
-                  className={
-                    saved ? "fill-red-500 text-red-500" : ""
-                  }
+                  className={saved ? "fill-red-500 text-red-500" : ""}
                 />
               </button>
 
@@ -234,7 +221,6 @@ const ProductDetail = () => {
 
           {/* Product Information */}
           <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
-
             {/* Category and Rating */}
             <div className="flex flex-wrap items-center justify-between gap-3">
               <span className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-slate-600">
@@ -243,10 +229,7 @@ const ProductDetail = () => {
 
               {product.rating !== null ? (
                 <div className="flex items-center gap-1.5">
-                  <Star
-                    size={17}
-                    className="fill-amber-400 text-amber-400"
-                  />
+                  <Star size={17} className="fill-amber-400 text-amber-400" />
 
                   <span className="text-sm font-semibold text-slate-800">
                     {product.rating.toFixed(1)}
@@ -254,14 +237,13 @@ const ProductDetail = () => {
 
                   {product.numberOfRatings !== null && (
                     <span className="text-xs text-slate-400">
-                      ({product.numberOfRatings.toLocaleString("en-IN")} ratings)
+                      ({product.numberOfRatings.toLocaleString("en-IN")}{" "}
+                      ratings)
                     </span>
                   )}
                 </div>
               ) : (
-                <span className="text-xs text-slate-400">
-                  Not rated yet
-                </span>
+                <span className="text-xs text-slate-400">Not rated yet</span>
               )}
             </div>
 
@@ -294,8 +276,7 @@ const ProductDetail = () => {
               {hasDiscount && (
                 <p className="mt-2 text-sm font-medium text-green-600">
                   You save{" "}
-                  {hasDiscount && 
-                  formatCurrency(orignnalPrice - currentPrice)}{" "}
+                  {hasDiscount && formatCurrency(orignnalPrice - currentPrice)}{" "}
                   ({discountPercentage}% off)
                 </p>
               )}
@@ -316,9 +297,7 @@ const ProductDetail = () => {
                   type="button"
                   aria-label="Decrease quantity"
                   disabled={quantity <= 1}
-                  onClick={() =>
-                    setQuantity((value) => Math.max(1, value - 1))
-                  }
+                  onClick={() => setQuantity((value) => Math.max(1, value - 1))}
                   className="flex h-11 w-12 items-center justify-center text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   <Minus size={16} />
@@ -361,9 +340,7 @@ const ProductDetail = () => {
               <button
                 type="button"
                 onClick={() => toggleWishlist(product)}
-                aria-label={
-                  saved ? "Remove from wishlist" : "Add to wishlist"
-                }
+                aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
                 aria-pressed={saved}
                 className={`flex h-13 items-center justify-center gap-2 rounded-xl border px-5 py-3 text-sm font-semibold transition ${
                   saved
@@ -371,10 +348,7 @@ const ProductDetail = () => {
                     : "border-slate-200 text-slate-700 hover:border-slate-400"
                 }`}
               >
-                <Heart
-                  size={19}
-                  className={saved ? "fill-red-500" : ""}
-                />
+                <Heart size={19} className={saved ? "fill-red-500" : ""} />
                 <span className="sm:hidden">
                   {saved ? "Saved" : "Wishlist"}
                 </span>
@@ -467,10 +441,7 @@ const ProductDetail = () => {
                     : "Not rated",
               },
             ].map((item) => (
-              <div
-                key={item.label}
-                className="rounded-2xl bg-slate-50 p-5"
-              >
+              <div key={item.label} className="rounded-2xl bg-slate-50 p-5">
                 <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
                   {item.label}
                 </p>

@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
+import type { Product } from "@/features/Product/types/product.type";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import type { Product } from "@/services/productApi";
 
 type WishlistContextValue = {
   wishlist: Product[];
@@ -61,7 +61,9 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <WishlistContext.Provider value={value}>{children}</WishlistContext.Provider>
+    <WishlistContext.Provider value={value}>
+      {children}
+    </WishlistContext.Provider>
   );
 }
 export function useWishlist() {

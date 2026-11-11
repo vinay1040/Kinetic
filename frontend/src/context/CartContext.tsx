@@ -1,10 +1,8 @@
 import { message } from "antd";
+import { createContext, useContext, type ReactNode } from "react";
 import {
-  createContext,
-  useContext,
-  type ReactNode,
-} from "react";
-import { getProductById, type Product } from "@/services/productApi";
+  getProductById,
+} from "@/features/Product/services/productApi";
 import { useAuth } from "./AuthContext";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { useCart } from "@/hooks/CustomerHook/CartHook/useCart";
@@ -12,6 +10,7 @@ import { useAddCartItem } from "@/hooks/CustomerHook/CartHook/useAddCartItem";
 import { useRemoveCartItem } from "@/hooks/CustomerHook/CartHook/useRemoveCartItem";
 import { useUpdateCartItem } from "@/hooks/CustomerHook/CartHook/useUpdateCartItem";
 import { useClearCart } from "@/hooks/CustomerHook/CartHook/useClearCart";
+import type { Product } from "@/features/Product/types/product.type";
 
 export type CartItem = {
   product: Product;
@@ -96,9 +95,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     );
   };
   const clearCart = () => {
-    if(clearAllCart.isPending) return;
+    if (clearAllCart.isPending) return;
 
-    clearAllCart.mutate(undefined,{
+    clearAllCart.mutate(undefined, {
       onSuccess: () => {
         message.success("Your cart has been cleared.");
       },

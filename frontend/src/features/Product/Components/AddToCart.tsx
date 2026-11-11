@@ -1,7 +1,7 @@
 import { useCartContext } from "@/context/CartContext";
-import type { Product } from "@/services/productApi";
 import { Button } from "antd";
 import { ShoppingBag } from "lucide-react";
+import type { Product } from "../types/product.type";
 
 type AddToCart = {
   product: Product;

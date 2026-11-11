@@ -1,4 +1,4 @@
-import { getData, type Product } from "@/services/productApi";
+import { getData } from "@/features/Product/services/productApi";
 import {
   createContext,
   useContext,
@@ -9,6 +9,7 @@ import {
 import { useDebounce } from "use-debounce";
 import { useQuery } from "@tanstack/react-query";
 import { productKeys } from "@/lib/queryKeys";
+import type { Product, ProductFilters } from "../types/product.type";
 export type ProductSortBy = "price" | "rating" | "title";
 export type SortOrder = "asc" | "desc";
 type ProductContextType = {
@@ -23,16 +24,6 @@ type ProductContextType = {
   loading: boolean;
   error: string | null;
 };
-export interface ProductFilters {
-  search?: string;
-  categories?: string[];
-  minPrice?: number;
-  maxPrice?: number;
-  minRating?: number;
-
-  sortBy?: ProductSortBy;
-  sortOrder?: SortOrder;
-}
 
 const ProductContext = createContext<ProductContextType | null>(null);
 
@@ -67,11 +58,11 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
   );
   // const [totalPages, setTotalPages] = useState(0);
   // const [totalProducts, settotalProducts] = useState(0);
-  const {data, isError, isPending} = useQuery({
+  const { data, isError, isPending } = useQuery({
     queryKey: productKeys.list(page, pageSize, queryFilters),
-    queryFn: ()=>getData(page,pageSize,queryFilters),
+    queryFn: () => getData(page, pageSize, queryFilters),
     staleTime: 60 * 1000,
-  })
+  });
 
   // useEffect(() => {
   //   const loadData = async () => {

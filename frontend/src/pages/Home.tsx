@@ -1,5 +1,4 @@
 import { ArrowRight } from "lucide-react";
-import type { Product } from "@/services/productApi";
 import heroImg from "../assets/heroImg.png";
 import unnamed from "../assets/unnamed.jpg";
 import headphones from "../assets/headphones.png";
@@ -7,9 +6,10 @@ import smartHome from "../assets/smarthome.png";
 import smartwatch from "../assets/watch.png";
 import { useEffect, useState } from "react";
 
-import { getData } from "@/services/productApi";
-import ProductCard from "@/components/products/ProductCard";
+import { getData } from "@/features/Product/services/productApi";
+import ProductCard from "@/features/Product/Components/ProductCard";
 import { Input } from "antd";
+import type { Product } from "@/features/Product/types/product.type";
 const categories = [
   {
     title: "Performance Computing",
@@ -43,7 +43,9 @@ const Home = () => {
     const loadData = async () => {
       const data = await getData(1, 12);
       if (data) {
-        const random = [...data.products].sort(() => Math.random() - 0.5).slice(0, 8);
+        const random = [...data.products]
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 8);
         setRandomProducts(random);
       }
     };

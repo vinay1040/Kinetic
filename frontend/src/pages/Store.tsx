@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import ProductCard from "@/components/products/ProductCard";
+import ProductCard from "@/features/Product/Components/ProductCard";
 import { SideBar } from "@/components/SideBar";
 import { Check, ChevronDown, SlidersHorizontal } from "lucide-react";
 import { Button } from "antd";
-import { useProduct } from "@/context/ProductContext";
+import { useProduct } from "@/features/Product/context/ProductContext";
 import { useQuery } from "@tanstack/react-query";
-import { getCategory } from "@/services/productApi";
+import { getCategory } from "@/features/Product/services/productApi";
 
 const Store = () => {
   const [isSortOpen, setIsSortOpen] = useState(false);
@@ -204,73 +204,72 @@ const Store = () => {
         </div>
 
         {/* Drawer is outside the header */}
-        
-{isFilterOpen && (
-  <div
-    className="fixed inset-0 z-[1000] bg-black/40"
-    onClick={() => setFilterOpen(false)}
-  >
-    <aside
-      role="dialog"
-      aria-modal="true"
-      aria-label="Product filters"
-      className="absolute inset-y-0 left-0 flex w-[min(88vw,360px)] flex-col overflow-y-auto overscroll-contain border-r border-slate-200 bg-white shadow-xl"
-      onClick={(event) => event.stopPropagation()}
-    >
-      <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b border-slate-200 bg-white px-5 py-4">
-        <h2 className="text-lg font-semibold text-slate-900">
-          Filters
-        </h2>
 
-        <button
-          type="button"
-          aria-label="Close filters"
-          onClick={() => setFilterOpen(false)}
-          className="rounded-md p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
-        >
-          <span aria-hidden="true" className="text-2xl leading-none">
-            ×
-          </span>
-        </button>
-      </div>
+        {isFilterOpen && (
+          <div
+            className="fixed inset-0 z-[1000] bg-black/40"
+            onClick={() => setFilterOpen(false)}
+          >
+            <aside
+              role="dialog"
+              aria-modal="true"
+              aria-label="Product filters"
+              className="absolute inset-y-0 left-0 flex w-[min(88vw,360px)] flex-col overflow-y-auto overscroll-contain border-r border-slate-200 bg-white shadow-xl"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b border-slate-200 bg-white px-5 py-4">
+                <h2 className="text-lg font-semibold text-slate-900">
+                  Filters
+                </h2>
 
-      <div className="min-h-0 flex-1 px-4">
-        <SideBar
-          categories={categories}
-          selectCategories={selectCategories}
-          setSelectCategories={(selected) =>
-            setFilters((current) => ({
-              ...current,
-              categories: selected.length > 0 ? selected : undefined,
-            }))
-          }
-          minPrice={minPrice}
-          setMinPrice={(price) =>
-            setFilters((current) => ({
-              ...current,
-              minPrice: price > 0 ? price : undefined,
-            }))
-          }
-          maxPrice={maxPrice}
-          setMaxPrice={(price) =>
-            setFilters((current) => ({
-              ...current,
-              maxPrice: Number.isFinite(price) ? price : undefined,
-            }))
-          }
-          minRating={minRating}
-          setMinRating={(rating) =>
-            setFilters((current) => ({
-              ...current,
-              minRating: rating > 0 ? rating : undefined,
-            }))
-          }
-        />
-      </div>
-    </aside>
-  </div>
-)}
+                <button
+                  type="button"
+                  aria-label="Close filters"
+                  onClick={() => setFilterOpen(false)}
+                  className="rounded-md p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+                >
+                  <span aria-hidden="true" className="text-2xl leading-none">
+                    ×
+                  </span>
+                </button>
+              </div>
 
+              <div className="min-h-0 flex-1 px-4">
+                <SideBar
+                  categories={categories}
+                  selectCategories={selectCategories}
+                  setSelectCategories={(selected) =>
+                    setFilters((current) => ({
+                      ...current,
+                      categories: selected.length > 0 ? selected : undefined,
+                    }))
+                  }
+                  minPrice={minPrice}
+                  setMinPrice={(price) =>
+                    setFilters((current) => ({
+                      ...current,
+                      minPrice: price > 0 ? price : undefined,
+                    }))
+                  }
+                  maxPrice={maxPrice}
+                  setMaxPrice={(price) =>
+                    setFilters((current) => ({
+                      ...current,
+                      maxPrice: Number.isFinite(price) ? price : undefined,
+                    }))
+                  }
+                  minRating={minRating}
+                  setMinRating={(rating) =>
+                    setFilters((current) => ({
+                      ...current,
+                      minRating: rating > 0 ? rating : undefined,
+                    }))
+                  }
+                />
+              </div>
+            </aside>
+          </div>
+        )}
 
         {/* Product grid */}
         <div className="mt-6 min-w-0">
@@ -295,10 +294,7 @@ const Store = () => {
 
             <div className="mt-6 overflow-x-auto pb-1">
               <div className="flex w-max min-w-full items-center justify-center gap-2">
-                <Button
-                  disabled={page === 1}
-                  onClick={() => setPage(page - 1)}
-                >
+                <Button disabled={page === 1} onClick={() => setPage(page - 1)}>
                   Previous
                 </Button>
 
