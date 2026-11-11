@@ -1,20 +1,16 @@
-
 import { Link } from "react-router";
 import { ArrowRight, ShoppingBag, Truck } from "lucide-react";
 
-import { useCartContext } from "@/context/CartContext";
+import { useCartContext } from "@/features/cart/context/CartContext";
 import { formatCurrency } from "@/utils/formatCurrency";
 
 const CartSummary = () => {
   const { cart } = useCartContext();
 
-  const hasUnavailablePrice = cart.some(
-    (item) => item.product.price === null,
-  );
+  const hasUnavailablePrice = cart.some((item) => item.product.price === null);
 
   const subtotal = cart.reduce(
-    (total, item) =>
-      total + (item.product.price ?? 0) * item.quantity,
+    (total, item) => total + (item.product.price ?? 0) * item.quantity,
     0,
   );
 
@@ -24,22 +20,16 @@ const CartSummary = () => {
   const shipping = 0;
   const total = subtotal + shipping;
 
-  const canCheckout =
-    cart.length > 0 && !hasUnavailablePrice;
+  const canCheckout = cart.length > 0 && !hasUnavailablePrice;
 
   return (
     <aside className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-      <h2 className="text-xl font-bold text-slate-900">
-        Order Summary
-      </h2>
+      <h2 className="text-xl font-bold text-slate-900">Order Summary</h2>
 
       <div className="mt-6 space-y-5">
-
         {/* Subtotal */}
         <div className="flex items-center justify-between text-sm">
-          <span className="text-slate-500">
-            Subtotal ({cart.length} items)
-          </span>
+          <span className="text-slate-500">Subtotal ({cart.length} items)</span>
 
           <span className="font-semibold text-slate-900">
             {formatCurrency(subtotal)}
@@ -61,8 +51,8 @@ const CartSummary = () => {
         {/* Unavailable Price Warning */}
         {hasUnavailablePrice && (
           <div className="rounded-xl bg-amber-50 p-3 text-sm text-amber-800">
-            Some products have unavailable prices. Please remove them
-            or try again before checkout.
+            Some products have unavailable prices. Please remove them or try
+            again before checkout.
           </div>
         )}
 

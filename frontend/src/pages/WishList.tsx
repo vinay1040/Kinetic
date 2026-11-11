@@ -1,8 +1,8 @@
 import { Link } from "react-router";
 import { Trash2 } from "lucide-react";
 
-import { useWishlist } from "@/context/WishlistContext";
-import { AddToCart } from "@/features/Product/Components/AddToCart";
+import { useWishlist } from "@/features/wishlist/context/WishlistContext";
+import { AddToCart } from "@/features/Product/components/AddToCart";
 
 const Wishlist = () => {
   const { wishlist, removeFromWishlist, clearWishlist } = useWishlist();

@@ -13,7 +13,7 @@ import { Avatar, Button, Layout, Typography } from "antd";
 import type { MenuProps } from "antd";
 
 import { Outlet, useLocation, useNavigate } from "react-router";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/features/auth/context/AuthContext";
 
 const { Header, Content, Footer, Sider } = Layout;
 

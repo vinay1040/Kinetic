@@ -1,5 +1,9 @@
 import { updateProduct } from "@/features/Product/services/productApi";
-import type { Product, ProductUpdateRequest, ProductUpdateResponse } from "@/features/Product/types/product.type";
+import type {
+  Product,
+  ProductUpdateRequest,
+  ProductUpdateResponse,
+} from "@/features/Product/types/product.types";
 import { productKeys } from "@/lib/queryKeys";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";

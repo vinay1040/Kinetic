@@ -3,7 +3,7 @@ import type { TableColumnsType } from "antd";
 import { ArrowRight } from "lucide-react";
 
 import type { Order } from "@/services/Order";
-import { useAllOrder } from "@/hooks/CustomerHook/OrderHook/useAllOrder";
+import { useAllOrder } from "@/features/orders/hooks/useAllOrder";
 import {
   formatCurrency,
   formatOrderDate,

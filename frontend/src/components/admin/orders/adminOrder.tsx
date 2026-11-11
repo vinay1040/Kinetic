@@ -6,7 +6,7 @@ import { SearchOutlined, ReloadOutlined } from "@ant-design/icons";
 import type { Order } from "@/services/Order";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { formatOrderDate, getOrderStatus } from "@/utils/orderUtils";
-import { useAllOrder } from "@/hooks/CustomerHook/OrderHook/useAllOrder";
+import { useAllOrder } from "@/features/orders/hooks/useAllOrder";
 
 const AdminOrders = () => {
   const { data: orders = [], isLoading, isError, refetch } = useAllOrder();

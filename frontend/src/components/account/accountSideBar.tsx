@@ -1,16 +1,10 @@
 import { Link, useLocation } from "react-router";
-import {
-  User,
-  ShoppingBag,
-  Heart,
-  Settings,
-  LogOut,
-} from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
+import { User, ShoppingBag, Heart, Settings, LogOut } from "lucide-react";
+import { useAuth } from "@/features/auth/context/AuthContext";
 
 const AccountSidebar = () => {
   const location = useLocation();
-  const { user,logout } = useAuth();
+  const { user, logout } = useAuth();
 
   const menuItems = [
     {
@@ -28,7 +22,7 @@ const AccountSidebar = () => {
       path: "/wishlist",
       icon: Heart,
     },
-    
+
     {
       label: "Settings",
       path: "/profile/settings",
@@ -40,9 +34,7 @@ const AccountSidebar = () => {
     <aside className="w-full rounded-xl border bg-white p-4 md:w-64">
       <div className="mb-6">
         <h2 className="text-lg font-semibold">{user?.name}</h2>
-        <p className="text-sm text-gray-500">
-          Manage your account
-        </p>
+        <p className="text-sm text-gray-500">Manage your account</p>
       </div>
 
       <nav className="space-y-1">

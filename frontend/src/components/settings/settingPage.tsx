@@ -5,7 +5,7 @@ import { PersonalInformation } from "./features/SettingsList/personalInformation
 import { SavedAddresses } from "./features/SettingsList/SavedAddress";
 import { AccountSecurity } from "./features/SettingsList/AccountSecurity";
 import { SavedAddressesPanel } from "./features/AddressFeature/SavedAddressPanel";
-import { SecurityPage } from "./features/SecurityPage";
+import { SecurityPage } from "../../features/auth/components/SecurityPage";
 
 export const SettingPage = () => {
   const [activeSection, setActiveSection] = useState<

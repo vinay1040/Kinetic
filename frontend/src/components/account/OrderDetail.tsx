@@ -1,9 +1,9 @@
 import { ArrowLeft, Package } from "lucide-react";
 import { Link, useParams } from "react-router";
-import { useOrderById } from "@/hooks/CustomerHook/OrderHook/useOrderById";
+import { useOrderById } from "@/features/orders/hooks/useOrderById";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { formatOrderDate, getOrderStatus } from "@/utils/orderUtils";
-import { useCancelOrder } from "@/hooks/CustomerHook/OrderHook/useCancelOrder";
+import { useCancelOrder } from "@/features/orders/hooks/useCancelOrder";
 
 const OrderDetail = () => {
   const { orderId = "" } = useParams();

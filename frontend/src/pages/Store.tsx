@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import ProductCard from "@/features/Product/Components/ProductCard";
+import ProductCard from "@/features/Product/components/ProductCard";
 import { SideBar } from "@/components/SideBar";
 import { Check, ChevronDown, SlidersHorizontal } from "lucide-react";
 import { Button } from "antd";

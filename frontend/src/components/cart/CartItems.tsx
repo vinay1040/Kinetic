@@ -1,7 +1,9 @@
-
 import { Trash2 } from "lucide-react";
 import QuantitySelector from "./QuantitySelector";
-import { useCartContext, type CartItem } from "@/context/CartContext";
+import {
+  useCartContext,
+  type CartItem,
+} from "@/features/cart/context/CartContext";
 import { formatCurrency } from "@/utils/formatCurrency";
 
 type CartItemProps = {

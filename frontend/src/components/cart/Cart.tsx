@@ -4,7 +4,7 @@ import { Trash2 } from "lucide-react";
 import CartItem from "@/components/cart/CartItems";
 import CartSummary from "@/components/cart/CartSummary";
 import EmptyCart from "@/components/cart/EmptyCart";
-import { useCartContext } from "@/context/CartContext";
+import { useCartContext } from "@/features/cart/context/CartContext";
 
 const Cart = () => {
   const { cart, clearCart, loading, error, retry } = useCartContext();

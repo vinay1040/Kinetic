@@ -7,9 +7,9 @@ import smartwatch from "../assets/watch.png";
 import { useEffect, useState } from "react";
 
 import { getData } from "@/features/Product/services/productApi";
-import ProductCard from "@/features/Product/Components/ProductCard";
+import ProductCard from "@/features/Product/components/ProductCard";
 import { Input } from "antd";
-import type { Product } from "@/features/Product/types/product.type";
+import type { Product } from "@/features/Product/types/product.types";
 const categories = [
   {
     title: "Performance Computing",

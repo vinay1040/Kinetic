@@ -1,5 +1,5 @@
 import { AddressForm } from "@/components/auth/address-form";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/features/auth/context/AuthContext";
 
 const Profile = () => {
   const { user } = useAuth();

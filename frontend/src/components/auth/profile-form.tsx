@@ -1,7 +1,7 @@
 import { Button, Form, Input, message } from "antd";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/features/auth/context/AuthContext";
 
 const validationSchema = Yup.object({
   name: Yup.string()

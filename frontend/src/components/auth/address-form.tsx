@@ -1,18 +1,16 @@
 import { Button, Form, Input } from "antd";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/features/auth/context/AuthContext";
 
 const validationSchema = Yup.object({
   street: Yup.string()
     .min(3, "Street address must be at least 3 characters")
     .required("Street address is required"),
 
-  city: Yup.string()
-    .required("City is required"),
+  city: Yup.string().required("City is required"),
 
-  state: Yup.string()
-    .required("State is required"),
+  state: Yup.string().required("State is required"),
 
   zipCode: Yup.string()
     .matches(/^[0-9]{6}$/, "ZIP code must be 6 digits")
@@ -46,9 +44,7 @@ export function AddressForm() {
       <Form.Item
         label="Street Address"
         validateStatus={
-          formik.touched.street && formik.errors.street
-            ? "error"
-            : ""
+          formik.touched.street && formik.errors.street ? "error" : ""
         }
         help={
           formik.touched.street && formik.errors.street
@@ -69,9 +65,7 @@ export function AddressForm() {
         <Form.Item
           label="City"
           validateStatus={
-            formik.touched.city && formik.errors.city
-              ? "error"
-              : ""
+            formik.touched.city && formik.errors.city ? "error" : ""
           }
           help={
             formik.touched.city && formik.errors.city
@@ -91,9 +85,7 @@ export function AddressForm() {
         <Form.Item
           label="State"
           validateStatus={
-            formik.touched.state && formik.errors.state
-              ? "error"
-              : ""
+            formik.touched.state && formik.errors.state ? "error" : ""
           }
           help={
             formik.touched.state && formik.errors.state
@@ -114,9 +106,7 @@ export function AddressForm() {
       <Form.Item
         label="ZIP Code"
         validateStatus={
-          formik.touched.zipCode && formik.errors.zipCode
-            ? "error"
-            : ""
+          formik.touched.zipCode && formik.errors.zipCode ? "error" : ""
         }
         help={
           formik.touched.zipCode && formik.errors.zipCode

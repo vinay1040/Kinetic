@@ -13,7 +13,7 @@ import { Button, Skeleton } from "antd";
 import { RefreshCw } from "lucide-react";
 
 import { formatCurrency } from "@/utils/formatCurrency";
-import { useMontlyRevenue } from "@/hooks/AdminHook/RevenueHook/useMontlyRevenue";
+import { useMontlyRevenue } from "@/features/admin/revenue/hooks/useMontlyRevenue";
 
 const compactCurrency = new Intl.NumberFormat("en-IN", {
   style: "currency",

@@ -1,5 +1,5 @@
 import OrderCard from "@/components/account/OrderCard";
-import { useMyOrder } from "@/hooks/CustomerHook/OrderHook/useMyOrder";
+import { useMyOrder } from "@/features/orders/hooks/useMyOrder";
 import { ShoppingBag } from "lucide-react";
 import { Link } from "react-router";
 

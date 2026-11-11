@@ -10,9 +10,9 @@ import {
   Truck,
 } from "lucide-react";
 
-import { useAddress } from "@/hooks/CustomerHook/AddressHook/useAddress";
-import { useCreateOrder } from "@/hooks/CustomerHook/OrderHook/useCreateOrder";
-import { useCartContext } from "@/context/CartContext";
+import { useAddress } from "@/features/addresses/hooks/useAddress";
+import { useCreateOrder } from "@/features/orders/hooks/useCreateOrder";
+import { useCartContext } from "@/features/cart/context/CartContext";
 import { formatCurrency } from "@/utils/formatCurrency";
 
 const Checkout = () => {

@@ -1,7 +1,7 @@
 import { Alert, Card, Col, Row, Skeleton } from "antd";
 import { IndianRupee, ShoppingCart, TrendingUp, Users } from "lucide-react";
 
-import { useAdminDashboard } from "@/hooks/AdminHook/useAdminDashboard";
+import { useAdminDashboard } from "@/features/admin/dashboard/hooks/useAdminDashboard";
 import { formatCurrency } from "@/utils/formatCurrency";
 
 const StatisticCard = () => {
