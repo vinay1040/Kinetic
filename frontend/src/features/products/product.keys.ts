@@ -1,3 +1,5 @@
+import type { ProductFilters } from "./types/product.types";
+
 export const productKeys = {
   all: ["products"] as const,
 
@@ -6,7 +8,7 @@ export const productKeys = {
   list: (
     page: number,
     pageSize: number,
-    filters: object,
+    filters: ProductFilters,
   ) => [...productKeys.lists(), { page, pageSize, filters }] as const,
 
   details: () => [...productKeys.all, "detail"] as const,
