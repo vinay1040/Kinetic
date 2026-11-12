@@ -3,7 +3,7 @@ import { Alert, Button, Input, Select, Table } from "antd";
 import type { TableColumnsType } from "antd";
 import { SearchOutlined, ReloadOutlined } from "@ant-design/icons";
 
-import type { Order } from "@/services/Order";
+import type { Order } from "@/features/orders/services/Order";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { formatOrderDate, getOrderStatus } from "@/utils/orderUtils";
 import { useAllOrder } from "@/features/orders/hooks/useAllOrder";

@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { ProfileForm } from "@/components/auth/profile-form";
+import { ProfileForm } from "@/features/auth/components/profile-form";
 import { PersonalInformation } from "./personalInformation";
 import { SavedAddresses } from "./SavedAddress";
 import { AccountSecurity } from "./AccountSecurity";

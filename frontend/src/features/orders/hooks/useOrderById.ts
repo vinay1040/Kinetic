@@ -1,12 +1,11 @@
-import { getOrderById } from '@/services/Order'
-import { useQuery } from '@tanstack/react-query'
+import { getOrderById } from "@/features/orders/services/Order";
+import { useQuery } from "@tanstack/react-query";
 
-
-export const useOrderById = (id:string) => {
+export const useOrderById = (id: string) => {
   return useQuery({
-    queryKey: ["orders",id],
+    queryKey: ["orders", id],
     queryFn: () => getOrderById(id),
     enabled: Boolean(id),
     staleTime: 60 * 1000,
   });
-}
+};

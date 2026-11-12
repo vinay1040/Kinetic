@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { Package } from "lucide-react";
-import type { Order } from "@/services/Order";
+import type { Order } from "@/features/orders/services/Order";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { formatOrderDate, getOrderStatus } from "@/utils/orderUtils";
 
@@ -12,10 +12,7 @@ const OrderCard = ({ order }: OrderCardProps) => {
   const status = getOrderStatus(order.status);
   const items = Array.isArray(order.items) ? order.items : [];
 
-  const totalItems = items.reduce(
-    (total, item) => total + item.quantity,
-    0,
-  );
+  const totalItems = items.reduce((total, item) => total + item.quantity, 0);
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5">

@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/api/apiClient";
-import type { Order } from "../Order";
+import type { Order } from "../../features/orders/services/Order";
 
 export interface AdminDashboard {
   totalRevenue: number;
@@ -24,7 +24,9 @@ export const getAllOrder = async (): Promise<Order[]> => {
 };
 
 export const getAdminDashboard = async () => {
-  const response = await apiClient.get<AdminDashboard>("/Order/admin/dashboard");
+  const response = await apiClient.get<AdminDashboard>(
+    "/Order/admin/dashboard",
+  );
   return response.data;
 };
 

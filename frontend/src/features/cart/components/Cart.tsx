@@ -1,9 +1,9 @@
 import { Link } from "react-router";
 import { Trash2 } from "lucide-react";
 
-import CartItem from "@/components/cart/CartItems";
-import CartSummary from "@/components/cart/CartSummary";
-import EmptyCart from "@/components/cart/EmptyCart";
+import CartItem from "@/features/cart/components/CartItems";
+import CartSummary from "@/features/cart/components/CartSummary";
+import EmptyCart from "@/features/cart/components/EmptyCart";
 import { useCartContext } from "@/features/cart/context/CartContext";
 
 const Cart = () => {

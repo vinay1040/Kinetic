@@ -2,7 +2,7 @@ import { Alert, Button, Skeleton, Table } from "antd";
 import type { TableColumnsType } from "antd";
 import { ArrowRight } from "lucide-react";
 
-import type { Order } from "@/services/Order";
+import type { Order } from "@/features/orders/services/Order";
 import { useAllOrder } from "@/features/orders/hooks/useAllOrder";
 import {
   formatCurrency,
