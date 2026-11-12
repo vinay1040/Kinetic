@@ -1,4 +1,4 @@
-import { AddressForm } from "@/components/auth/address-form";
+import { AddressForm } from "@/features/addresses/components/address-form";
 import { useAuth } from "@/features/auth/context/AuthContext";
 
 const Profile = () => {

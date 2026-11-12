@@ -1,11 +1,11 @@
 import { useState } from "react";
 
 import { ProfileForm } from "@/components/auth/profile-form";
-import { PersonalInformation } from "./features/SettingsList/personalInformation";
-import { SavedAddresses } from "./features/SettingsList/SavedAddress";
-import { AccountSecurity } from "./features/SettingsList/AccountSecurity";
-import { SavedAddressesPanel } from "./features/AddressFeature/SavedAddressPanel";
-import { SecurityPage } from "../../features/auth/components/SecurityPage";
+import { PersonalInformation } from "./personalInformation";
+import { SavedAddresses } from "./SavedAddress";
+import { AccountSecurity } from "./AccountSecurity";
+import { SavedAddressesPanel } from "../../addresses/components/SavedAddressPanel";
+import { SecurityPage } from "../../auth/components/SecurityPage";
 
 export const SettingPage = () => {
   const [activeSection, setActiveSection] = useState<
@@ -48,7 +48,7 @@ export const SettingPage = () => {
             )}
 
             {activeSection === "addresses" && <SavedAddressesPanel />}
-            {activeSection === "security" && <SecurityPage/>}
+            {activeSection === "security" && <SecurityPage />}
           </div>
         )}
       </div>

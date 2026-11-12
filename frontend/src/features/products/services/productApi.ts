@@ -1,9 +1,9 @@
 import { apiClient } from "@/lib/api/apiClient";
 import type {
-  Product,
   ProductCreateRequest,
   ProductDeleteResponse,
   ProductFilters,
+  ProductListResponse,
   ProductResponse,
   ProductUpdateRequest,
   ProductUpdateResponse,
@@ -18,7 +18,7 @@ export const getData = async (
   page: number,
   pageSize: number,
   filters: ProductFilters = {},
-): Promise<ProductResponse> => {
+): Promise<ProductListResponse> => {
   const params = new URLSearchParams({
     page: String(page),
     pageSize: String(pageSize),
@@ -52,15 +52,15 @@ export const getData = async (
     params.set("sortOrder", filters.sortOrder);
   }
 
-  const response = await apiClient.get<ProductResponse>(
+  const response = await apiClient.get<ProductListResponse>(
     `/Product?${params.toString()}`,
   );
 
   return response.data;
 };
 
-export const getProductById = async (id: string): Promise<Product> => {
-  const response = await apiClient.get<Product>(
+export const getProductById = async (id: string): Promise<ProductResponse> => {
+  const response = await apiClient.get<ProductResponse>(
     `/Product/${encodeURIComponent(id)}`,
   );
 
@@ -81,8 +81,8 @@ export const updateProduct = async (
 
 export const createProduct = async (
   productData: ProductCreateRequest,
-): Promise<Product> => {
-  const response = await apiClient.post<Product>("/Product/", productData);
+): Promise<ProductResponse> => {
+  const response = await apiClient.post<ProductResponse>("/Product/", productData);
   return response.data;
 };
 export const deleteProduct = async (

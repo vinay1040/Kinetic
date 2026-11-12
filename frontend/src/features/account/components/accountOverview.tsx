@@ -3,7 +3,7 @@ import { ArrowRight, Heart, MapPin, ShoppingBag } from "lucide-react";
 import { useWishlist } from "@/features/wishlist/context/WishlistContext";
 import { useMyOrder } from "@/features/orders/hooks/useMyOrder";
 import { useAddress } from "@/features/addresses/hooks/useAddress";
-import OrderCard from "./OrderCard";
+import OrderCard from "../../orders/components/OrderCard";
 
 const AccountOverview = () => {
   const { wishlist } = useWishlist();

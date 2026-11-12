@@ -1,11 +1,11 @@
-import AccountOverview from "@/components/account/accountOverview";
-import OrderDetail from "@/components/account/OrderDetail";
-import Orders from "@/components/account/Orders";
-import AdminDashboard from "@/components/admin/Dashboard/AdminDashboard";
+import AccountOverview from "@/features/account/components/accountOverview";
+import OrderDetail from "@/features/orders/components/OrderDetail";
+import Orders from "@/features/orders/components/Orders";
+import AdminDashboard from "@/features/admin/dashboard/pages/AdminDashboard";
 import AdminOrders from "@/components/admin/orders/adminOrder";
 import { ProtectedRoute } from "@/app/router/ProtectedRoute";
 import Cart from "@/components/cart/Cart";
-import { SettingPage } from "@/components/settings/settingPage";
+import { SettingPage } from "@/features/settings/components/settingPage";
 import { LoginForm } from "@/features/auth/components/login-form";
 import { SignupForm } from "@/features/auth/components/signup-form";
 import ProductDetail from "@/features/products/components/ProductDetail";

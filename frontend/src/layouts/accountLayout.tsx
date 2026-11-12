@@ -1,5 +1,5 @@
 import { Outlet } from "react-router";
-import AccountSidebar from "@/components/account/accountSideBar";
+import AccountSidebar from "@/features/account/components/accountSideBar";
 
 const AccountLayout = () => {
   return (

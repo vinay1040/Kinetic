@@ -1,4 +1,3 @@
-
 export interface Product {
   id: string;
   title: string;
@@ -14,7 +13,9 @@ export interface Product {
   externalUrl: string;
 }
 
-export interface ProductResponse {
+export type ProductResponse = Product;
+
+export interface ProductListResponse {
   products: Product[];
   page: number;
   pageSize: number;
@@ -22,29 +23,31 @@ export interface ProductResponse {
   totalPages: number;
 }
 
-export type ProductCreateRequest = Omit<Product, "id">;
+export type ProductCreateRequest = Omit<
+  Product,
+  "id" | "price" | "rating" | "numberOfRatings"
+> & {
+  price: number;
+  rating: number;
+  numberOfRatings: number;
+};
+
+export type ProductUpdateRequest = Partial<
+  Omit<
+    Product,
+    "id" | "price" | "originalPrice" | "rating" | "numberOfRatings"
+  >
+> & {
+  price?: number;
+  originalPrice?: number;
+  rating?: number;
+  numberOfRatings?: number;
+};
 
 export interface ProductDeleteResponse {
   status: number;
   message: string;
 }
-
-export type ProductUpdateRequest = Partial<
-  Pick<
-    Product,
-    | "title"
-    | "mainCategory"
-    | "subCategory"
-    | "category"
-    | "thumbnail"
-    | "images"
-    | "price"
-    | "originalPrice"
-    | "rating"
-    | "numberOfRatings"
-    | "externalUrl"
-  >
->;
 
 export interface ProductUpdateResponse {
   status: number;
@@ -53,7 +56,6 @@ export interface ProductUpdateResponse {
 }
 
 export type ProductSortBy = "price" | "rating" | "title";
-
 export type SortOrder = "asc" | "desc";
 
 export interface ProductFilters {

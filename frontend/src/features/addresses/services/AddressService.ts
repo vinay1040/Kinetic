@@ -1,31 +1,6 @@
 import { apiClient } from "@/lib/api/apiClient";
+import type { Address, AddressRequest } from "../types/address.types";
 
-export interface Address {
-  id: string;
-  label: string;
-  fullName: string;
-  phone: string;
-  addressLine1: string;
-  addressLine2: string;
-  city: string;
-  state: string;
-  postalCode: string;
-  country: string;
-  isDefault: boolean;
-}
-
-export interface AddressRequest {
-  label: string;
-  fullName: string;
-  phone: string;
-  addressLine1: string;
-  addressLine2: string;
-  city: string;
-  state: string;
-  postalCode: string;
-  country: string;
-  isDefault: boolean;
-}
 
 export const getAddresses = async () : Promise<Address[]> => {
     const response = await apiClient.get<Address[]>("/Address");

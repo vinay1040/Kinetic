@@ -1,4 +1,4 @@
-import OrderCard from "@/components/account/OrderCard";
+import OrderCard from "@/features/orders/components/OrderCard";
 import { useMyOrder } from "@/features/orders/hooks/useMyOrder";
 import { ShoppingBag } from "lucide-react";
 import { Link } from "react-router";

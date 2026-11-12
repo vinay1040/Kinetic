@@ -28,9 +28,6 @@ type ProductContextType = {
 const ProductContext = createContext<ProductContextType | null>(null);
 
 export const ProductProvider = ({ children }: { children: ReactNode }) => {
-  // const [products, setProducts] = useState<Product[]>([]);
-  // const [loading, setLoading] = useState(true);
-  // const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const pageSize = 40;
   const [filters, setFilters] = useState<ProductFilters>({});
@@ -56,36 +53,12 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     }),
     [filters, debouncedSearch, debouncePriceRange],
   );
-  // const [totalPages, setTotalPages] = useState(0);
-  // const [totalProducts, settotalProducts] = useState(0);
+ 
   const { data, isError, isPending } = useQuery({
     queryKey: productKeys.list(page, pageSize, queryFilters),
     queryFn: () => getData(page, pageSize, queryFilters),
     staleTime: 60 * 1000,
   });
-
-  // useEffect(() => {
-  //   const loadData = async () => {
-  //     try {
-  //       setLoading(true);
-  //       setError(null);
-
-  //       const data = await getData(page, pageSize);
-  //       setProducts(data.products);
-  //       setPage(data.page);
-  //       setPageSize(data.pageSize);
-  //       setTotalPages(data.totalPages);
-  //       settotalProducts(data.totalProducts);
-  //     } catch (err) {
-  //       console.error("Failed to load products:", err);
-  //       setError("Unable to load products. Please try again.");
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   loadData();
-  // }, [page]);
   const products = data?.products ?? [];
   const totalPages = data?.totalPages ?? 0;
   const totalProducts = data?.totalProducts ?? 0;
@@ -105,7 +78,6 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
         error,
       }}
     >
-      {" "}
       {children}
     </ProductContext.Provider>
   );

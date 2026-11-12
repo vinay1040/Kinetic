@@ -1,36 +1,17 @@
-import type { Address, AddressRequest } from "@/services/AddressService";
 import { Button, Checkbox, Form, Input } from "antd";
-interface AddressFormProps {
-  initialAddress?: Address | null;
-  isSaving: boolean;
-  onSubmit: (values: AddressRequest) => void;
-  onCancel: () => void;
-}
+import type { AddressFormProps } from "../types/address.types";
+
 export const AddAddressCard = ({
+  form,
   initialAddress,
   isSaving,
   onSubmit,
   onCancel,
 }: AddressFormProps) => {
-  const [form] = Form.useForm<AddressRequest>();
-  const initialValues: AddressRequest = {
-    label: initialAddress?.label ?? "Home",
-    fullName: initialAddress?.fullName ?? "",
-    phone: initialAddress?.phone ?? "",
-    addressLine1: initialAddress?.addressLine1 ?? "",
-    addressLine2: initialAddress?.addressLine2 ?? "",
-    city: initialAddress?.city ?? "",
-    state: initialAddress?.state ?? "",
-    postalCode: initialAddress?.postalCode ?? "",
-    country: initialAddress?.country ?? "India",
-    isDefault: initialAddress?.isDefault ?? false,
-  };
-
   return (
     <Form
       form={form}
       layout="vertical"
-      initialValues={initialValues}
       onFinish={onSubmit}
     >
       <Form.Item

@@ -1,4 +1,12 @@
-import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import {
   loginUser,
   registerUser,
@@ -33,7 +41,10 @@ export type User = {
   address?: Address;
 };
 
-type UpdateProfileData = Partial<Omit<User, "id">>;
+type UpdateProfileData = {
+  name?:string;
+  email?:string;
+}
 
 type AuthSession = {
   user: User;
@@ -104,15 +115,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           email: currentUser.email,
           role: normalizeRole(currentUser.role),
         };
-        setSession((currentSession) => {
-          if (!currentSession || currentSession.accessToken !== accessToken) {
-            return currentSession;
-          }
-          return {
-            ...currentSession,
-            user,
-          };
-        });
+        const latestSession = readSession();
+
+        if (!latestSession || latestSession.accessToken !== accessToken) {
+          return;
+        }
+
+        const updatedSession: AuthSession = {
+          ...latestSession,
+          user,
+        };
+
+        sessionStorage.setItem(SESSION_KEY, JSON.stringify(updatedSession));
+        setSession(updatedSession);
+
         hydratedTokenRef.current = accessToken;
       } catch (error) {
         if (!cancelled) {
@@ -192,12 +208,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         role: normalizeRole(currentUser.role),
       };
 
-      hydratedTokenRef.current = response.accessToken;
-
-      setSession({
+      const nextSession: AuthSession = {
         ...temporarySession,
         user: nextUser,
-      });
+      };
+
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(nextSession));
+
+      hydratedTokenRef.current = response.accessToken;
+      setSession(nextSession);
       return nextUser;
     } catch (error) {
       sessionStorage.removeItem(SESSION_KEY);
@@ -247,17 +266,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       name: data.name ?? session.user.name,
       email: data.email ?? session.user.email,
     });
-    setSession((currentSession) => {
-      if (!currentSession) return null;
+    const latestSession = readSession();
 
-      return {
-        ...currentSession,
-        user: {
-          ...currentSession.user,
-          ...data,
-        },
-      };
-    });
+    if (!latestSession) {
+      throw new Error("Your session has expired.");
+    }
+
+    const updatedSession: AuthSession = {
+      ...latestSession,
+      user: {
+        ...latestSession.user,
+        name: data.name ?? latestSession.user.name,
+        email: data.email ?? latestSession.user.email,
+      },
+    };
+
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(updatedSession));
+    setSession(updatedSession);
   };
 
   const value = useMemo<AuthContextType>(

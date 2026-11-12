@@ -14,13 +14,12 @@ import {
   message,
 } from "antd";
 import { MapPin, Plus, Pencil, Trash2 } from "lucide-react";
-
-import { type Address, type AddressRequest } from "@/services/AddressService";
 import { useAddress } from "@/features/addresses/hooks/useAddress";
 import { useAddAddress } from "@/features/addresses/hooks/useAddAddress";
 import { useUpdateAddress } from "@/features/addresses/hooks/useUpdateAddress";
 import { useAddressDelete } from "@/features/addresses/hooks/useAddressDelete";
 import { AddAddressCard } from "./AddAddressCard";
+import type { Address, AddressRequest } from "../types/address.types";
 
 const { Text } = Typography;
 
@@ -237,6 +236,7 @@ export const SavedAddressesPanel = () => {
         destroyOnHidden
       >
         <AddAddressCard
+          form={form}
           isSaving={isSaving}
           onSubmit={handleSave}
           onCancel={closeModal}

@@ -1,5 +1,5 @@
-import type { Address, AddressRequest } from "@/services/AddressService";
 import { Button, Checkbox, Form, Input } from "antd";
+import type { Address, AddressRequest } from "../types/address.types";
 interface AddressFormProps {
   initialAddress?: Address | null;
   isSaving: boolean;
