@@ -1,4 +1,4 @@
-import { AuthApi } from "../../../services/authApi";
+import { apiClient } from "@/lib/api/apiClient";
 import type {
   Product,
   ProductCreateRequest,
@@ -10,7 +10,7 @@ import type {
 } from "../types/product.types";
 
 export const getCategory = async (): Promise<string[]> => {
-  const response = await AuthApi.get<string[]>("/Product/categories");
+  const response = await apiClient.get<string[]>("/Product/categories");
   return response.data;
 };
 
@@ -52,7 +52,7 @@ export const getData = async (
     params.set("sortOrder", filters.sortOrder);
   }
 
-  const response = await AuthApi.get<ProductResponse>(
+  const response = await apiClient.get<ProductResponse>(
     `/Product?${params.toString()}`,
   );
 
@@ -60,7 +60,7 @@ export const getData = async (
 };
 
 export const getProductById = async (id: string): Promise<Product> => {
-  const response = await AuthApi.get<Product>(
+  const response = await apiClient.get<Product>(
     `/Product/${encodeURIComponent(id)}`,
   );
 
@@ -71,7 +71,7 @@ export const updateProduct = async (
   id: string,
   updateData: ProductUpdateRequest,
 ): Promise<ProductUpdateResponse> => {
-  const response = await AuthApi.patch<ProductUpdateResponse>(
+  const response = await apiClient.patch<ProductUpdateResponse>(
     `/Product/${encodeURIComponent(id)}`,
     updateData,
   );
@@ -82,13 +82,13 @@ export const updateProduct = async (
 export const createProduct = async (
   productData: ProductCreateRequest,
 ): Promise<Product> => {
-  const response = await AuthApi.post<Product>("/Product/", productData);
+  const response = await apiClient.post<Product>("/Product/", productData);
   return response.data;
 };
 export const deleteProduct = async (
   id: string,
 ): Promise<ProductDeleteResponse> => {
-  const response = await AuthApi.delete<ProductDeleteResponse>(
+  const response = await apiClient.delete<ProductDeleteResponse>(
     `/Product/${encodeURIComponent(id)}`,
   );
 

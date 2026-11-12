@@ -6,10 +6,10 @@ import smartHome from "../assets/smarthome.png";
 import smartwatch from "../assets/watch.png";
 import { useEffect, useState } from "react";
 
-import { getData } from "@/features/Product/services/productApi";
-import ProductCard from "@/features/Product/components/ProductCard";
 import { Input } from "antd";
-import type { Product } from "@/features/Product/types/product.types";
+import type { Product } from "@/features/products/types/product.types";
+import ProductCard from "@/features/products/components/ProductCard";
+import { getData } from "@/features/products/services/productApi";
 const categories = [
   {
     title: "Performance Computing",

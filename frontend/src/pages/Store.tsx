@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import ProductCard from "@/features/Product/components/ProductCard";
 import { SideBar } from "@/components/SideBar";
 import { Check, ChevronDown, SlidersHorizontal } from "lucide-react";
 import { Button } from "antd";
-import { useProduct } from "@/features/Product/context/ProductContext";
 import { useQuery } from "@tanstack/react-query";
-import { getCategory } from "@/features/Product/services/productApi";
+import { useProduct } from "@/features/products/context/ProductContext";
+import ProductCard from "@/features/products/components/ProductCard";
+import { getCategory } from "@/features/products/services/productApi";
 
 const Store = () => {
   const [isSortOpen, setIsSortOpen] = useState(false);

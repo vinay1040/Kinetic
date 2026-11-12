@@ -1,86 +1,13 @@
-import Home from "./pages/Home";
-import { BrowserRouter, Route, Routes } from "react-router";
-import MainLayout from "./layouts/MainLayout";
-import Store from "./pages/Store";
-import ProductDetail from "./features/Product/components/ProductDetail";
-import { CartProvider } from "./features/cart/context/CartContext";
-import { WishlistProvider } from "./features/wishlist/context/WishlistContext";
-import Cart from "./components/cart/Cart";
-import AuthLayout from "./layouts/AuthLayouts";
-import { Login } from "./pages/Login";
-import SignUp from "./pages/SignUp";
-import Wishlist from "./pages/WishList";
-import { AuthProvider } from "./features/auth/context/AuthContext";
-import { ProtectedRoute } from "./components/auth/ProtectedRoute";
-import AccountLayout from "./layouts/accountLayout";
-import AccountOverview from "./components/account/accountOverview";
-import Orders from "./components/account/Orders";
-import OrderDetail from "./components/account/OrderDetail";
-import AdminLayout from "./layouts/AdminLayouts";
-import AdminDashboard from "./components/admin/Dashboard/AdminDashboard";
-import { ProductProvider } from "./features/Product/context/ProductContext";
-import { SettingPage } from "./components/settings/settingPage";
-import Checkout from "./pages/Checkout";
-import AdminOrders from "./components/admin/orders/adminOrder";
+import { AppProviders } from "./app/providers/AppProviders";
+import { AppRouter } from "./app/router/AppRouter";
 
 const App = () => {
   return (
-    <div className="bg-blue-25">
-      <ProductProvider>
-        <AuthProvider>
-          <CartProvider>
-            <WishlistProvider>
-              <BrowserRouter>
-                <Routes>
-                  <Route element={<MainLayout />}>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/store" element={<Store />} />
-                    <Route path="/product/:id" element={<ProductDetail />} />
-                  </Route>
-                  <Route element={<AuthLayout />}>
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/signUp" element={<SignUp />} />
-                  </Route>
-                  <Route element={<ProtectedRoute />}>
-                    <Route element={<MainLayout />}>
-                      <Route element={<AccountLayout />}>
-                        <Route path="/profile" element={<AccountOverview />} />
-                        <Route path="/profile/orders" element={<Orders />} />
-                        <Route
-                          path="/profile/orders/:orderId"
-                          element={<OrderDetail />}
-                        />
-                        <Route
-                          path="/profile/settings"
-                          element={<SettingPage />}
-                        />
-                      </Route>
-
-                      <Route path="/wishlist" element={<Wishlist />} />
-
-                      <Route path="/cart" element={<Cart />} />
-                      <Route path="/checkout" element={<Checkout />} />
-                    </Route>
-                  </Route>
-                  <Route element={<ProtectedRoute allowedRole="admin" />}>
-                    {" "}
-                    <Route path="/admin" element={<AdminLayout />}>
-                      {" "}
-                      <Route index element={<AdminDashboard />} />
-                      <Route path="orders" element={<AdminOrders />} />
-                      <Route path="products" element={<div>Products</div>} />
-                      <Route path="inventry" element={<div>inventry</div>} />
-                      <Route path="users" element={<div>Users</div>} />
-                      <Route path="settings" element={<div>Settings</div>} />
-                    </Route>
-                  </Route>
-                </Routes>
-              </BrowserRouter>
-            </WishlistProvider>
-          </CartProvider>
-        </AuthProvider>
-      </ProductProvider>
-    </div>
+    <AppProviders>
+      <div className="bg-blue-25">
+        <AppRouter/>
+      </div>
+    </AppProviders>
   );
 };
 

@@ -1,6 +1,5 @@
 import { message } from "antd";
 import { createContext, useContext, type ReactNode } from "react";
-import { getProductById } from "@/features/Product/services/productApi";
 import { useAuth } from "../../auth/context/AuthContext";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { useCart } from "@/features/cart/hooks/useCart";
@@ -8,7 +7,8 @@ import { useAddCartItem } from "@/features/cart/hooks/useAddCartItem";
 import { useRemoveCartItem } from "@/features/cart/hooks/useRemoveCartItem";
 import { useUpdateCartItem } from "@/features/cart/hooks/useUpdateCartItem";
 import { useClearCart } from "@/features/cart/hooks/useClearCart";
-import type { Product } from "@/features/Product/types/product.types";
+import type { Product } from "@/features/products/types/product.types";
+import { getProductById } from "@/features/products/services/productApi";
 
 export type CartItem = {
   product: Product;

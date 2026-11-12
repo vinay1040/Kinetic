@@ -1,4 +1,4 @@
-import { AuthApi } from "./authApi";
+import { apiClient } from "@/lib/api/apiClient";
 
 export interface Address {
   id: string;
@@ -28,20 +28,20 @@ export interface AddressRequest {
 }
 
 export const getAddresses = async () : Promise<Address[]> => {
-    const response = await AuthApi.get<Address[]>("/Address");
+    const response = await apiClient.get<Address[]>("/Address");
     return response.data
 };
 
 export const addAdress = async (request:AddressRequest) : Promise<Address> => {
-    const response = await AuthApi.post("/Address",request);
+    const response = await apiClient.post("/Address",request);
     return response.data;
 };
 
 export const updateAddress = async (addressId:string,request:AddressRequest): Promise<Address> => {
-    const response = await AuthApi.put(`/Address/${encodeURIComponent(addressId)}`,request);
+    const response = await apiClient.put(`/Address/${encodeURIComponent(addressId)}`,request);
     return response.data;
 };
 
 export const deleteAddress = async (addressId:string): Promise<void> => {
-    await AuthApi.delete(`/Address/${encodeURIComponent(addressId)}`);
+    await apiClient.delete(`/Address/${encodeURIComponent(addressId)}`);
 }

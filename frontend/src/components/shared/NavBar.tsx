@@ -3,7 +3,7 @@ import { Button } from "antd";
 import { Link } from "react-router";
 import { useState } from "react";
 import { useAuth } from "@/features/auth/context/AuthContext";
-import { useProduct } from "@/features/Product/context/ProductContext";
+import { useProduct } from "@/features/products/context/ProductContext";
 
 const NavBar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

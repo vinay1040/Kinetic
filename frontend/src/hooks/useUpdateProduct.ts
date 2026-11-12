@@ -1,10 +1,6 @@
-import { updateProduct } from "@/features/Product/services/productApi";
-import type {
-  Product,
-  ProductUpdateRequest,
-  ProductUpdateResponse,
-} from "@/features/Product/types/product.types";
-import { productKeys } from "@/lib/queryKeys";
+import { productKeys } from "@/features/products/product.keys";
+import { updateProduct } from "@/features/products/services/productApi";
+import type { Product, ProductUpdateRequest, ProductUpdateResponse } from "@/features/products/types/product.types";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { message } from "antd";
@@ -12,6 +8,7 @@ import { message } from "antd";
 type UpdateProductVariables = {
   id: string;
   updateData: ProductUpdateRequest;
+
 };
 
 type RollbackContext = {

@@ -1,9 +1,9 @@
 import { Link } from "react-router";
-import { AddToCart } from "@/features/Product/components/AddToCart";
 import { useWishlist } from "@/features/wishlist/context/WishlistContext";
 import { Heart, Star, ArrowUpRight } from "lucide-react";
 import { formatCurrency } from "@/utils/formatCurrency";
 import type { Product } from "../types/product.types";
+import { AddToCart } from "./AddToCart";
 
 type ProductCardProps = {
   product: Product;

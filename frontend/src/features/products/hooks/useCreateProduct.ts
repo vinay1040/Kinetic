@@ -1,8 +1,8 @@
-import { productKeys } from "@/lib/queryKeys";
-import { createProduct } from "@/features/Product/services/productApi";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { message } from "antd";
-import type { ProductCreateRequest } from "@/features/Product/types/product.types";
+import type { ProductCreateRequest } from "../types/product.types";
+import { productKeys } from "../product.keys";
+import { createProduct } from "../services/productApi";
 
 const useCreateProduct = () => {
   const queryClient = useQueryClient();

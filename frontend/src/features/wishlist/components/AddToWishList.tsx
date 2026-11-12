@@ -1,7 +1,7 @@
 import { Heart } from "lucide-react";
 
 import { useWishlist } from "@/features/wishlist/context/WishlistContext";
-import type { Product } from "@/features/Product/types/product.types";
+import type { Product } from "@/features/products/types/product.types";
 
 type AddToWishlistProps = {
   product: Product;

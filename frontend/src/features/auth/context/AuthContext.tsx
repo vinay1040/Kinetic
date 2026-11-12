@@ -1,23 +1,19 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   loginUser,
   registerUser,
   logoutUser,
-  updateUserPRofile,
-  type ApiUserRole,
+  updateUserProfile,
   getCurrentUser,
+} from "../services/authApi";
+
+import type { ApiUserRole } from "../types/auth.types";
+
+import {
   AUTH_SESSION_UPDATED_EVENT,
   AUTH_SESSION_EXPIRED_EVENT,
   waitForRefresh,
-} from "../../../services/authApi";
+} from "@/lib/api/apiClient";
 import { useQueryClient } from "@tanstack/react-query";
 
 type Address = {
@@ -247,7 +243,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       throw new Error("You must be logged in to update your profile.");
     }
 
-    await updateUserPRofile({
+    await updateUserProfile({
       name: data.name ?? session.user.name,
       email: data.email ?? session.user.email,
     });

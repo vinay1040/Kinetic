@@ -15,9 +15,9 @@ import {
 
 import { useCartContext } from "@/features/cart/context/CartContext";
 import { useWishlist } from "@/features/wishlist/context/WishlistContext";
-import { getProductById } from "@/features/Product/services/productApi";
 import { formatCurrency } from "@/utils/formatCurrency";
-import { productKeys } from "@/lib/queryKeys";
+import { productKeys } from "../product.keys";
+import { getProductById } from "../services/productApi";
 
 const ProductDetail = () => {
   const { id } = useParams();

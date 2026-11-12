@@ -1,4 +1,4 @@
-import { AuthApi } from "./authApi";
+import { apiClient } from "@/lib/api/apiClient";
 
 export interface OrderItem {
   productId: string;
@@ -48,23 +48,23 @@ export interface CreateOrderResponse {
 export const createOrder = async (
   request: CreateOrderRequest,
 ): Promise<CreateOrderResponse> => {
-  const response = await AuthApi.post<CreateOrderResponse>("/Order", request);
+  const response = await apiClient.post<CreateOrderResponse>("/Order", request);
 
   return response.data;
 };
 
 export const getOrderData = async (): Promise<Order[]> => {
-  const response = await AuthApi.get<Order[]>("/Order");
+  const response = await apiClient.get<Order[]>("/Order");
   return response.data;
 };
 
 export const getOrderById = async (id: string): Promise<Order> => {
-  const response = await AuthApi.get(`Order/${encodeURIComponent(id)}`);
+  const response = await apiClient.get(`Order/${encodeURIComponent(id)}`);
   return response.data;
 };
 
 export const cancelOrder = async (id:string) : Promise<CancelOrderResponse> => {
-  const response = await AuthApi.post(`/Order/${encodeURIComponent(id)}/cancel`);
+  const response = await apiClient.post(`/Order/${encodeURIComponent(id)}/cancel`);
   return response.data;
 }
 

@@ -1,4 +1,3 @@
-import { getData } from "@/features/Product/services/productApi";
 import {
   createContext,
   useContext,
@@ -8,8 +7,9 @@ import {
 } from "react";
 import { useDebounce } from "use-debounce";
 import { useQuery } from "@tanstack/react-query";
-import { productKeys } from "@/lib/queryKeys";
 import type { Product, ProductFilters } from "../types/product.types";
+import { productKeys } from "../product.keys";
+import { getData } from "../services/productApi";
 export type ProductSortBy = "price" | "rating" | "title";
 export type SortOrder = "asc" | "desc";
 type ProductContextType = {

@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import type { Product } from "@/features/Product/types/product.types";
+import type { Product } from "@/features/products/types/product.types";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 type WishlistContextValue = {
