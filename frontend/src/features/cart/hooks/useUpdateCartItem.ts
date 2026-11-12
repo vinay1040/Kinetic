@@ -1,7 +1,7 @@
 import {
   updateCartItem,
   type UpdateCartQuantityRequest,
-} from "@/services/CartService";
+} from "@/features/cart/services/CartService";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 type UpdateCartVariables = {
@@ -13,11 +13,13 @@ export const useUpdateCartItem = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ productId, quantity }: UpdateCartVariables) =>
-      updateCartItem(productId, { quantity } satisfies UpdateCartQuantityRequest),
+      updateCartItem(productId, {
+        quantity,
+      } satisfies UpdateCartQuantityRequest),
     onSuccess: async () => {
-        await queryClient.invalidateQueries({
-            queryKey: ["cart"]
-        });
+      await queryClient.invalidateQueries({
+        queryKey: ["cart"],
+      });
     },
   });
 };

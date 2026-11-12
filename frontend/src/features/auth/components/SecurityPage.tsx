@@ -1,7 +1,7 @@
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { message } from "antd";
-import { useChangePassword } from "@/hooks/CustomerHook/useChangePassword";
+import { useChangePassword } from "@/features/auth/hooks/useChangePassword";
 
 const validationSchema = Yup.object({
   currentPassword: Yup.string().required("Current password is required"),

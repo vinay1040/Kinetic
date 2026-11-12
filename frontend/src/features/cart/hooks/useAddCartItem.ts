@@ -1,16 +1,17 @@
-import { addCartItem, type CartItemRequest } from '@/services/CartService';
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import {
+  addCartItem,
+  type CartItemRequest,
+} from "@/features/cart/services/CartService";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const useAddCartItem = () => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (request: CartItemRequest) => addCartItem(request),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey:["cart"],
+        queryKey: ["cart"],
       });
     },
   });
 };
-
- 
