@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, Search, X } from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
 
 interface FilterCategories {
   categories: string[];
@@ -57,7 +57,7 @@ export const SideBar = ({
     brand: true,
     rating: true,
   });
-  const [brandSearch, setBrandSearch] = useState("");
+  // const [brandSearch, setBrandSearch] = useState("");
 
   const toggleSection = (section: keyof typeof openSections) => {
     setOpenSections((current) => ({
@@ -78,24 +78,25 @@ export const SideBar = ({
     (minPrice > 0 || maxPrice !== Infinity ? 1 : 0) +
     (minRating > 0 ? 1 : 0);
 
-  const brands = ["Logitech", "Razer", "Keychron", "Dell"];
-  const filteredBrands = brands.filter((brand) =>
-    brand.toLowerCase().includes(brandSearch.toLowerCase()),
-  );
+  // const brands = ["Logitech", "Razer", "Keychron", "Dell"];
+  // const filteredBrands = brands.filter((brand) =>
+  //   brand.toLowerCase().includes(brandSearch.toLowerCase()),
+  // );
 
   return (
-    <aside className="my-2 h-fit w-full shrink-0 self-start rounded-xl border border-slate-200 bg-white px-4 md:sticky md:top-24 md:w-64 md:self-start md:rounded-none md:border-0 md:px-0">
-      {" "}
-      <button
-        type="button"
-        onClick={() => setMobileOpen((current) => !current)}
-        className="flex w-full items-center justify-between py-3 md:hidden"
-      >
-        <span className="text-sm font-semibold text-slate-900">
-          Filters {activeFilters > 0 && `(${activeFilters})`}
-        </span>
-        <ChevronDown size={16} className={mobileOpen ? "rotate-180" : ""} />
-      </button>
+    <aside className="my-2 h-fit w-full shrink-0 self-start rounded-xl border border-slate-200 bg-white md:sticky md:top-24 md:w-full md:self-start md:rounded-none md:border-0 md:px-0">
+      {!alwaysOpen && (
+        <button
+          type="button"
+          onClick={() => setMobileOpen((current) => !current)}
+          className="flex w-full items-center justify-between py-3 md:hidden"
+        >
+          <span className="text-sm font-semibold text-slate-900">
+            Filters {activeFilters > 0 && `(${activeFilters})`}
+          </span>
+          <ChevronDown size={16} className={mobileOpen ? "rotate-180" : ""} />
+        </button>
+      )}
       <div
         className={`${mobileOpen || alwaysOpen ? "block" : "hidden"} md:block`}
       >
@@ -185,15 +186,10 @@ export const SideBar = ({
                     checked={selectCategories.includes(category)}
                     onChange={(event) => {
                       if (event.target.checked) {
-                        setSelectCategories([
-                          ...selectCategories,
-                          category,
-                        ]);
+                        setSelectCategories([...selectCategories, category]);
                       } else {
                         setSelectCategories(
-                          selectCategories.filter(
-                            (item) => item !== category,
-                          ),
+                          selectCategories.filter((item) => item !== category),
                         );
                       }
                     }}
@@ -260,7 +256,7 @@ export const SideBar = ({
         </section>
 
         {/* Brand: UI prepared for backend integration */}
-        <section className="border-b border-slate-200 pb-2">
+        {/* <section className="border-b border-slate-200 pb-2">
           <SectionTitle
             title="Brand"
             open={openSections.brand}
@@ -298,7 +294,7 @@ export const SideBar = ({
               </div>
             </div>
           )}
-        </section>
+        </section> */}
 
         {/* Rating */}
         <section className="pb-3">

@@ -34,12 +34,7 @@ const TopCategories = () => {
 
   return (
     <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-      <div className="mb-6">
-        <h2 className="text-lg font-semibold text-slate-900">Top Categories</h2>
-        <p className="mt-1 text-sm text-slate-500">
-          Revenue distribution by product category
-        </p>
-      </div>
+      
 
       {isLoading ? (
         <div className="flex flex-col items-center gap-5 sm:flex-row">

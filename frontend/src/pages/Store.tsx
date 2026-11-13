@@ -2,10 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { SideBar } from "@/components/SideBar";
 import { Check, ChevronDown, SlidersHorizontal } from "lucide-react";
 import { Button } from "antd";
-import { useQuery } from "@tanstack/react-query";
 import { useProduct } from "@/features/products/context/ProductContext";
 import ProductCard from "@/features/products/components/ProductCard";
-import { getCategory } from "@/features/products/services/productApi";
+import { useCategory } from "@/features/products/hooks/useCategory";
 
 const Store = () => {
   const [isSortOpen, setIsSortOpen] = useState(false);
@@ -22,11 +21,7 @@ const Store = () => {
     setFilters,
   } = useProduct();
 
-  const { data: categories = [] } = useQuery({
-    queryKey: ["productsCategory"],
-    queryFn: getCategory,
-    staleTime: 5 * 60 * 1000,
-  });
+  const { data: categories = [] } = useCategory();
 
   const selectCategories = filters.categories ?? [];
   const minPrice = filters.minPrice ?? 0;
@@ -236,6 +231,7 @@ const Store = () => {
 
               <div className="min-h-0 flex-1 px-4">
                 <SideBar
+                  alwaysOpen
                   categories={categories}
                   selectCategories={selectCategories}
                   setSelectCategories={(selected) =>

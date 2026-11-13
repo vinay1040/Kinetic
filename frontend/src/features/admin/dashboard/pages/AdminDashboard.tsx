@@ -2,36 +2,36 @@ import { Button } from "antd";
 import { RefreshCw } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
-import RevenueChart from "./RevenueChart";
+import RevenueChart from "../../revenue/components/RevenueChart";
 import StatisticCard from "./StatisticCard";
 import RecentOrders from "./RecentOrder";
-import TopCategories from "./TopCategoriesRevenue";
+import TopCategories from "../../revenue/components/TopCategoriesRevenue";
 
 const AdminDashboard = () => {
   const queryClient = useQueryClient();
 
-  const handleRefresh = () => {
-    queryClient.invalidateQueries({
-      queryKey: ["admin", "dashboard"],
-    });
+  // const handleRefresh = () => {
+  //   queryClient.invalidateQueries({
+  //     queryKey: ["admin", "dashboard"],
+  //   });
 
-    queryClient.invalidateQueries({
-      queryKey: ["admin", "monthly-revenue"],
-    });
+  //   queryClient.invalidateQueries({
+  //     queryKey: ["admin", "monthly-revenue"],
+  //   });
 
-    queryClient.invalidateQueries({
-      queryKey: ["admin", "category-revenue"],
-    });
+  //   queryClient.invalidateQueries({
+  //     queryKey: ["admin", "category-revenue"],
+  //   });
 
-    queryClient.invalidateQueries({
-      queryKey: ["orders", "admin"],
-    });
-  };
+  //   queryClient.invalidateQueries({
+  //     queryKey: ["orders", "admin"],
+  //   });
+  // };
 
   return (
-    <div className="mx-auto w-full max-w-[1600px] space-y-7">
+    <div className="mx-auto w-full max-w-[1600px] space-y-3">
       {/* Page heading */}
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+      {/* <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
             Dashboard
@@ -46,7 +46,7 @@ const AdminDashboard = () => {
           <RefreshCw size={16} />
           Refresh
         </Button>
-      </div>
+      </div> */}
 
       {/* Statistics */}
       <section>
@@ -54,7 +54,7 @@ const AdminDashboard = () => {
       </section>
 
       {/* Revenue */}
-      <section className="flex">
+      <section className="grid min-w-0 grid-cols-1 gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)]">
         <RevenueChart />
         <TopCategories />
       </section>

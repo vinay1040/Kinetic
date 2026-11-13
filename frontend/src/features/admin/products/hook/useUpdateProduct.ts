@@ -1,10 +1,12 @@
-
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { message } from "antd";
-import type { Product, ProductUpdateRequest, ProductUpdateResponse } from "../types/product.types";
-import { updateProduct } from "../services/productApi";
-import { productKeys } from "../product.keys";
+import type {
+  Product,
+  ProductUpdateRequest,
+  ProductUpdateResponse,
+} from "../../../products/types/product.types";
+import { updateProduct } from "../../../products/services/productApi";
+import { productKeys } from "../../../products/product.keys";
 
 type UpdateProductVariables = {
   id: string;

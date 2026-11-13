@@ -6,12 +6,12 @@ import {
   type ReactNode,
 } from "react";
 import { useDebounce } from "use-debounce";
-import { useQuery } from "@tanstack/react-query";
 import type { Product, ProductFilters } from "../types/product.types";
-import { productKeys } from "../product.keys";
-import { getData } from "../services/productApi";
+import { useProducts } from "../hooks/useProducts";
+
 export type ProductSortBy = "price" | "rating" | "title";
 export type SortOrder = "asc" | "desc";
+
 type ProductContextType = {
   products: Product[];
   filters: ProductFilters;
@@ -23,6 +23,7 @@ type ProductContextType = {
   setPage: (page: number) => void;
   loading: boolean;
   error: string | null;
+  retry: () => void;
 };
 
 const ProductContext = createContext<ProductContextType | null>(null);
@@ -30,12 +31,18 @@ const ProductContext = createContext<ProductContextType | null>(null);
 export const ProductProvider = ({ children }: { children: ReactNode }) => {
   const [page, setPage] = useState(1);
   const pageSize = 40;
+
   const [filters, setFilters] = useState<ProductFilters>({});
+
   const updateFilter = (newFilter: React.SetStateAction<ProductFilters>) => {
     setFilters(newFilter);
     setPage(1);
   };
+
+  // Debounce search input
   const [debouncedSearch] = useDebounce(filters.search ?? "", 500);
+
+  // Debounce price range
   const priceRange = useMemo(
     () => ({
       minPrice: filters.minPrice,
@@ -43,7 +50,10 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     }),
     [filters.minPrice, filters.maxPrice],
   );
+
   const [debouncePriceRange] = useDebounce(priceRange, 500);
+
+  // Prepare filters for the API request
   const queryFilters = useMemo<ProductFilters>(
     () => ({
       ...filters,
@@ -53,16 +63,23 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     }),
     [filters, debouncedSearch, debouncePriceRange],
   );
- 
-  const { data, isError, isPending } = useQuery({
-    queryKey: productKeys.list(page, pageSize, queryFilters),
-    queryFn: () => getData(page, pageSize, queryFilters),
-    staleTime: 60 * 1000,
-  });
+
+  // Fetch products using the custom hook
+  const {
+    data,
+    isError,
+    isPending,
+    refetch,
+  } = useProducts(page, pageSize, queryFilters);
+
   const products = data?.products ?? [];
   const totalPages = data?.totalPages ?? 0;
   const totalProducts = data?.totalProducts ?? 0;
-  const error = isError ? "Unable to load products. Please try again." : null;
+
+  const error = isError
+    ? "Unable to load products. Please try again."
+    : null;
+
   return (
     <ProductContext.Provider
       value={{
@@ -76,6 +93,9 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
         setPage,
         loading: isPending,
         error,
+        retry: () => {
+          void refetch();
+        },
       }}
     >
       {children}

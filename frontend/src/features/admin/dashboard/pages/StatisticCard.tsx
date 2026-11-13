@@ -50,7 +50,7 @@ const StatisticCard = () => {
   }
 
   return (
-    <Row gutter={[16, 16]}>
+    <Row gutter={[10, 10]}>
       {statistics.map((stat) => {
         const Icon = stat.icon;
 
@@ -60,7 +60,7 @@ const StatisticCard = () => {
               className="h-full !rounded-xl !border-slate-200 !shadow-sm"
               styles={{ body: { padding: "20px" } }}
             >
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center justify-between ">
                 <p className="text-sm font-medium text-slate-500">
                   {stat.title}
                 </p>

@@ -1,4 +1,3 @@
-
 import { useMemo } from "react";
 import {
   BarChart,
@@ -33,31 +32,17 @@ const RevenueChart = () => {
   const chartData = useMemo(
     () =>
       revenue.map((item) => ({
-        month: new Date(
-          item.year,
-          item.month - 1
-        ).toLocaleDateString("en-IN", {
+        month: new Date(item.year, item.month - 1).toLocaleDateString("en-IN", {
           month: "short",
           year: "numeric",
         }),
         revenue: item.revenue,
       })),
-    [revenue]
+    [revenue],
   );
 
   return (
-    <div className="rounded-xl flex-2 border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-      <div className="mb-6 flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900">
-            Revenue Overview
-          </h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Monthly revenue performance
-          </p>
-        </div>
-      </div>
-
+    <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
       {isLoading ? (
         <div className="space-y-4">
           <Skeleton active paragraph={{ rows: 0 }} />
@@ -65,13 +50,8 @@ const RevenueChart = () => {
         </div>
       ) : isError ? (
         <div className="flex min-h-[280px] flex-col items-center justify-center gap-3">
-          <p className="text-sm text-slate-500">
-            Unable to load revenue data.
-          </p>
-          <Button
-            icon={<RefreshCw size={14} />}
-            onClick={() => refetch()}
-          >
+          <p className="text-sm text-slate-500">Unable to load revenue data.</p>
+          <Button icon={<RefreshCw size={14} />} onClick={() => refetch()}>
             Try Again
           </Button>
         </div>
@@ -107,9 +87,7 @@ const RevenueChart = () => {
                 axisLine={false}
                 tickLine={false}
                 tick={{ fill: "#64748B", fontSize: 12 }}
-                tickFormatter={(value) =>
-                  compactCurrency.format(value)
-                }
+                tickFormatter={(value) => compactCurrency.format(value)}
                 width={75}
               />
 

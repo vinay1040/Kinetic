@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/api/apiClient";
-import type { Order } from "../../features/orders/services/Order";
+import type { Order } from "../../../orders/services/Order";
 
 export interface AdminDashboard {
   totalRevenue: number;

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
-import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
   Heart,
@@ -16,8 +15,7 @@ import {
 import { useCartContext } from "@/features/cart/context/CartContext";
 import { useWishlist } from "@/features/wishlist/context/WishlistContext";
 import { formatCurrency } from "@/utils/formatCurrency";
-import { productKeys } from "../product.keys";
-import { getProductById } from "../services/productApi";
+import { useProductDetail } from "../hooks/useProductDetail";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -29,21 +27,7 @@ const ProductDetail = () => {
   const [selectedImage, setSelectedImage] = useState("");
   const [quantity, setQuantity] = useState(1);
 
-  const {
-    data: product,
-    isPending,
-    isError,
-    error,
-  } = useQuery({
-    queryKey: productKeys.detail(id!),
-    queryFn: () => {
-      if (!id) throw new Error("Product ID is missing");
-      return getProductById(id);
-    },
-    enabled: Boolean(id),
-    staleTime: 60_000,
-    gcTime: 300_000,
-  });
+  const { data: product, isPending, isError, error } = useProductDetail();
 
   // Reset local state when navigating to another product.
   useEffect(() => {

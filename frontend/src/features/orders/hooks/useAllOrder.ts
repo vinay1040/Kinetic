@@ -1,11 +1,10 @@
-
-import { getAllOrder } from '@/services/admin/AdminDashBoard';
-import { useQuery } from '@tanstack/react-query'
+import { getAllOrder } from "@/features/admin/dashboard/service/AdminDashBoard";
+import { useQuery } from "@tanstack/react-query";
 
 export const useAllOrder = () => {
   return useQuery({
-    queryKey: ["orders","admin"],
+    queryKey: ["orders", "admin"],
     queryFn: getAllOrder,
-    staleTime: 60*1000,
+    staleTime: 60 * 1000,
   });
 };
