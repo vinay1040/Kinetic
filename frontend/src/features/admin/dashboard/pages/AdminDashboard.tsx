@@ -1,14 +1,10 @@
-import { Button } from "antd";
-import { RefreshCw } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
-
 import RevenueChart from "../../revenue/components/RevenueChart";
 import StatisticCard from "./StatisticCard";
 import RecentOrders from "./RecentOrder";
 import TopCategories from "../../revenue/components/TopCategoriesRevenue";
 
 const AdminDashboard = () => {
-  const queryClient = useQueryClient();
+  // const queryClient = useQueryClient();
 
   // const handleRefresh = () => {
   //   queryClient.invalidateQueries({

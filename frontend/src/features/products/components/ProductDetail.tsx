@@ -27,7 +27,7 @@ const ProductDetail = () => {
   const [selectedImage, setSelectedImage] = useState("");
   const [quantity, setQuantity] = useState(1);
 
-  const { data: product, isPending, isError, error } = useProductDetail();
+  const { data: product, isPending, isError, error } = useProductDetail(id);
 
   // Reset local state when navigating to another product.
   useEffect(() => {

@@ -1,15 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { SideBar } from "@/components/SideBar";
 import { Check, ChevronDown, SlidersHorizontal } from "lucide-react";
-import { Button } from "antd";
+import { Button, Spin } from "antd";
 import { useProduct } from "@/features/products/context/ProductContext";
 import ProductCard from "@/features/products/components/ProductCard";
 import { useCategory } from "@/features/products/hooks/useCategory";
+import { useStoreHook } from "@/features/products/hooks/useStoreHook";
 
 const Store = () => {
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [isFilterOpen, setFilterOpen] = useState(false);
   const sortDropdownRef = useRef<HTMLDivElement>(null);
+
+  const { filters, setFilters } = useProduct();
 
   const {
     products,
@@ -17,10 +20,10 @@ const Store = () => {
     totalPages,
     totalProducts,
     setPage,
-    filters,
-    setFilters,
-  } = useProduct();
-
+    isPending,
+    isError,
+    refetch,
+  } = useStoreHook();
   const { data: categories = [] } = useCategory();
 
   const selectCategories = filters.categories ?? [];
@@ -160,7 +163,6 @@ const Store = () => {
                             sortBy: undefined,
                             sortOrder: undefined,
                           }));
-                          setPage(1);
                           setIsSortOpen(false);
                           return;
                         }
@@ -176,7 +178,6 @@ const Store = () => {
                           sortOrder,
                         }));
 
-                        setPage(1);
                         setIsSortOpen(false);
                       }}
                       className={`flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-sm transition ${
@@ -270,7 +271,18 @@ const Store = () => {
         {/* Product grid */}
         <div className="mt-6 min-w-0">
           <section className="min-w-0 flex-1">
-            {products.length > 0 ? (
+            {isPending ? (
+              <div className="flex min-h-80 items-center justify-center">
+                <Spin size="large" />
+              </div>
+            ) : isError ? (
+              <div className="flex min-h-80 flex-col items-center justify-center gap-3">
+                <p className="text-sm text-red-600">
+                  Unable to load products. Please try again.
+                </p>
+                <Button onClick={() => void refetch()}>Retry</Button>
+              </div>
+            ) : products.length > 0 ? (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 {products.map((product) => (
                   <ProductCard key={product.id} product={product} />
@@ -281,37 +293,41 @@ const Store = () => {
                 <h2 className="text-lg font-semibold text-slate-900">
                   No products found
                 </h2>
-
                 <p className="mt-2 text-sm text-slate-500">
                   Try changing your filters or search term.
                 </p>
               </div>
             )}
 
-            <div className="mt-6 overflow-x-auto pb-1">
-              <div className="flex w-max min-w-full items-center justify-center gap-2">
-                <Button disabled={page === 1} onClick={() => setPage(page - 1)}>
-                  Previous
-                </Button>
-
-                {pageNumbers.map((pageNumber) => (
+            {totalPages > 1 && (
+              <div className="mt-6 overflow-x-auto pb-1">
+                <div className="flex w-max min-w-full items-center justify-center gap-2">
                   <Button
-                    key={pageNumber}
-                    type={pageNumber === page ? "primary" : "default"}
-                    onClick={() => setPage(pageNumber)}
+                    disabled={page <= 1}
+                    onClick={() => setPage((current) => current - 1)}
                   >
-                    {pageNumber}
+                    Previous
                   </Button>
-                ))}
 
-                <Button
-                  disabled={page === totalPages}
-                  onClick={() => setPage(page + 1)}
-                >
-                  Next
-                </Button>
+                  {pageNumbers.map((pageNumber) => (
+                    <Button
+                      key={pageNumber}
+                      type={pageNumber === page ? "primary" : "default"}
+                      onClick={() => setPage(pageNumber)}
+                    >
+                      {pageNumber}
+                    </Button>
+                  ))}
+
+                  <Button
+                    disabled={page >= totalPages}
+                    onClick={() => setPage((current) => current + 1)}
+                  >
+                    Next
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
           </section>
         </div>
       </div>
