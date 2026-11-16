@@ -4,7 +4,7 @@ import { AppRouter } from "./app/router/AppRouter";
 const App = () => {
   return (
     <AppProviders>
-      <div className="bg-blue-25">
+      <div className="bg-background ">
         <AppRouter/>
       </div>
     </AppProviders>

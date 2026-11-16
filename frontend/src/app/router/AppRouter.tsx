@@ -48,7 +48,6 @@ export const AppRouter = () => {
               />
               <Route path="/profile/settings" element={<SettingPage />} />
             </Route>
-
             <Route path="/wishlist" element={<Wishlist />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />

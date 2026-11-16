@@ -1,8 +1,8 @@
 import {
   addAdress,
-  type AddressRequest,
 } from "@/features/addresses/services/AddressService";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { AddressRequest } from "../types/address.types";
 
 export const useAddAddress = () => {
   const queryClient = useQueryClient();

@@ -1,68 +1,87 @@
-import { Link, useLocation } from "react-router";
+import { NavLink } from "react-router";
 import { User, ShoppingBag, Heart, Settings, LogOut } from "lucide-react";
+
 import { useAuth } from "@/features/auth/context/AuthContext";
 
-const AccountSidebar = () => {
-  const location = useLocation();
+type AccountSidebarProps = {
+  onNavigate?: () => void;
+};
+
+const accountMenuItems = [
+  {
+    label: "Overview",
+    path: "/profile",
+    icon: User,
+    end: true,
+  },
+  {
+    label: "Orders",
+    path: "/profile/orders",
+    icon: ShoppingBag,
+    end: false,
+  },
+  {
+    label: "Wishlist",
+    path: "/wishlist",
+    icon: Heart,
+    end: true,
+  },
+  {
+    label: "Settings",
+    path: "/profile/settings",
+    icon: Settings,
+    end: true,
+  },
+];
+
+const AccountSidebar = ({ onNavigate }: AccountSidebarProps) => {
   const { user, logout } = useAuth();
 
-  const menuItems = [
-    {
-      label: "Overview",
-      path: "/profile",
-      icon: User,
-    },
-    {
-      label: "Orders",
-      path: "/profile/orders",
-      icon: ShoppingBag,
-    },
-    {
-      label: "Wishlist",
-      path: "/wishlist",
-      icon: Heart,
-    },
-
-    {
-      label: "Settings",
-      path: "/profile/settings",
-      icon: Settings,
-    },
-  ];
-
   return (
-    <aside className="w-full rounded-xl border bg-white p-4 md:w-64">
-      <div className="mb-6">
-        <h2 className="text-lg font-semibold">{user?.name}</h2>
-        <p className="text-sm text-gray-500">Manage your account</p>
+    <aside className="w-full rounded-xl border border-border bg-card p-4">
+      {/* Account information */}
+      <div className="mb-6 border-b border-border pb-5">
+        <h2 className="truncate text-lg font-semibold text-foreground">
+          {user?.name || "My Account"}
+        </h2>
+
+        <p className="mt-1 text-sm text-muted-foreground">
+          Manage your account
+        </p>
       </div>
 
+      {/* Account navigation */}
       <nav className="space-y-1">
-        {menuItems.map((item) => {
+        {accountMenuItems.map((item) => {
           const Icon = item.icon;
-          const isActive = location.pathname === item.path;
 
           return (
-            <Link
+            <NavLink
               key={item.path}
               to={item.path}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${
-                isActive
-                  ? "bg-black text-white"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
+              end={item.end}
+              onClick={onNavigate}
+              className={({ isActive }) =>
+                `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                  isActive
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`
+              }
             >
               <Icon size={18} />
               <span>{item.label}</span>
-            </Link>
+            </NavLink>
           );
         })}
       </nav>
 
-      <div className="mt-6 border-t pt-4">
+      {/* Logout */}
+      <div className="mt-6 border-t border-border pt-4">
         <button
+          type="button"
           onClick={logout}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-red-600 hover:bg-red-50"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
         >
           <LogOut size={18} />
           <span>Logout</span>

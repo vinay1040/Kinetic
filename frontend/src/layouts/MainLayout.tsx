@@ -1,6 +1,7 @@
 import { Outlet } from "react-router";
 import NavBar from "@/components/shared/NavBar";
 import Footer from "@/components/shared/Footer";
+import MobileBottomNav from "@/components/shared/MobileBottomNav";
 
 const MainLayout = () => {
   return (
@@ -10,6 +11,7 @@ const MainLayout = () => {
             <Outlet/>
         </main>
         <Footer/>
+        <MobileBottomNav/>
     </div>
   )
 }

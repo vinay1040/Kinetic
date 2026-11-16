@@ -1,4 +1,3 @@
-import { AddressForm } from "@/features/addresses/components/address-form";
 import { useAuth } from "@/features/auth/context/AuthContext";
 
 const Profile = () => {
@@ -28,8 +27,6 @@ const Profile = () => {
       {/* Address */}
       <div className="rounded-lg border p-6">
         <h2 className="mb-4 text-lg font-semibold">Address</h2>
-
-        <AddressForm />
       </div>
     </div>
   );
