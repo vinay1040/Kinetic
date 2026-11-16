@@ -1,5 +1,5 @@
-import { getAdminDashboard } from "@/features/admin/dashboard/service/AdminDashBoard";
 import { useQuery } from "@tanstack/react-query";
+import { getAdminDashboard } from "../../AdminServices/AdminService";
 
 export const useAdminDashboard = () => {
   return useQuery({

@@ -1,9 +1,9 @@
 
 import { Link } from "react-router";
 import { Package } from "lucide-react";
-import type { Order } from "@/features/orders/services/Order";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { formatOrderDate, getOrderStatus } from "@/utils/orderUtils";
+import type { Order } from "../types/Order.types";
 
 interface OrderCardProps {
   order: Order;

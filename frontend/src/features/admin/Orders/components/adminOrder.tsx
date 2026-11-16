@@ -1,15 +1,17 @@
 import { useMemo, useState } from "react";
-import { Alert, Button, Input, Select, Table } from "antd";
+import { Alert, Button, Input, Popconfirm, Select, Table } from "antd";
 import type { TableColumnsType } from "antd";
 import { SearchOutlined, ReloadOutlined } from "@ant-design/icons";
 
-import type { Order } from "@/features/orders/services/Order";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { formatOrderDate, getOrderStatus } from "@/utils/orderUtils";
-import { useAllOrder } from "@/features/orders/hooks/useAllOrder";
+import { useAllOrder } from "@/features/admin/Orders/hooks/useAllOrder";
+import type { Order } from "@/features/orders/types/Order.types";
+import { useConfirmOrder } from "../hooks/useConfirmOrder";
 
 const AdminOrders = () => {
-  const { data: orders = [], isLoading, isError, refetch } = useAllOrder();
+  const { data, isLoading, isError, refetch } = useAllOrder();
+  const orders = (data ?? []) as Order[];
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<number | undefined>(
@@ -33,7 +35,7 @@ const AdminOrders = () => {
       return matchesSearch && matchesStatus;
     });
   }, [orders, search, statusFilter]);
-
+  const confirmOrderMutation = useConfirmOrder();
   const columns: TableColumnsType<Order> = [
     {
       title: "Order ID",
@@ -95,6 +97,37 @@ const AdminOrders = () => {
         );
       },
     },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_, order) => {
+        if (order.status !== 0) {
+          return <span className="text-slate-400">—</span>;
+        }
+
+        return (
+          <Popconfirm
+            title="Confirm this order?"
+            description="This will update inventory and change the order status."
+            okText="Confirm"
+            cancelText="Cancel"
+            onConfirm={() => confirmOrderMutation.mutate(order.id)}
+          >
+            <Button
+              type="primary"
+              size="small"
+              loading={
+                confirmOrderMutation.isPending &&
+                confirmOrderMutation.variables === order.id
+              }
+              disabled={confirmOrderMutation.isPending}
+            >
+              Confirm
+            </Button>
+          </Popconfirm>
+        );
+      },
+    },
   ];
 
   return (
@@ -118,7 +151,7 @@ const AdminOrders = () => {
         <Alert
           type="error"
           showIcon
-          message="Unable to load orders"
+          title="Unable to load orders"
           description="Please try again."
           action={
             <Button size="small" onClick={() => refetch()}>

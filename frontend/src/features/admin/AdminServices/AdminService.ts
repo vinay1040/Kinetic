@@ -1,5 +1,5 @@
+import type { ConfirmOrderResponse, Order } from "@/features/orders/types/Order.types";
 import { apiClient } from "@/lib/api/apiClient";
-import type { Order } from "../../../orders/services/Order";
 
 export interface AdminDashboard {
   totalRevenue: number;
@@ -42,5 +42,14 @@ export const getCategoriesRevenue = async () => {
   const response = await apiClient.get<CategoryRevenue[]>(
     "/Order/admin/revenue/categories",
   );
+  return response.data;
+};
+export const confirmOrder = async (
+  id: string,
+): Promise<ConfirmOrderResponse> => {
+  const response = await apiClient.post<ConfirmOrderResponse>(
+    `/Order/${encodeURIComponent(id)}/confirm`,
+  );
+
   return response.data;
 };

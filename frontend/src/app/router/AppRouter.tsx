@@ -2,7 +2,7 @@ import AccountOverview from "@/features/account/components/accountOverview";
 import OrderDetail from "@/features/orders/components/OrderDetail";
 import Orders from "@/features/orders/components/Orders";
 import AdminDashboard from "@/features/admin/dashboard/pages/AdminDashboard";
-import AdminOrders from "@/features/orders/components/adminOrder";
+import AdminOrders from "@/features/admin/Orders/components/adminOrder";
 import { ProtectedRoute } from "@/app/router/ProtectedRoute";
 import Cart from "@/features/cart/components/Cart";
 import { SettingPage } from "@/features/settings/components/settingPage";
@@ -60,7 +60,8 @@ export const AppRouter = () => {
             <Route index element={<AdminDashboard />} />
             <Route path="orders" element={<AdminOrders />} />
             <Route path="products" element={<div>Products</div>} />
-            <Route path="inventry" element={<div>inventry</div>} />
+            <Route path="inventry" element={<div>inventory</div>} />
+            <Route path="analytics" element={<div>analytics</div>}/>
             <Route path="users" element={<div>Users</div>} />
             <Route path="settings" element={<div>Settings</div>} />
           </Route>

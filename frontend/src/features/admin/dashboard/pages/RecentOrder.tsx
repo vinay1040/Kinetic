@@ -2,8 +2,7 @@ import { Alert, Button, Skeleton, Table } from "antd";
 import type { TableColumnsType } from "antd";
 import { ArrowRight } from "lucide-react";
 
-import type { Order } from "@/features/orders/services/Order";
-import { useAllOrder } from "@/features/orders/hooks/useAllOrder";
+import { useAllOrder } from "@/features/admin/Orders/hooks/useAllOrder";
 import {
   formatCurrency,
   formatOrderDate,
@@ -11,10 +10,22 @@ import {
 } from "@/utils/orderUtils";
 import { useNavigate } from "react-router";
 
+type RecentOrder = {
+  id: string;
+  createdAt: string;
+  shippingAddress: { fullName: string };
+  items: { quantity: number }[];
+  total: number;
+  status: number;
+};
+
 const RecentOrders = () => {
   const navigate = useNavigate();
 
-  const { data: orders = [], isLoading, isError, refetch } = useAllOrder();
+  const { data, isLoading, isError, refetch } = useAllOrder();
+  const orders: RecentOrder[] = Array.isArray(data)
+    ? (data as RecentOrder[])
+    : [];
 
   const recentOrders = [...orders]
     .sort(
@@ -23,7 +34,7 @@ const RecentOrders = () => {
     )
     .slice(0, 5);
 
-  const columns: TableColumnsType<Order> = [
+  const columns: TableColumnsType<RecentOrder> = [
     {
       title: "Order ID",
       dataIndex: "id",
@@ -114,7 +125,7 @@ const RecentOrders = () => {
           <Alert
             type="error"
             showIcon
-            message="Unable to load recent orders"
+            title="Unable to load recent orders"
             action={
               <Button size="small" onClick={() => refetch()}>
                 Retry
@@ -122,7 +133,7 @@ const RecentOrders = () => {
             }
           />
         ) : (
-          <Table<Order>
+          <Table<RecentOrder>
             rowKey="id"
             columns={columns}
             dataSource={recentOrders}

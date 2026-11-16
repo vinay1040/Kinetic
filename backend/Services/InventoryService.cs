@@ -1,6 +1,7 @@
 
 using backend.data;
 using backend.Models;
+using backend.Models.Inventory;
 using MongoDB.Bson;
 using MongoDB.Driver;
 

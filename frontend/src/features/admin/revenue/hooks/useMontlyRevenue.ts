@@ -1,5 +1,5 @@
-import { getMonthlyRevenue } from "@/features/admin/dashboard/service/AdminDashBoard";
 import { useQuery } from "@tanstack/react-query";
+import { getMonthlyRevenue } from "../../AdminServices/AdminService";
 
 export const useMontlyRevenue = () => {
   return useQuery({

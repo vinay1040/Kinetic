@@ -1,5 +1,5 @@
-import { getCategoriesRevenue } from "@/features/admin/dashboard/service/AdminDashBoard";
 import { useQuery } from "@tanstack/react-query";
+import { getCategoriesRevenue } from "../../AdminServices/AdminService";
 
 export const useCategoriesRevenue = () => {
   return useQuery({

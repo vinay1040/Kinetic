@@ -1,4 +1,4 @@
-import { getAllOrder } from "@/features/admin/dashboard/service/AdminDashBoard";
+import { getAllOrder } from "@/features/admin/AdminServices/AdminService";
 import { useQuery } from "@tanstack/react-query";
 
 export const useAllOrder = () => {
