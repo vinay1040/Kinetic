@@ -1,7 +1,7 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace backend.Models;
+namespace backend.Models.Products;
 
 [BsonIgnoreExtraElements]
 public class Product

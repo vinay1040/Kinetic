@@ -1,39 +1,70 @@
-
 using backend.data;
-using backend.Models;
 using backend.Models.Inventory;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
-namespace backend.Services;
-
 public class InventoryService
 {
     private readonly MongoDbContext _context;
-
     public InventoryService(MongoDbContext context)
     {
         _context = context;
     }
 
-    public async Task<Inventory?> GetByProductIdAsync(
-        string productId)
+    public async Task<Inventory?> GetByVariantAsync(string variantId, string warehouseId)
     {
-        if (!ObjectId.TryParse(productId, out var productObjectId))
+        if (!ObjectId.TryParse(variantId, out var variantIdObject) || !ObjectId.TryParse(warehouseId, out var warehouseObjectId))
+        {
             return null;
-
-        return await _context.Inventory
-            .Find(item => item.ProductId == productObjectId)
-            .FirstOrDefaultAsync();
+        }
+        return await _context.Inventory.Find((I) => I.VariantId == variantIdObject && I.WarehouseId == warehouseObjectId).FirstOrDefaultAsync();
     }
 
-    public async Task<Inventory> InitializeInventoryAsync(
-        string productId,
-        int onHandQuantity,
-        int reorderLevel = 5)
+    public async Task<bool> CheckAvailabilityAsync(string variantId, string warehouseId, int requestedQuantity)
     {
-        if (!ObjectId.TryParse(productId, out var productObjectId))
-            throw new ArgumentException("Invalid product ID.");
+        if (requestedQuantity <= 0 ||
+       !ObjectId.TryParse(variantId, out var variantObjectId) ||
+       !ObjectId.TryParse(warehouseId, out var warehouseObjectId))
+        {
+            return false;
+        }
+
+        var filter = Builders<Inventory>.Filter.And(
+    Builders<Inventory>.Filter.Eq(
+        item => item.VariantId,
+        variantObjectId),
+
+    Builders<Inventory>.Filter.Eq(
+        item => item.WarehouseId,
+        warehouseObjectId),
+
+    new BsonDocumentFilterDefinition<Inventory>(
+        BsonDocument.Parse(
+            $$"""
+            {
+                "$expr": {
+                    "$gte": [
+                        {
+                            "$subtract": [
+                                "$onHandQuantity",
+                                "$reservedQuantity"
+                            ]
+                        },
+                        {{requestedQuantity}}
+                    ]
+                }
+            }
+            """))
+);
+        return await _context.Inventory.Find(filter).AnyAsync();
+    }
+    public async Task<Inventory?> InitializeAsync(string variantId, string warehouseId, int onHandQuantity, int reorderLevel = 5)
+    {
+        if (!ObjectId.TryParse(variantId, out var variantObjectId))
+            throw new ArgumentException("Invalid variant ID.");
+
+        if (!ObjectId.TryParse(warehouseId, out var warehouseObjectId))
+            throw new ArgumentException("Invalid warehouse ID.");
 
         if (onHandQuantity < 0)
             throw new ArgumentOutOfRangeException(
@@ -44,181 +75,277 @@ public class InventoryService
             throw new ArgumentOutOfRangeException(
                 nameof(reorderLevel),
                 "Reorder level cannot be negative.");
-
-        var productExists = await _context.Products
-            .Find(product => product.Id == productObjectId)
-            .AnyAsync();
-
-        if (!productExists)
-            throw new KeyNotFoundException("Product not found.");
-
-        var existingInventory = await GetByProductIdAsync(productId);
-
-        if (existingInventory is not null)
-            throw new InvalidOperationException(
-                "Inventory has already been initialized for this product.");
-
-        var inventory = new Inventory
+        using var session = await _context.Client.StartSessionAsync();
+        session.StartTransaction();
+        bool committed = false;
+        try
         {
-            ProductId = productObjectId,
-            OnHandQuantity = onHandQuantity,
-            ReservedQuantity = 0,
-            ReorderLevel = reorderLevel,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
+            var variant = await _context.ProductVariants.Find(session, (v) => v.Id == variantObjectId && v.IsActive).FirstOrDefaultAsync();
+            if (variant is null)
+                throw new KeyNotFoundException(
+                    "Active product variant not found.");
+            var warehouse = await _context.Warehouses.Find(session, (w) => w.Id == warehouseObjectId && w.IsActive).FirstOrDefaultAsync();
 
-        await _context.Inventory.InsertOneAsync(inventory);
+            if (warehouse is null)
+                throw new KeyNotFoundException(
+                    "Active warehouse not found.");
+            var existingInventory = await _context.Inventory.Find(session, (i) => i.VariantId == variantObjectId && i.WarehouseId == warehouseObjectId).AnyAsync();
 
-        return inventory;
-    }
-
-    public async Task<bool> HasAvailableQuantityAsync(
-        string productId,
-        int requestedQuantity)
-    {
-        if (requestedQuantity <= 0 ||
-            !ObjectId.TryParse(productId, out var productObjectId))
-        {
-            return false;
-        }
-
-        var filter = Builders<Inventory>.Filter.And(
-            Builders<Inventory>.Filter.Eq(
-                item => item.ProductId,
-                productObjectId),
-
-            new BsonDocumentFilterDefinition<Inventory>(
-                new BsonDocument(
-                    "$expr",
-                    new BsonDocument(
-                        "$gte",
-                        new BsonArray
-                        {
-                            new BsonDocument(
-                                "$subtract",
-                                new BsonArray
-                                {
-                                    "$OnHandQuantity",
-                                    "$ReservedQuantity"
-                                }),
-                            requestedQuantity
-                        })))
-        );
-
-        return await _context.Inventory
-            .Find(filter)
-            .AnyAsync();
-    }
-
-    public async Task<bool> ReserveStockAsync(
-        string productId,
-        int quantity)
-    {
-        if (quantity <= 0 ||
-            !ObjectId.TryParse(productId, out var productObjectId))
-        {
-            return false;
-        }
-
-        var filter = Builders<Inventory>.Filter.And(
-            Builders<Inventory>.Filter.Eq(
-                item => item.ProductId,
-                productObjectId),
-
-            new BsonDocumentFilterDefinition<Inventory>(
-                new BsonDocument(
-                    "$expr",
-                    new BsonDocument(
-                        "$gte",
-                        new BsonArray
-                        {
-                            new BsonDocument(
-                                "$subtract",
-                                new BsonArray
-                                {
-                                    "$OnHandQuantity",
-                                    "$ReservedQuantity"
-                                }),
-                            quantity
-                        })))
-        );
-
-        var update = Builders<Inventory>.Update
-            .Inc(item => item.ReservedQuantity, quantity)
-            .Set(item => item.UpdatedAt, DateTime.UtcNow);
-
-        var result = await _context.Inventory.UpdateOneAsync(
-            filter,
-            update);
-
-        return result.ModifiedCount == 1;
-    }
-    public async Task<bool> AddStockAsync(string productId, int quantity)
-    {
-        if (!ObjectId.TryParse(productId, out var productObjectId))
-        {
-            throw new ArgumentException("Invalid product ID.");
-        }
-
-        if (quantity <= 0)
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(quantity),
-                "Quantity must be greater than zero.");
-        }
-        var filter = Builders<Inventory>.Filter.Eq(i => i.ProductId, productObjectId);
-        var update = Builders<Inventory>.Update.Inc(i => i.OnHandQuantity, quantity).Set(i => i.UpdatedAt, DateTime.UtcNow);
-        var result = await _context.Inventory.UpdateOneAsync(filter, update);
-        return result.ModifiedCount == 1;
-    }
-
-    public async Task<long> InitializeAllInventoryAsync(
-        int onHandQuantity = 100,
-        int reorderLevel = 10)
-    {
-        if (onHandQuantity < 0)
-            throw new ArgumentOutOfRangeException(nameof(onHandQuantity));
-
-        if (reorderLevel < 0)
-            throw new ArgumentOutOfRangeException(nameof(reorderLevel));
-
-        // Find all products that already have inventory.
-        var existingProductIds = await _context.Inventory
-            .Find(FilterDefinition<Inventory>.Empty)
-            .Project(item => item.ProductId)
-            .ToListAsync();
-
-        var existingIds = existingProductIds.ToHashSet();
-
-        // Find products that are missing inventory records.
-        var productsWithoutInventory = await _context.Products
-            .Find(product => !existingIds.Contains(product.Id))
-            .Project(product => product.Id)
-            .ToListAsync();
-
-        if (productsWithoutInventory.Count == 0)
-            return 0;
-
-        var now = DateTime.UtcNow;
-
-        var inventoryRecords = productsWithoutInventory
-            .Select(productId => new Inventory
+            if (existingInventory)
+                throw new InvalidOperationException(
+                    "Inventory is already initialized for this variant and warehouse.");
+            var now = DateTime.UtcNow;
+            var inventory = new Inventory
             {
-                ProductId = productId,
+                VariantId = variantObjectId,
+                WarehouseId = warehouseObjectId,
                 OnHandQuantity = onHandQuantity,
                 ReservedQuantity = 0,
                 ReorderLevel = reorderLevel,
                 CreatedAt = now,
                 UpdatedAt = now
-            })
-            .ToList();
-
-        await _context.Inventory.InsertManyAsync(
-            inventoryRecords,
-            new InsertManyOptions { IsOrdered = false });
-
-        return inventoryRecords.Count;
+            };
+            var transaction = new InventoryTransaction
+            {
+                VariantId = variantObjectId,
+                WarehouseId = warehouseObjectId,
+                Type = InventoryTransactionType.InitialStock,
+                Quantity = onHandQuantity,
+                OnHandAfter = onHandQuantity,
+                ReservedAfter = 0,
+                Reason = "Initial inventory setup",
+                CreatedAt = now
+            };
+            await _context.Inventory.InsertOneAsync(session, inventory);
+            await _context.InventoryTransaction.InsertOneAsync(session, transaction);
+            committed = true;
+            return inventory;
+        }
+        finally
+        {
+            if (!committed & session.IsInTransaction)
+            {
+                await session.AbortTransactionAsync();
+            }
+        }
     }
+    public async Task<Inventory?> RecieveStockAsync(string variantId, string warehouseId, int quantity, string reason)
+    {
+        if (!ObjectId.TryParse(variantId, out var variantObjectId))
+            throw new ArgumentException("Invalid variant ID.");
 
+        if (!ObjectId.TryParse(warehouseId, out var warehouseObjectId))
+            throw new ArgumentException("Invalid warehouse ID.");
+
+        if (quantity <= 0)
+            throw new ArgumentOutOfRangeException(
+                nameof(quantity),
+                "Received quantity must be greater than zero.");
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new ArgumentException("Reason is required.");
+
+        using var session = await _context.Client.StartSessionAsync();
+        session.StartTransaction();
+        bool committed = false;
+        try
+        {
+            var filter = Builders<Inventory>.Filter.And(
+                Builders<Inventory>.Filter.Eq((i) => i.VariantId, variantObjectId),
+                Builders<Inventory>.Filter.Eq((i) => i.WarehouseId, warehouseObjectId)
+            );
+            var update = Builders<Inventory>.Update.Inc((i) => i.OnHandQuantity, quantity).Set((i) => i.UpdatedAt, DateTime.UtcNow);
+            var inventory = await _context.Inventory.FindOneAndUpdateAsync(session, filter, update, new FindOneAndUpdateOptions<Inventory>
+            {
+                ReturnDocument = ReturnDocument.After
+            });
+            if (inventory is null)
+                throw new KeyNotFoundException("Inventory not found.");
+            var transaction = new InventoryTransaction
+            {
+                VariantId = variantObjectId,
+                WarehouseId = warehouseObjectId,
+                Type = InventoryTransactionType.StockReceived,
+                Quantity = quantity,
+                OnHandAfter = inventory.OnHandQuantity,
+                ReservedAfter = inventory.ReservedQuantity,
+                Reason = reason,
+                CreatedAt = DateTime.UtcNow
+            };
+            await _context.InventoryTransaction.InsertOneAsync(session, transaction);
+
+            await session.CommitTransactionAsync();
+
+            committed = true;
+
+            return inventory;
+        }
+        finally
+        {
+            if (!committed & session.IsInTransaction)
+            {
+                session.AbortTransaction();
+            }
+        }
+    }
+    public async Task<Inventory?> AdjustStockAsync(
+    string variantId,
+    string warehouseId,
+    int quantityChange,
+    string reason)
+    {
+        if (!ObjectId.TryParse(variantId, out var variantObjectId))
+            throw new ArgumentException("Invalid variant ID.");
+
+        if (!ObjectId.TryParse(warehouseId, out var warehouseObjectId))
+            throw new ArgumentException("Invalid warehouse ID.");
+
+        if (quantityChange == 0)
+            throw new ArgumentOutOfRangeException(
+                nameof(quantityChange),
+                "Adjustment cannot be zero.");
+
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new ArgumentException("Reason is required.");
+
+        using var session = await _context.Client.StartSessionAsync();
+
+        session.StartTransaction();
+
+        var committed = false;
+
+        try
+        {
+            var filter = Builders<Inventory>.Filter.And(
+                Builders<Inventory>.Filter.Eq(
+                    item => item.VariantId,
+                    variantObjectId),
+
+                Builders<Inventory>.Filter.Eq(
+                    item => item.WarehouseId,
+                    warehouseObjectId),
+
+                new BsonDocumentFilterDefinition<Inventory>(
+                    BsonDocument.Parse(
+                        $$"""
+                    {
+                        "$expr": {
+                            "$gte": [
+                                {
+                                    "$add": [
+                                        "$onHandQuantity",
+                                        {{quantityChange}}
+                                    ]
+                                },
+                                "$reservedQuantity"
+                            ]
+                        }
+                    }
+                    """))
+            );
+
+            var update = Builders<Inventory>.Update
+                .Inc(item => item.OnHandQuantity, quantityChange)
+                .Set(item => item.UpdatedAt, DateTime.UtcNow);
+
+            var inventory = await _context.Inventory
+                .FindOneAndUpdateAsync(
+                    session,
+                    filter,
+                    update,
+                    new FindOneAndUpdateOptions<Inventory>
+                    {
+                        ReturnDocument = ReturnDocument.After
+                    });
+
+            if (inventory is null)
+                throw new InvalidOperationException(
+                    "Inventory not found or adjustment would reduce stock below reserved quantity.");
+
+            var transaction = new InventoryTransaction
+            {
+                VariantId = variantObjectId,
+                WarehouseId = warehouseObjectId,
+                Type = InventoryTransactionType.Adjustment,
+                Quantity = quantityChange,
+                OnHandAfter = inventory.OnHandQuantity,
+                ReservedAfter = inventory.ReservedQuantity,
+                Reason = reason,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _context.InventoryTransaction.InsertOneAsync(
+                session,
+                transaction);
+
+            await session.CommitTransactionAsync();
+
+            committed = true;
+
+            return inventory;
+        }
+        finally
+        {
+            if (!committed && session.IsInTransaction)
+                await session.AbortTransactionAsync();
+        }
+    }
+    public async Task<List<Inventory>> GetLowStockAsync(string? warehouseId = null)
+    {
+        var filters = new List<FilterDefinition<Inventory>>();
+        filters.Add(new BsonDocumentFilterDefinition<Inventory>(
+            BsonDocument.Parse(
+                """
+                {
+                    "$expr": {
+                        "$lte": [
+                            {
+                                "$subtract": [
+                                    "$onHandQuantity",
+                                    "$reservedQuantity"
+                                ]
+                            },
+                            "$reorderLevel"
+                        ]
+                    }
+                }
+                """)));
+        if (!string.IsNullOrWhiteSpace(warehouseId))
+        {
+            if (!ObjectId.TryParse(warehouseId, out var warehouseObjectId))
+                throw new ArgumentException("Invalid warehouse ID.");
+
+            filters.Add(
+                Builders<Inventory>.Filter.Eq(
+                    item => item.WarehouseId,
+                    warehouseObjectId)
+            );
+        }
+        var filter = Builders<Inventory>.Filter.And(filters);
+        return await _context.Inventory
+            .Find(filter)
+            .SortBy(item => item.OnHandQuantity - item.ReservedQuantity)
+            .ToListAsync();
+    }
+    public async Task<List<InventoryTransaction>> GetTransactionsAsync(string variantId, string warehouseId, int page = 1, int pageSize = 20)
+    {
+        if (!ObjectId.TryParse(variantId, out var variantObjectId))
+            throw new ArgumentException("Invalid variant ID.");
+
+        if (!ObjectId.TryParse(warehouseId, out var warehouseObjectId))
+            throw new ArgumentException("Invalid warehouse ID.");
+
+        if (page < 1)
+            throw new ArgumentOutOfRangeException(nameof(page));
+
+        if (pageSize < 1 || pageSize > 100)
+            throw new ArgumentOutOfRangeException(nameof(pageSize));
+        var filter = Builders<InventoryTransaction>.Filter.And(
+            Builders<InventoryTransaction>.Filter.Eq((t) => t.VariantId, variantObjectId),
+            Builders<InventoryTransaction>.Filter.Eq((t) => t.WarehouseId, warehouseObjectId)
+        );
+        return await _context.InventoryTransaction
+        .Find(filter)
+        .SortByDescending((t) => t.CreatedAt)
+        .Skip((page - 1) * pageSize).Limit(pageSize).ToListAsync();
+    }
 }

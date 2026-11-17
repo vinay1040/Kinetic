@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
 using backend.data;
 using backend.DTOs.Products;
-using backend.Models;
+using backend.Models.Products;
 using MongoDB.Bson;
 using MongoDB.Driver;
 

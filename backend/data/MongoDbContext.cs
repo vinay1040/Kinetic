@@ -24,6 +24,7 @@ public class MongoDbContext
     public IMongoCollection<Product> Products => _database.GetCollection<Product>("Products");
 
     public IMongoCollection<ProductVariant> ProductVariants => _database.GetCollection<ProductVariant>("ProductVariants");
+    public IMongoCollection<InventoryTransaction> InventoryTransaction => _database.GetCollection<InventoryTransaction>("InventoryTransactions");
     public IMongoCollection<Warehouse> Warehouses => _database.GetCollection<Warehouse>("Warehouses");
 
     public IMongoCollection<Inventory> Inventory => _database.GetCollection<Inventory>("Inventory");
@@ -80,11 +81,22 @@ public class MongoDbContext
                 Name = "ProductVariant_ProductId"
             }
         );
+        var inventoryTransactionIndex =new CreateIndexModel<InventoryTransaction>(
+            Builders<InventoryTransaction>.IndexKeys
+                .Ascending(transaction => transaction.VariantId)
+                .Ascending(transaction => transaction.WarehouseId)
+                .Descending(transaction => transaction.CreatedAt),
+            new CreateIndexOptions
+            {
+                Name = "InventoryTransaction_Variant_Warehouse_CreatedAt"
+            });
+        
         await Users.Indexes.CreateOneAsync(emailIndex);
         await Cart.Indexes.CreateOneAsync(cartUserIndex);
         await Inventory.Indexes.CreateOneAsync(inventoryProductIndex);
         await ProductVariants.Indexes.CreateOneAsync(variantSkuIndex);
         await ProductVariants.Indexes.CreateOneAsync(variantProductIndex);
         await Warehouses.Indexes.CreateOneAsync(warehouseCodeIndex);
+        await InventoryTransaction.Indexes.CreateOneAsync(inventoryTransactionIndex);
     }
 }
