@@ -1,7 +1,9 @@
+using MongoDB.Bson;
+
 namespace backend.DTOs.Addresses;
 public class AddressResponse
 {
-    public string Id { get; set; } = string.Empty;
+    public ObjectId Id { get; set; } 
     public string Label { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
     public string Phone { get; set; } = string.Empty;

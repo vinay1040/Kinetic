@@ -2,6 +2,7 @@ using backend.data;
 using backend.DTOs.Admin;
 using backend.DTOs.Orders;
 using backend.Models;
+using backend.Models.Inventory;
 using backend.Models.Orders;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -66,7 +67,7 @@ public class OrderService
             if (!ObjectId.TryParse(userId, out var userObjectId) ||
                 !ObjectId.TryParse(
                     request.ShippingAddressId,
-                    out _))
+                    out var shippingAddressObjectId))
             {
                 return null;
             }
@@ -79,8 +80,8 @@ public class OrderService
             if (user is null)
                 return null;
 
-            var address = user.Addresses.FirstOrDefault(
-                a => a.Id == request.ShippingAddressId);
+            var address = user.Addresses.Find(
+                a => a.Id == shippingAddressObjectId);
 
             if (address is null)
                 return null;

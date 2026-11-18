@@ -227,13 +227,12 @@ public class AddressService
     }
     public async Task<AddressResponse?> UpdateAddress(ObjectId userId, ObjectId addressId, AddressRequest request)
     {
-        var addressIdString = addressId.ToString();
         var filter = Builders<User>.Filter.And(
             Builders<User>.Filter.Eq(user => user.Id, userId),
             Builders<User>.Filter.Eq(user => user.IsActive, true),
             Builders<User>.Filter.ElemMatch(
                 user => user.Addresses,
-                address => address.Id == addressIdString
+                address => address.Id == addressId
             )
         );
         var updatedFields = new BsonDocument
@@ -332,17 +331,16 @@ public class AddressService
             }
         );
         if (updatedUser is null) return null;
-        var savedAddress = updatedUser.Addresses.FirstOrDefault(address => address.Id == addressIdString);
+        var savedAddress = updatedUser.Addresses.FirstOrDefault(address => address.Id == addressId);
         if (savedAddress is null) return null;
         return MapToResponse(savedAddress);
     }
     public async Task<bool> DeleteAddress(ObjectId userId, ObjectId addressId)
     {
-        var addressIdString = addressId.ToString();
         var filter = Builders<User>.Filter.And(
             Builders<User>.Filter.Eq(user => user.Id, userId),
             Builders<User>.Filter.Eq(user => user.IsActive, true),
-            Builders<User>.Filter.ElemMatch(user => user.Addresses, address => address.Id == addressIdString)
+            Builders<User>.Filter.ElemMatch(user => user.Addresses, address => address.Id == addressId)
         );
         var remainingAddresses = new BsonDocument(
             "$filter",

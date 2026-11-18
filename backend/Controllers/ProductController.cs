@@ -1,6 +1,5 @@
-
 using backend.DTOs.Products;
-using backend.Models;
+using backend.Models.Products;
 using backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
