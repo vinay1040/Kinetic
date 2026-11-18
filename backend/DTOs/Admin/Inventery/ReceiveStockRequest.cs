@@ -1,3 +1,5 @@
+namespace backend.DTOs.Admin.Inventery;
+
 public class ReceiveStockRequest
 {
     public int Quantity { get; set; }

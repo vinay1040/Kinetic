@@ -3,6 +3,8 @@ using backend.Models.Inventory;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
+namespace backend.Services;
+
 public class InventoryService
 {
     private readonly MongoDbContext _context;
@@ -118,6 +120,7 @@ public class InventoryService
             };
             await _context.Inventory.InsertOneAsync(session, inventory);
             await _context.InventoryTransaction.InsertOneAsync(session, transaction);
+            await session.CommitTransactionAsync();
             committed = true;
             return inventory;
         }
@@ -129,7 +132,7 @@ public class InventoryService
             }
         }
     }
-    public async Task<Inventory?> RecieveStockAsync(string variantId, string warehouseId, int quantity, string reason)
+    public async Task<Inventory?> ReceiveStockAsync(string variantId, string warehouseId, int quantity, string reason)
     {
         if (!ObjectId.TryParse(variantId, out var variantObjectId))
             throw new ArgumentException("Invalid variant ID.");
@@ -183,7 +186,7 @@ public class InventoryService
         {
             if (!committed & session.IsInTransaction)
             {
-                session.AbortTransaction();
+                await session.AbortTransactionAsync();
             }
         }
     }
@@ -322,8 +325,24 @@ public class InventoryService
         }
         var filter = Builders<Inventory>.Filter.And(filters);
         return await _context.Inventory
-            .Find(filter)
-            .SortBy(item => item.OnHandQuantity - item.ReservedQuantity)
+            .Aggregate()
+            .Match(filter)
+            .AppendStage<Inventory>(
+                new BsonDocument(
+                    "$set",
+                    new BsonDocument(
+                        "availableQuantity",
+                        new BsonDocument(
+                            "$subtract",
+                            new BsonArray
+                            {
+                                "$onHandQuantity",
+                                "$reservedQuantity"
+                            }
+                        )
+                    )
+                )
+            ).Sort(new BsonDocument("availableQuantity", 1))
             .ToListAsync();
     }
     public async Task<List<InventoryTransaction>> GetTransactionsAsync(string variantId, string warehouseId, int page = 1, int pageSize = 20)
