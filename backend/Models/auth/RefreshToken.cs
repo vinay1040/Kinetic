@@ -7,7 +7,7 @@ namespace backend.Models;
 public class RefreshToken
 {
     [BsonId]
-    public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
+    public ObjectId Id { get; set; }
 
     public ObjectId UserId { get; set; }
 

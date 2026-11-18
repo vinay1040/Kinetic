@@ -7,8 +7,7 @@ namespace backend.Models.Addresses;
 public class Address
 {
     [BsonId]
-    [BsonRepresentation(BsonType.ObjectId)]
-    public string Id { get; set; } = ObjectId.GenerateNewId().ToString();
+    public ObjectId Id { get; set; }
 
     public string Label { get; set; } = "Home";
 

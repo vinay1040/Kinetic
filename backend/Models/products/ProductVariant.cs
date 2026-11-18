@@ -6,7 +6,7 @@ namespace backend.Models.Products;
 public class ProductVariant
 {
     [BsonId]
-    public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
+    public ObjectId Id { get; set; }
 
     [BsonRequired]
     [BsonElement("productId")]

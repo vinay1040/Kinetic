@@ -7,7 +7,7 @@ namespace backend.Models.Inventory;
 public class Warehouse
 {
     [BsonId]
-    public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
+    public ObjectId Id { get; set; }
 
     [BsonElement("name")]
     public string Name { get; set; } = string.Empty;

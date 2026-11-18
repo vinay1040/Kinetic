@@ -1,34 +1,31 @@
+
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+
 namespace backend.Models.Inventory;
+
 public class Inventory
 {
     [BsonId]
     public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
 
     [BsonRequired]
-    [BsonElement("variantId")]
-    public ObjectId VariantId { get; set; }
+    public ObjectId ProductId { get; set; }
 
-    [BsonRequired]
-    [BsonElement("warehouseId")]
-    public ObjectId WarehouseId { get; set; }
-
-    [BsonElement("onHandQuantity")]
+    // Physical units currently held in inventory.
     public int OnHandQuantity { get; set; }
 
-    [BsonElement("reservedQuantity")]
+    // Units reserved for orders that have not been finalized.
     public int ReservedQuantity { get; set; }
 
-    [BsonElement("reorderLevel")]
+    // Alert the admin when available units reach this threshold.
     public int ReorderLevel { get; set; } = 5;
 
-    [BsonElement("createdAt")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    [BsonElement("updatedAt")]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     [BsonIgnore]
-    public int AvailableQuantity => OnHandQuantity - ReservedQuantity;
+    public int AvailableQuantity =>
+        OnHandQuantity - ReservedQuantity;
 }

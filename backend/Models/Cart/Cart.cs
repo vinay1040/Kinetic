@@ -7,8 +7,7 @@ namespace backend.Models;
 public class Cart
 {
     [BsonId]
-    [BsonRepresentation(BsonType.ObjectId)]
-    public string? Id { get; set; }
+    public ObjectId Id { get; set; }
 
     [BsonRepresentation(BsonType.ObjectId)]
     public string UserId { get; set; } = string.Empty;

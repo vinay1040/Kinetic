@@ -17,7 +17,7 @@ public enum InventoryTransactionType
 public class InventoryTransaction
 {
     [BsonId]
-    public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
+    public ObjectId Id { get; set; }
 
     public ObjectId VariantId { get; set; }
 

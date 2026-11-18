@@ -17,8 +17,7 @@ public enum OrderStatus
 public class Order
 {
     [BsonId]
-    [BsonRepresentation(BsonType.ObjectId)]
-    public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
+    public ObjectId Id { get; set; }
 
     [BsonRepresentation(BsonType.ObjectId)]
     public string UserId { get; set; } = string.Empty;
