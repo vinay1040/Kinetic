@@ -27,8 +27,8 @@ public class InventoryService
             throw new ArgumentOutOfRangeException(
                 nameof(reorderLevel),
                 "Reorder level cannot be negative.");
-        var productExists = _context.Products.Find(p => p.Id == productObjectId).AnyAsync();
-        if (productExists is null)
+        var productExists = await _context.Products.Find(p => p.Id == productObjectId).AnyAsync();
+        if (!productExists)
             throw new KeyNotFoundException("Product not found.");
         var existingInventory = await GetByProductIdAsync(productId);
         if (existingInventory is not null)
@@ -79,7 +79,7 @@ public class InventoryService
     }
     public async Task<bool> ReservedStock(string productId, int quantity)
     {
-        if (quantity > 0 ||
+        if (quantity <= 0 ||
         !ObjectId.TryParse(productId, out var productObjectId))
         {
             return false;
@@ -114,8 +114,32 @@ public class InventoryService
         var update = Builders<Inventory>.Update
             .Inc(item => item.ReservedQuantity, quantity)
             .Set(item => item.UpdatedAt, DateTime.UtcNow);
-        var result = await _context.Inventory.UpdateOneAsync(filter,update);
+        var result = await _context.Inventory.UpdateOneAsync(filter, update);
 
         return result.ModifiedCount == 1;
+    }
+
+    public async Task<List<Inventory>> GetLowStockAsync()
+    {
+        var filter = new BsonDocumentFilterDefinition<Inventory>(
+            BsonDocument.Parse("""
+            {
+                "$expr": {
+                    "$lte": [
+                        {
+                            "$subtract": [
+                                "$OnHandQuantity",
+                                "$ReservedQuantity"
+                            ]
+                        },
+                        "$ReorderLevel"
+                    ]
+                }
+            }
+            """)
+        );
+        return await _context.Inventory
+            .Find(filter)
+            .ToListAsync();
     }
 }
