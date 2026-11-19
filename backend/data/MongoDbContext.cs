@@ -38,7 +38,7 @@ public class MongoDbContext
 
     public IMongoCollection<Order> Order =>
         _database.GetCollection<Order>("Order");
-
+    public IMongoCollection<InventoryTransaction> InventoryTransaction => _database.GetCollection<InventoryTransaction>("InventoryTransaction");
     public async Task EnsureIndexesAsync()
     {
         var emailIndex = new CreateIndexModel<User>(
@@ -60,8 +60,17 @@ public class MongoDbContext
                 Name = "Unique_Inventory_ProductId"
             }
         );
-
+        var inventoryTransactionIndex = new CreateIndexModel<InventoryTransaction>(
+            Builders<InventoryTransaction>.IndexKeys
+                .Ascending(item => item.ProductId)
+                .Descending(item => item.CreatedAt),
+            new CreateIndexOptions
+            {
+                Name = "Product_TransactionHistory"
+            }
+);
         await Users.Indexes.CreateOneAsync(emailIndex);
         await Inventory.Indexes.CreateOneAsync(inventoryProductIndex);
+        await InventoryTransaction.Indexes.CreateOneAsync(inventoryTransactionIndex);
     }
 }

@@ -26,15 +26,35 @@ public class ExceptionHandlingMiddleware
             );
         }
     }
-    public static async Task HandleExceptionAsync(HttpContext context, Exception exception)
+    public static async Task HandleExceptionAsync(
+    HttpContext context,
+    Exception exception)
     {
-        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        var (statusCode, message) = exception switch
+        {
+            ArgumentException =>
+                (StatusCodes.Status400BadRequest, "Invalid request."),
+
+            KeyNotFoundException =>
+                (StatusCodes.Status404NotFound, "Resource not found."),
+
+            InvalidOperationException =>
+                (StatusCodes.Status409Conflict, exception.Message),
+
+            _ =>
+                (StatusCodes.Status500InternalServerError,
+                 "An unexpected error occurred.")
+        };
+
+        context.Response.StatusCode = statusCode;
         context.Response.ContentType = "application/json";
+
         var response = new
         {
-            status = 500,
-            message = "An unexpexted Error"
+            status = statusCode,
+            message
         };
+
         await context.Response.WriteAsJsonAsync(response);
     }
 }

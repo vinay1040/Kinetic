@@ -51,7 +51,7 @@ public class CartService
         if (product is null) return null;
 
         var inventory = await _inventoryService
-            .GetByProductIdAsync(productId);
+            .GetInventorybyProductIdAsync(productId);
 
         if (inventory is null ||
             inventory.AvailableQuantity <= 0 ||
@@ -150,7 +150,7 @@ public class CartService
         if (product is null) return null;
 
         var inventory = await _inventoryService
-            .GetByProductIdAsync(productId);
+            .GetInventorybyProductIdAsync(productId);
 
         if (inventory is null ||
             inventory.AvailableQuantity < quantity)

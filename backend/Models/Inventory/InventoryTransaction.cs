@@ -1,8 +1,6 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-
 namespace backend.Models.Inventory;
-
 public enum InventoryTransactionType
 {
     InitialStock,
@@ -17,14 +15,19 @@ public enum InventoryTransactionType
 public class InventoryTransaction
 {
     [BsonId]
-    public ObjectId Id { get; set; }
+    public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
 
-    public ObjectId VariantId { get; set; }
+    [BsonRequired]
+    [BsonRepresentation(BsonType.String)]
+    public ObjectId ProductId { get; set; }
 
-    public ObjectId WarehouseId { get; set; }
-
+    [BsonRepresentation(BsonType.String)]
     public InventoryTransactionType Type { get; set; }
-    public int Quantity { get; set; }
+
+    // Positive or negative change to physical stock.
+    public int OnHandChange { get; set; }
+
+    public int ReservedChange { get; set; }
 
     public int OnHandAfter { get; set; }
 
@@ -32,7 +35,7 @@ public class InventoryTransaction
 
     public string Reason { get; set; } = string.Empty;
 
-    public string? ReferenceId { get; set; }
+    public ObjectId? ReferenceId { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

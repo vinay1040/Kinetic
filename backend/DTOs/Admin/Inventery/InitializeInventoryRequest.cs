@@ -1,10 +1,15 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace backend.DTOs.Admin.Inventory;
+
 public class InitializeInventoryRequest
 {
-    public string VariantId { get; set; } = string.Empty;
+    [Required]
+    public string ProductId { get; set; } = string.Empty;
 
-    public string WarehouseId { get; set; } = string.Empty;
-
+    [Range(0, int.MaxValue)]
     public int OnHandQuantity { get; set; }
 
+    [Range(0, int.MaxValue)]
     public int ReorderLevel { get; set; } = 5;
 }
