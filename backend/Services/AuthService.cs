@@ -49,7 +49,7 @@ public class AuthService
             return false;
         }
     }
-    public async Task<LoginResponse?> Login(LoginRequest request)
+    public async Task<AuthTokenResult?> Login(LoginRequest request)
     {
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
         var user = await _dbcontext.Users
@@ -70,7 +70,7 @@ public class AuthService
                 parrwordUpdate
             );
         }
-        var token = _tokenService.GenerateToken(user);
+        var accessToken = _tokenService.GenerateToken(user);
         var refreshToken = _tokenService.CreateRefreshToken();
         var refreshTokenHash = _tokenService.HashToken(refreshToken);
         var refreshTokenEntity = new RefreshToken
@@ -82,12 +82,17 @@ public class AuthService
 
         await _dbcontext.RefreshTokens.InsertOneAsync(refreshTokenEntity);
 
-        return new LoginResponse
+        return new AuthTokenResult
         {
-            AccessToken = token,
+            AccessToken = accessToken,
             RefreshToken = refreshToken,
-            Email = user.Email,
-            Role = user.Role
+            User = new UserProfileResponse
+            {
+                Id = user.Id.ToString(),
+                Name = user.Name,
+                Email = user.Email,
+                Role = user.Role
+            }
         };
     }
     public async Task<UserProfileResponse?> GetCurrentUser(string id)
@@ -114,9 +119,9 @@ public class AuthService
             Role = user.Role
         };
     }
-    public async Task<LoginResponse?> Refresh(RefreshRequest request)
+    public async Task<AuthTokenResult?> Refresh(string request)
     {
-        var tokenHash = _tokenService.HashToken(request.RefreshToken);
+        var tokenHash = _tokenService.HashToken(request);
 
         var storedToken = await _dbcontext.RefreshTokens
             .Find(token => token.TokenHash == tokenHash)
@@ -129,10 +134,8 @@ public class AuthService
 
         if (!storedToken.IsActive)
         {
-            // A revoked token that was replaced may indicate token reuse.
             if (storedToken.ReplacedByTokenId.HasValue)
             {
-                // Revoke active refresh tokens belonging to this user.
                 var revocationTime = DateTime.UtcNow;
 
                 var activeTokensFilter = Builders<RefreshToken>.Filter.Eq(
@@ -220,12 +223,17 @@ public class AuthService
 
             return null;
         }
-        return new LoginResponse
+        return new AuthTokenResult
         {
             AccessToken = newAccessToken,
             RefreshToken = newRefreshToken,
-            Email = user.Email,
-            Role = user.Role
+            User = new UserProfileResponse
+            {
+                Id = user.Id.ToString(),
+                Name = user.Name,
+                Email = user.Email,
+                Role = user.Role
+            }
         };
     }
     public async Task<bool> UpdateUser(string id, UpdateProfileRequest request)
@@ -257,9 +265,9 @@ public class AuthService
 
         return result.IsAcknowledged && result.MatchedCount == 1;
     }
-    public async Task<bool> Logout(RefreshRequest request)
+    public async Task<bool> Logout(string request)
     {
-        var tokenHash = _tokenService.HashToken(request.RefreshToken);
+        var tokenHash = _tokenService.HashToken(request);
         var now = DateTime.UtcNow;
         var filters = Builders<RefreshToken>.Filter.Eq(
             token => token.TokenHash, tokenHash
@@ -316,13 +324,13 @@ public class AuthService
                 "New password must be different from the current password."
             );
         }
-        var newPasswordHash = _passwordService.HashPassword(user,request.NewPassword);
+        var newPasswordHash = _passwordService.HashPassword(user, request.NewPassword);
         var filter = Builders<User>.Filter.And(
-            Builders<User>.Filter.Eq(u => u.Id,user.Id),
-            Builders<User>.Filter.Eq(u => u.PasswordHash,user.PasswordHash)
+            Builders<User>.Filter.Eq(u => u.Id, user.Id),
+            Builders<User>.Filter.Eq(u => u.PasswordHash, user.PasswordHash)
         );
-        var update = Builders<User>.Update.Set(user => user.PasswordHash,newPasswordHash);
-        var result = await _dbcontext.Users.UpdateOneAsync(filter,update);
+        var update = Builders<User>.Update.Set(user => user.PasswordHash, newPasswordHash);
+        var result = await _dbcontext.Users.UpdateOneAsync(filter, update);
         return result.ModifiedCount == 1;
     }
 

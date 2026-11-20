@@ -14,7 +14,34 @@ public class AuthController : ControllerBase
     {
         _authService = authService;
     }
-
+    private const string RefreshTokenCookieName = "kinetic_refresh_token";
+    private void SetRefreshTokenToCookie(string refresh)
+    {
+        var cookieOption = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = Request.IsHttps,
+            SameSite = SameSiteMode.Lax,
+            Path = "/api/auth",
+            Expires = DateTimeOffset.UtcNow.AddDays(7)
+        };
+        Response.Cookies.Append(
+            RefreshTokenCookieName,
+            refresh,
+            cookieOption
+        );
+    }
+    private void ClearRefreshTokenCookie()
+    {
+        Response.Cookies.Delete(RefreshTokenCookieName,
+        new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = Request.IsHttps,
+            SameSite = SameSiteMode.Lax,
+            Path = "/api/auth"
+        });
+    }
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
@@ -35,8 +62,15 @@ public class AuthController : ControllerBase
         {
             return Unauthorized("Invalid email or password");
         }
+        SetRefreshTokenToCookie(result.RefreshToken);
 
-        return Ok(result);
+        // Return only access token and user profile
+        var response = new LoginResponse
+        {
+            AccessToken = result.AccessToken,
+            User = result.User
+        };
+        return Ok(response);
     }
     [HttpGet("me")]
     [Authorize(Policy = "ActiveUser")]
@@ -63,15 +97,31 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("refresh")]
-    public async Task<IActionResult> Refresh(RefreshRequest request)
+    public async Task<IActionResult> Refresh()
     {
-        var result = await _authService.Refresh(request);
-        if (result is null) return Unauthorized(new
+        if (!Request.Cookies.TryGetValue(RefreshTokenCookieName, out var refreshRequest))
         {
-            message = "Invalid or exxpired refresh token"
-        });
-
-        return Ok(result);
+            return Unauthorized(new
+            {
+                message = "Refresh token is missing."
+            });
+        }
+        var result = await _authService.Refresh(refreshRequest);
+        if (result is null)
+        {
+            ClearRefreshTokenCookie();
+            return Unauthorized(new
+            {
+                message = "Invalid or exxpired refresh token"
+            });
+        }
+        SetRefreshTokenToCookie(result.RefreshToken);
+        var response = new LoginResponse
+        {
+            AccessToken = result.AccessToken,
+            User = result.User,
+        };
+        return Ok(response);
     }
 
     [HttpPut("updateProfile")]
@@ -88,16 +138,16 @@ public class AuthController : ControllerBase
         return Ok("Profile updated");
     }
     [HttpPost("logout")]
-    public async Task<IActionResult> Logout(RefreshRequest request)
+    public async Task<IActionResult> Logout()
     {
-        var result = await _authService.Logout(request);
-
-        if (!result)
+        if (Request.Cookies.TryGetValue(RefreshTokenCookieName, out var refreshToken)
+        && !string.IsNullOrWhiteSpace(refreshToken))
         {
-            return Unauthorized("Invalid or expired refresh token");
+            await _authService.Logout(refreshToken);
         }
+        ClearRefreshTokenCookie();
 
-        return Ok("logged Out");
+        return NoContent();
     }
 
     [HttpDelete("account")]
