@@ -48,7 +48,7 @@ public class InventoryService
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
-            await _context.Inventory.InsertOneAsync(inventory);
+            await _context.Inventory.InsertOneAsync(session, inventory);
             var transaction = new InventoryTransaction
             {
                 ProductId = productObjectId,

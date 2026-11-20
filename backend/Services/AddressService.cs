@@ -21,7 +21,7 @@ public class AddressService
     {
         return new AddressResponse
         {
-            Id = address.Id,
+            Id = address.Id.ToString(),
             Label = address.Label,
             FullName = address.FullName,
             Phone = address.Phone,
@@ -212,7 +212,7 @@ public class AddressService
 
         return new AddressResponse
         {
-            Id = savedAddress.Id,
+            Id = savedAddress.Id.ToString(),
             Label = savedAddress.Label,
             FullName = savedAddress.FullName,
             Phone = savedAddress.Phone,

@@ -2,6 +2,7 @@ import { NavLink } from "react-router";
 import { User, ShoppingBag, Heart, Settings, LogOut } from "lucide-react";
 
 import { useAuth } from "@/features/auth/context/AuthContext";
+import { Popconfirm } from "antd";
 
 type AccountSidebarProps = {
   onNavigate?: () => void;
@@ -78,14 +79,19 @@ const AccountSidebar = ({ onNavigate }: AccountSidebarProps) => {
 
       {/* Logout */}
       <div className="mt-6 border-t border-border pt-4">
-        <button
-          type="button"
-          onClick={logout}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+        <Popconfirm 
+        title="Are you sure"
+        description="you want to logout"
         >
-          <LogOut size={18} />
-          <span>Logout</span>
-        </button>
+          <button
+            type="button"
+            onClick={logout}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+          >
+            <LogOut size={18} />
+            <span>Logout</span>
+          </button>
+        </Popconfirm>
       </div>
     </aside>
   );

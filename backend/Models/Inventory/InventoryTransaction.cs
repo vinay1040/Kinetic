@@ -1,6 +1,7 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 namespace backend.Models.Inventory;
+
 public enum InventoryTransactionType
 {
     InitialStock,
@@ -9,7 +10,8 @@ public enum InventoryTransactionType
     Reserved,
     ReservationReleased,
     Sale,
-    Return
+    Return,
+    StockRestored
 }
 
 public class InventoryTransaction

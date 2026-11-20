@@ -17,11 +17,7 @@ import {
 
 import type { ApiUserRole } from "../types/auth.types";
 
-import {
-  AUTH_SESSION_UPDATED_EVENT,
-  AUTH_SESSION_EXPIRED_EVENT,
-  waitForRefresh,
-} from "@/lib/api/apiClient";
+import { AUTH_SESSION_EXPIRED_EVENT } from "@/lib/api/apiClient";
 import { useQueryClient } from "@tanstack/react-query";
 
 type Address = {
@@ -42,9 +38,9 @@ export type User = {
 };
 
 type UpdateProfileData = {
-  name?:string;
-  email?:string;
-}
+  name?: string;
+  email?: string;
+};
 
 type AuthSession = {
   user: User;
@@ -144,31 +140,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [session?.accessToken]);
   useEffect(() => {
-    const handleSessionUpdated = () => {
-      const updatedSession = readSession();
-
-      if (!updatedSession) return;
-
-      hydratedTokenRef.current = updatedSession.accessToken;
-      setSession(updatedSession);
-    };
-
     const handleSessionExpired = () => {
       hydratedTokenRef.current = null;
       queryClient.clear();
       setSession(null);
     };
 
-    window.addEventListener(AUTH_SESSION_UPDATED_EVENT, handleSessionUpdated);
-
     window.addEventListener(AUTH_SESSION_EXPIRED_EVENT, handleSessionExpired);
 
     return () => {
-      window.removeEventListener(
-        AUTH_SESSION_UPDATED_EVENT,
-        handleSessionUpdated,
-      );
-
       window.removeEventListener(
         AUTH_SESSION_EXPIRED_EVENT,
         handleSessionExpired,
@@ -222,38 +202,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       sessionStorage.removeItem(SESSION_KEY);
       throw error;
     }
-  };
+  }; 
 
   const logout = async (): Promise<void> => {
-    let refreshToken = session?.refreshToken;
-    const savedSession = sessionStorage.getItem(SESSION_KEY);
-    if (savedSession) {
-      try {
-        const storedSession = JSON.parse(savedSession) as AuthSession;
-        refreshToken = storedSession.refreshToken;
-      } catch (error) {
-        console.error("Failed to read session during logout:", error);
-      }
-    }
+    const savedSession = readSession();
+    const refreshToken = savedSession?.refreshToken;
+
     sessionStorage.removeItem(SESSION_KEY);
     hydratedTokenRef.current = null;
     queryClient.clear();
     setSession(null);
-    try {
-      // 3. Wait for an already-running refresh request.
-      const refreshedSession = refreshToken
-        ? await waitForRefresh(refreshToken)
-        : null;
 
-      // 4. Prefer the newly rotated refresh token if refresh succeeded.
-      const tokenToRevoke = refreshedSession?.refreshToken ?? refreshToken;
-
-      // 5. Revoke the latest available token on the backend.
-      if (tokenToRevoke) {
-        await logoutUser(tokenToRevoke);
+    if (refreshToken) {
+      try {
+        await logoutUser(refreshToken);
+      } catch (error) {
+        console.error("Backend logout failed:", error);
       }
-    } catch (error) {
-      console.error("Backend logout failed:", error);
     }
   };
 

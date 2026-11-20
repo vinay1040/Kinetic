@@ -94,7 +94,7 @@ public class OrderService
                 return null;
 
             var orderItems = new List<OrderItem>();
-
+            var orderId = ObjectId.GenerateNewId();
             foreach (var cartItem in cart.Items)
             {
                 if (cartItem.Quantity <= 0 ||
@@ -152,18 +152,33 @@ public class OrderService
                         .Set(
                             item => item.UpdatedAt,
                             DateTime.UtcNow);
+                var option = new FindOneAndUpdateOptions<Inventory>
+                {
+                    ReturnDocument = ReturnDocument.After
+                };
+                var updatedInventory = await _context.Inventory.FindOneAndUpdateAsync(session, inventoryFilter, inventoryUpdate, option);
 
-                var inventoryResult =
-                    await _context.Inventory.UpdateOneAsync(
-                        session,
-                        inventoryFilter,
-                        inventoryUpdate);
-
-                // No matching inventory means stock is insufficient
-                // or inventory has not been initialized.
-                if (inventoryResult.ModifiedCount != 1)
+                if (updatedInventory is null)
                     return null;
+                var inventoryTransaction = new InventoryTransaction
+                {
+                    ProductId = productId,
+                    Type = InventoryTransactionType.Reserved,
 
+                    OnHandChange = 0,
+                    ReservedChange = cartItem.Quantity,
+
+                    OnHandAfter = updatedInventory.OnHandQuantity,
+                    ReservedAfter = updatedInventory.ReservedQuantity,
+
+                    Reason = "Order reservation",
+                    ReferenceId = orderId,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _context.InventoryTransaction.InsertOneAsync(
+                    session,
+                    inventoryTransaction);
                 // 3. Snapshot current server-side product details.
                 orderItems.Add(new OrderItem
                 {
@@ -193,6 +208,7 @@ public class OrderService
 
             var order = new Order
             {
+                Id = orderId,
                 UserId = userId,
                 Items = orderItems,
                 ShippingAddress = shippingAddress,
@@ -218,7 +234,7 @@ public class OrderService
                 session,
                 c => c.UserId == userId,
                 cartUpdate);
-            
+
             // 6. Commit all changes together.
             await session.CommitTransactionAsync();
 
@@ -306,12 +322,31 @@ public class OrderService
                     .Inc(inventory => inventory.OnHandQuantity, -item.Quantity)
                     .Inc(inventory => inventory.ReservedQuantity, -item.Quantity)
                     .Set(inventory => inventory.UpdatedAt, DateTime.UtcNow);
+                var option = new FindOneAndUpdateOptions<Inventory>
+                {
+                    ReturnDocument = ReturnDocument.After
+                };
+                var updatedInventory = await _context.Inventory.FindOneAndUpdateAsync(
+                    session, filter, update, option);
 
-                var result = await _context.Inventory.UpdateOneAsync(
-                    session, filter, update);
-
-                if (result.ModifiedCount != 1)
+                if (updatedInventory is null)
                     return null;
+                var inventoryTransaction = new InventoryTransaction
+                {
+                    ProductId = productObjectId,
+                    Type = InventoryTransactionType.Sale,
+                    OnHandChange = -item.Quantity,
+                    ReservedChange = -item.Quantity,
+                    OnHandAfter = updatedInventory.OnHandQuantity,
+                    ReservedAfter = updatedInventory.ReservedQuantity,
+                    Reason = "Order confirmed",
+                    ReferenceId = order.Id,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _context.InventoryTransaction.InsertOneAsync(
+                    session,
+                    inventoryTransaction);
             }
 
             var orderUpdate = Builders<Order>.Update
@@ -402,27 +437,60 @@ public class OrderService
                         inventory => inventory.OnHandQuantity,
                         item.Quantity);
                 }
-
-                var result = await _context.Inventory.UpdateOneAsync(
+                var inventoryOption = new FindOneAndUpdateOptions<Inventory>
+                {
+                    ReturnDocument = ReturnDocument.After
+                };
+                var updatedInventory = await _context.Inventory.FindOneAndUpdateAsync(
                     session,
                     inventoryFilter,
-                    inventoryUpdate);
+                    inventoryUpdate,
+                    inventoryOption);
 
-                if (result.ModifiedCount != 1)
+                if (updatedInventory is null)
                 {
                     return null;
                 }
-            }
+                var inventoryTransaction = new InventoryTransaction
+                {
+                    ProductId = productObjectId,
+                    OnHandAfter = updatedInventory.OnHandQuantity,
+                    ReservedAfter = updatedInventory.ReservedQuantity,
+                    ReferenceId = order.Id,
+                    CreatedAt = DateTime.UtcNow
+                };
 
+                if (order.Status == OrderStatus.Pending)
+                {
+                    inventoryTransaction.Type = InventoryTransactionType.ReservationReleased;
+                    inventoryTransaction.OnHandChange = 0;
+                    inventoryTransaction.ReservedChange = -item.Quantity;
+                    inventoryTransaction.Reason = "Order cancelled - reservation released";
+                }
+                else if (order.Status == OrderStatus.Confirmed)
+                {
+                    inventoryTransaction.Type = InventoryTransactionType.StockRestored;
+                    inventoryTransaction.OnHandChange = item.Quantity;
+                    inventoryTransaction.ReservedChange = 0;
+                    inventoryTransaction.Reason = "Order cancelled - stock restored";
+                }
+
+                await _context.InventoryTransaction.InsertOneAsync(
+                    session,
+                    inventoryTransaction);
+            }
+            var orderFilter = Builders<Order>.Filter.And(
+                Builders<Order>.Filter.Eq((o) => o.Id, orderObjectId),
+                Builders<Order>.Filter.Eq((o) => o.Status, order.Status)
+            );
             var orderUpdate = Builders<Order>.Update
                 .Set(o => o.Status, OrderStatus.Cancelled)
                 .Set(o => o.UpdatedAt, DateTime.UtcNow);
-
             var orderResult = await _context.Order.UpdateOneAsync(
                 session,
-                o => o.Id == orderObjectId &&
-                     o.Status == order.Status,
-                orderUpdate);
+                orderFilter,
+                orderUpdate
+                );
 
             if (orderResult.ModifiedCount != 1)
             {
