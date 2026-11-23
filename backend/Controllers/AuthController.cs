@@ -64,7 +64,6 @@ public class AuthController : ControllerBase
         }
         SetRefreshTokenToCookie(result.RefreshToken);
 
-        // Return only access token and user profile
         var response = new LoginResponse
         {
             AccessToken = result.AccessToken,

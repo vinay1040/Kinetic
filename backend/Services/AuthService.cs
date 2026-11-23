@@ -4,6 +4,7 @@ using backend.Models;
 using backend.Models.DTOs;
 using MongoDB.Driver;
 using MongoDB.Bson;
+using backend.Configuration;
 
 namespace backend.Services;
 
@@ -12,13 +13,13 @@ public class AuthService
     private readonly MongoDbContext _dbcontext;
     private readonly PasswordService _passwordService;
     private readonly TokenService _tokenService;
-
-
-    public AuthService(MongoDbContext context, PasswordService passwordService, TokenService tokenService)
+    private readonly JwtSettings _jwtSetting;
+    public AuthService(MongoDbContext context, PasswordService passwordService, TokenService tokenService, JwtSettings jwtSettings)
     {
         _dbcontext = context;
         _passwordService = passwordService;
         _tokenService = tokenService;
+        _jwtSetting = jwtSettings;
 
     }
     public async Task<bool> Register(RegisterRequest request)
@@ -73,6 +74,9 @@ public class AuthService
         var accessToken = _tokenService.GenerateToken(user);
         var refreshToken = _tokenService.CreateRefreshToken();
         var refreshTokenHash = _tokenService.HashToken(refreshToken);
+        var refreshTokenExpireAt = DateTime.UtcNow.AddDays(
+            _jwtSetting.
+        )
         var refreshTokenEntity = new RefreshToken
         {
             UserId = user.Id,
