@@ -28,8 +28,7 @@ var mongoSetting = builder.Configuration
 
 var jwtSetting = builder.Configuration
     .GetSection("Jwt")
-    .Get<JwtSettings>();
-
+    .Get<JwtSettings>(); 
 // JWT Authentication
 
 builder.Services

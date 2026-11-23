@@ -119,9 +119,9 @@ public class AuthService
             Role = user.Role
         };
     }
-    public async Task<AuthTokenResult?> Refresh(string request)
+    public async Task<AuthTokenResult?> Refresh(string refreshToken)
     {
-        var tokenHash = _tokenService.HashToken(request);
+        var tokenHash = _tokenService.HashToken(refreshToken);
 
         var storedToken = await _dbcontext.RefreshTokens
             .Find(token => token.TokenHash == tokenHash)
