@@ -8,12 +8,6 @@ declare module "axios" {
   }
 }
 
-type StoredAuthSession = {
-  accessToken: string;
-  refreshToken: string | null;
-  [key: string]: unknown;
-};
-
 const SESSION_KEY = "kinetic_auth_session";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -22,8 +16,7 @@ if (!API_BASE_URL) {
   throw new Error("VITE_API_BASE_URL is not configured.");
 }
 
-export const AUTH_SESSION_EXPIRED_EVENT =
-  "kinetic:auth-session-expired";
+export const AUTH_SESSION_EXPIRED_EVENT = "kinetic:auth-session-expired";
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -32,55 +25,32 @@ export const apiClient = axios.create({
   },
   withCredentials: true,
 });
+let accessToken: string | null = null;
 
-const getSavedSession = (): StoredAuthSession | null => {
-  const savedSession = sessionStorage.getItem(SESSION_KEY);
-
-  if (!savedSession) return null;
-
-  try {
-    const session = JSON.parse(savedSession) as StoredAuthSession;
-
-    if (
-      typeof session.accessToken !== "string" ||
-      typeof session.refreshToken !== "string"
-    ) {
-      return null;
-    }
-
-    return session;
-  } catch {
-    sessionStorage.removeItem(SESSION_KEY);
-    return null;
-  }
+export const setAccessToken = (token: string | null) => {
+  accessToken = token;
 };
 
 const expireSession = () => {
-  sessionStorage.removeItem(SESSION_KEY);
+  setAccessToken(null);
   window.dispatchEvent(new Event(AUTH_SESSION_EXPIRED_EVENT));
 };
 
 apiClient.interceptors.request.use((config) => {
-  const session = getSavedSession();
+  const token = getAccessToken();
 
-  if (session?.accessToken) {
-    config.headers.Authorization = `Bearer ${session.accessToken}`;
-    config._accessToken = session.accessToken;
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
 
   return config;
 });
 let refreshPromise: Promise<LoginResponse> | null = null;
 
-const refreshAccessToken = (
-  refreshToken: string,
-): Promise<LoginResponse> => {
+const refreshAccessToken = (): Promise<LoginResponse> => {
   if (!refreshPromise) {
     refreshPromise = axios
-      .post<LoginResponse>(
-        `${API_BASE_URL}/auth/refresh`,
-        { refreshToken },
-      )
+      .post<LoginResponse>(`${API_BASE_URL}/auth/refresh`,null,{withCredentials: true})
       .then((response) => response.data)
       .finally(() => {
         refreshPromise = null;
@@ -135,8 +105,7 @@ apiClient.interceptors.response.use(
       originalRequest._accessToken &&
       originalRequest._accessToken !== session.accessToken
     ) {
-      originalRequest.headers.Authorization =
-        `Bearer ${session.accessToken}`;
+      originalRequest.headers.Authorization = `Bearer ${session.accessToken}`;
 
       return apiClient(originalRequest);
     }
@@ -159,13 +128,9 @@ apiClient.interceptors.response.use(
         refreshToken: tokens.refreshToken,
       };
 
-      sessionStorage.setItem(
-        SESSION_KEY,
-        JSON.stringify(updatedSession),
-      );
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(updatedSession));
 
-      originalRequest.headers.Authorization =
-        `Bearer ${tokens.accessToken}`;
+      originalRequest.headers.Authorization = `Bearer ${tokens.accessToken}`;
 
       return apiClient(originalRequest);
     } catch (refreshError) {

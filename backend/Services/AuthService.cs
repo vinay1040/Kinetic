@@ -75,13 +75,13 @@ public class AuthService
         var refreshToken = _tokenService.CreateRefreshToken();
         var refreshTokenHash = _tokenService.HashToken(refreshToken);
         var refreshTokenExpireAt = DateTime.UtcNow.AddDays(
-            _jwtSetting.
-        )
+            _jwtSetting.RefreshTokenExpirationDays
+        );
         var refreshTokenEntity = new RefreshToken
         {
             UserId = user.Id,
             TokenHash = refreshTokenHash,
-            ExpiresAt = DateTime.UtcNow.AddDays(7)
+            ExpiresAt = refreshTokenExpireAt
         };
 
         await _dbcontext.RefreshTokens.InsertOneAsync(refreshTokenEntity);
@@ -96,7 +96,8 @@ public class AuthService
                 Name = user.Name,
                 Email = user.Email,
                 Role = user.Role
-            }
+            },
+            RefreshTokenExpiresAt = refreshTokenExpireAt
         };
     }
     public async Task<UserProfileResponse?> GetCurrentUser(string id)
@@ -189,12 +190,14 @@ public class AuthService
 
         var newAccessToken = _tokenService.GenerateToken(user);
         var newRefreshToken = _tokenService.CreateRefreshToken();
-
+        var refreshTokenExpiresAt = DateTime.UtcNow.AddDays(
+            _jwtSetting.RefreshTokenExpirationDays
+        );
         var newRefreshTokenEntity = new RefreshToken
         {
             UserId = user.Id,
             TokenHash = _tokenService.HashToken(newRefreshToken),
-            ExpiresAt = now.AddDays(7)
+            ExpiresAt = refreshTokenExpiresAt
         };
 
         // Insert the replacement first so its ID is available.
@@ -237,7 +240,8 @@ public class AuthService
                 Name = user.Name,
                 Email = user.Email,
                 Role = user.Role
-            }
+            },
+            RefreshTokenExpiresAt = refreshTokenExpiresAt
         };
     }
     public async Task<bool> UpdateUser(string id, UpdateProfileRequest request)

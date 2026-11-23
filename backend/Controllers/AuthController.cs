@@ -15,7 +15,7 @@ public class AuthController : ControllerBase
         _authService = authService;
     }
     private const string RefreshTokenCookieName = "kinetic_refresh_token";
-    private void SetRefreshTokenToCookie(string refresh)
+    private void SetRefreshTokenToCookie(AuthTokenResult result)
     {
         var cookieOption = new CookieOptions
         {
@@ -23,11 +23,11 @@ public class AuthController : ControllerBase
             Secure = Request.IsHttps,
             SameSite = SameSiteMode.Lax,
             Path = "/api/auth",
-            Expires = DateTimeOffset.UtcNow.AddDays(7)
+            Expires = new DateTimeOffset(result.RefreshTokenExpiresAt)
         };
         Response.Cookies.Append(
             RefreshTokenCookieName,
-            refresh,
+            result.RefreshToken,
             cookieOption
         );
     }
@@ -62,7 +62,7 @@ public class AuthController : ControllerBase
         {
             return Unauthorized("Invalid email or password");
         }
-        SetRefreshTokenToCookie(result.RefreshToken);
+        SetRefreshTokenToCookie(result);
 
         var response = new LoginResponse
         {
@@ -114,7 +114,7 @@ public class AuthController : ControllerBase
                 message = "Invalid or exxpired refresh token"
             });
         }
-        SetRefreshTokenToCookie(result.RefreshToken);
+        SetRefreshTokenToCookie(result);
         var response = new LoginResponse
         {
             AccessToken = result.AccessToken,

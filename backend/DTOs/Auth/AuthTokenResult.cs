@@ -7,5 +7,5 @@ public class AuthTokenResult
     public string RefreshToken { get; set; } = string.Empty;
 
     public UserProfileResponse User { get; set; } = new();
-    public DateTime refreshTokenExpiresAt {get; set;}
+    public DateTime RefreshTokenExpiresAt {get; set;}
 }

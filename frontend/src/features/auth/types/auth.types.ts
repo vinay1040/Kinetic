@@ -19,7 +19,5 @@ export type UserProfileResponse = {
 
 export type LoginResponse = {
   accessToken: string;
-  refreshToken: string;
-  email: string;
-  role: ApiUserRole;
+  user: UserProfileResponse;
 };
