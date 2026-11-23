@@ -3,7 +3,6 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -12,12 +11,15 @@ import {
   registerUser,
   logoutUser,
   updateUserProfile,
-  getCurrentUser,
+  refreshSession,
 } from "../services/authApi";
 
-import type { ApiUserRole } from "../types/auth.types";
+import type { ApiUserRole, UserProfileResponse } from "../types/auth.types";
 
-import { AUTH_SESSION_EXPIRED_EVENT } from "@/lib/api/apiClient";
+import {
+  AUTH_SESSION_EXPIRED_EVENT,
+  setAccessToken,
+} from "@/lib/api/apiClient";
 import { useQueryClient } from "@tanstack/react-query";
 
 type Address = {
@@ -42,12 +44,6 @@ type UpdateProfileData = {
   email?: string;
 };
 
-type AuthSession = {
-  user: User;
-  accessToken: string;
-  refreshToken: string | null;
-};
-
 type AuthContextType = {
   user: User | null;
   register: (name: string, email: string, password: string) => Promise<void>;
@@ -55,8 +51,8 @@ type AuthContextType = {
   logout: () => Promise<void>;
   updateProfile: (data: UpdateProfileData) => Promise<void>;
   isAuthenticated: boolean;
+  isLoading: boolean;
 };
-const SESSION_KEY = "kinetic_auth_session";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -64,86 +60,77 @@ function normalizeRole(role: ApiUserRole): UserRole {
   if (role === "Admin" || role === 1) return "admin";
   return "user";
 }
-
-function readSession(): AuthSession | null {
-  try {
-    const savedSession = sessionStorage.getItem(SESSION_KEY);
-    if (!savedSession) return null;
-    const session = JSON.parse(savedSession) as AuthSession;
-
-    if (
-      !session.user ||
-      !session.accessToken ||
-      typeof session.accessToken !== "string"
-    ) {
-      sessionStorage.removeItem(SESSION_KEY);
-      return null;
-    }
-    return session;
-  } catch {
-    sessionStorage.removeItem(SESSION_KEY);
-    return null;
-  }
+function mapUser(response: UserProfileResponse): User {
+  return {
+    id: response.id,
+    name: response.name,
+    email: response.email,
+    role: normalizeRole(response.role),
+  };
 }
 
+// function readSession(): AuthSession | null {
+//   try {
+//     const savedSession = sessionStorage.getItem(SESSION_KEY);
+//     if (!savedSession) return null;
+//     const session = JSON.parse(savedSession) as AuthSession;
+
+//     if (
+//       !session.user ||
+//       !session.accessToken ||
+//       typeof session.accessToken !== "string"
+//     ) {
+//       sessionStorage.removeItem(SESSION_KEY);
+//       return null;
+//     }
+//     return session;
+//   } catch {
+//     sessionStorage.removeItem(SESSION_KEY);
+//     return null;
+//   }
+// }
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [session, setSession] = useState<AuthSession | null>(() =>
-    readSession(),
-  );
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const queryClient = useQueryClient();
-  const hydratedTokenRef = useRef<string | null>(null);
-  const user = session?.user ?? null;
-  const isAuthenticated = Boolean(session?.accessToken && user);
+
+  const isAuthenticated = Boolean(user);
 
   useEffect(() => {
-    const accessToken = session?.accessToken;
-    if (!accessToken || hydratedTokenRef.current === accessToken) {
-      return;
-    }
     let cancelled = false;
-    const loadCurrentUser = async () => {
+
+    const restoreSession = async () => {
       try {
-        const currentUser = await getCurrentUser();
+        const response = await refreshSession();
+
         if (cancelled) return;
-        const user: User = {
-          id: currentUser.id,
-          name: currentUser.name,
-          email: currentUser.email,
-          role: normalizeRole(currentUser.role),
-        };
-        const latestSession = readSession();
 
-        if (!latestSession || latestSession.accessToken !== accessToken) {
-          return;
-        }
-
-        const updatedSession: AuthSession = {
-          ...latestSession,
-          user,
-        };
-
-        sessionStorage.setItem(SESSION_KEY, JSON.stringify(updatedSession));
-        setSession(updatedSession);
-
-        hydratedTokenRef.current = accessToken;
-      } catch (error) {
+        setAccessToken(response.accessToken);
+        setUser(mapUser(response.user));
+      } catch {
         if (!cancelled) {
-          console.error("Failed to load current user:", error);
+          setAccessToken(null);
+          setUser(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
         }
       }
     };
 
-    loadCurrentUser();
+    restoreSession();
 
     return () => {
       cancelled = true;
     };
-  }, [session?.accessToken]);
+  }, []);
   useEffect(() => {
     const handleSessionExpired = () => {
-      hydratedTokenRef.current = null;
+      setAccessToken(null);
+      setUser(null);
       queryClient.clear();
-      setSession(null);
     };
 
     window.addEventListener(AUTH_SESSION_EXPIRED_EVENT, handleSessionExpired);
@@ -165,89 +152,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string): Promise<User> => {
     const response = await loginUser(email.trim().toLowerCase(), password);
-
-    const temporarySession: AuthSession = {
-      user: {
-        id: "",
-        name: "",
-        email: response.email,
-        role: normalizeRole(response.role),
-      },
-      accessToken: response.accessToken,
-      refreshToken: response.refreshToken,
-    };
-
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(temporarySession));
-    try {
-      const currentUser = await getCurrentUser();
-
-      const nextUser: User = {
-        id: currentUser.id,
-        name: currentUser.name,
-        email: currentUser.email,
-        role: normalizeRole(currentUser.role),
-      };
-
-      const nextSession: AuthSession = {
-        ...temporarySession,
-        user: nextUser,
-      };
-
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify(nextSession));
-
-      hydratedTokenRef.current = response.accessToken;
-      setSession(nextSession);
-      return nextUser;
-    } catch (error) {
-      sessionStorage.removeItem(SESSION_KEY);
-      throw error;
-    }
-  }; 
+    setAccessToken(response.accessToken);
+    const loggedUser = mapUser(response.user);
+    setUser(loggedUser);
+    return loggedUser;
+  };
 
   const logout = async (): Promise<void> => {
-    const savedSession = readSession();
-    const refreshToken = savedSession?.refreshToken;
-
-    sessionStorage.removeItem(SESSION_KEY);
-    hydratedTokenRef.current = null;
+    setAccessToken(null);
+    setUser(null);
     queryClient.clear();
-    setSession(null);
-
-    if (refreshToken) {
-      try {
-        await logoutUser(refreshToken);
-      } catch (error) {
-        console.error("Backend logout failed:", error);
-      }
+    try{
+      await logoutUser();
+    } catch (error){
+      console.error("Backend failed logout",error);
     }
   };
 
   const updateProfile = async (data: UpdateProfileData): Promise<void> => {
-    if (!session) {
+    if (!user) {
       throw new Error("You must be logged in to update your profile.");
     }
 
-    await updateUserProfile({
-      name: data.name ?? session.user.name,
-      email: data.email ?? session.user.email,
-    });
-    const latestSession = readSession();
-
-    if (!latestSession) {
-      throw new Error("Your session has expired.");
-    }
-
-    const updatedSession: AuthSession = {
-      ...latestSession,
-      user: {
-        ...latestSession.user,
-        name: data.name ?? latestSession.user.name,
-        email: data.email ?? latestSession.user.email,
-      },
+    const updatedUser ={
+      name: data.name ?? user.name,
+      email: data.email ?? user.email,
     };
-
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(updatedSession));
-    setSession(updatedSession);
+    await updateUserProfile(updatedUser);
+    setUser((user) => 
+    user ? {
+      ...user,
+      updatedUser
+    } : null);
   };
 
   const value = useMemo<AuthContextType>(
@@ -258,8 +194,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       logout,
       updateProfile,
       isAuthenticated,
+      isLoading
     }),
-    [user, isAuthenticated],
+    [user, isAuthenticated, isLoading],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

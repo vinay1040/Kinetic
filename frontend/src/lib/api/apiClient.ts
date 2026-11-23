@@ -8,7 +8,6 @@ declare module "axios" {
   }
 }
 
-const SESSION_KEY = "kinetic_auth_session";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -30,6 +29,7 @@ let accessToken: string | null = null;
 export const setAccessToken = (token: string | null) => {
   accessToken = token;
 };
+export const getAccessToken = () => accessToken;
 
 const expireSession = () => {
   setAccessToken(null);
@@ -38,19 +38,21 @@ const expireSession = () => {
 
 apiClient.interceptors.request.use((config) => {
   const token = getAccessToken();
-
+  config._accessToken = token ?? undefined;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
   return config;
 });
-let refreshPromise: Promise<LoginResponse> | null = null;
+export let refreshPromise: Promise<LoginResponse> | null = null;
 
-const refreshAccessToken = (): Promise<LoginResponse> => {
+export const refreshAccessToken = (): Promise<LoginResponse> => {
   if (!refreshPromise) {
     refreshPromise = axios
-      .post<LoginResponse>(`${API_BASE_URL}/auth/refresh`,null,{withCredentials: true})
+      .post<LoginResponse>(`${API_BASE_URL}/auth/refresh`, null, {
+        withCredentials: true,
+      })
       .then((response) => response.data)
       .finally(() => {
         refreshPromise = null;
@@ -62,7 +64,6 @@ const refreshAccessToken = (): Promise<LoginResponse> => {
 
 apiClient.interceptors.response.use(
   (response) => response,
-
   async (error: AxiosError) => {
     const originalRequest = error.config;
 
@@ -73,64 +74,34 @@ apiClient.interceptors.response.use(
     ) {
       return Promise.reject(error);
     }
-
     const excludedUrls = [
       "/auth/login",
       "/auth/register",
       "/auth/refresh",
       "/auth/logout",
     ];
-
-    const isExcludedUrl = excludedUrls.some((url) =>
-      originalRequest.url?.includes(url),
-    );
-
+    const isExcludedUrl = excludedUrls.some((url) => originalRequest.url?.includes(url));
+  
     if (isExcludedUrl) {
       return Promise.reject(error);
     }
-
-    const session = getSavedSession();
-
-    if (!session?.refreshToken) {
-      if (session) {
-        expireSession();
-      }
-
-      return Promise.reject(error);
-    }
-
-    originalRequest._retry = true;
+     originalRequest._retry = true;  // Another request may already have refreshed the token
+    const currentToken = getAccessToken();
 
     if (
       originalRequest._accessToken &&
-      originalRequest._accessToken !== session.accessToken
+      originalRequest._accessToken !== currentToken &&
+      currentToken
     ) {
-      originalRequest.headers.Authorization = `Bearer ${session.accessToken}`;
-
+      originalRequest.headers.Authorization = `Bearer ${currentToken}`;
       return apiClient(originalRequest);
     }
 
     try {
-      const tokens = await refreshAccessToken(session.refreshToken);
+      const result = await refreshAccessToken();
 
-      const latestSession = getSavedSession();
-
-      if (
-        !latestSession ||
-        latestSession.refreshToken !== session.refreshToken
-      ) {
-        return Promise.reject(error);
-      }
-
-      const updatedSession = {
-        ...latestSession,
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
-      };
-
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify(updatedSession));
-
-      originalRequest.headers.Authorization = `Bearer ${tokens.accessToken}`;
+      originalRequest.headers.Authorization =
+        `Bearer ${result.accessToken}`;
 
       return apiClient(originalRequest);
     } catch (refreshError) {
@@ -139,11 +110,7 @@ apiClient.interceptors.response.use(
         : undefined;
 
       if (status === 401 || status === 403) {
-        const latestSession = getSavedSession();
-
-        if (latestSession?.refreshToken === session.refreshToken) {
-          expireSession();
-        }
+        expireSession();
       }
 
       return Promise.reject(refreshError);

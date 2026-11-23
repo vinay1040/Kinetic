@@ -1,4 +1,7 @@
-import { apiClient } from "@/lib/api/apiClient";
+import {
+  apiClient,
+  refreshAccessToken,
+} from "@/lib/api/apiClient";
 
 import type {
   ChangePasswordRequest,
@@ -14,7 +17,7 @@ export const registerUser = async (
 ): Promise<void> => {
   await apiClient.post("/auth/register", {
     name: name.trim(),
-    email: email.trim().toLocaleLowerCase(),
+    email: email.trim().toLowerCase(),
     password,
   });
 };
@@ -31,16 +34,18 @@ export const loginUser = async (
   return response.data;
 };
 
+export const refreshSession = async (): Promise<LoginResponse> => {
+  return refreshAccessToken();
+};
+
+export const logoutUser = async (): Promise<void> => {
+  await apiClient.post("/auth/logout");
+};
+
 export const updateUserProfile = async (
   profile: UpdateProfileRequest,
 ): Promise<void> => {
   await apiClient.put("/auth/updateProfile", profile);
-};
-
-export const logoutUser = async (
-  refreshToken: string,
-): Promise<void> => {
-  await apiClient.post("/auth/logout", { refreshToken });
 };
 
 export const getCurrentUser = async (): Promise<UserProfileResponse> => {
