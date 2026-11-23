@@ -53,7 +53,11 @@ export const refreshAccessToken = (): Promise<LoginResponse> => {
       .post<LoginResponse>(`${API_BASE_URL}/auth/refresh`, null, {
         withCredentials: true,
       })
-      .then((response) => response.data)
+      .then((response) => {
+        const result = response.data;
+        setAccessToken(result.accessToken);
+        return result;
+      })
       .finally(() => {
         refreshPromise = null;
       });

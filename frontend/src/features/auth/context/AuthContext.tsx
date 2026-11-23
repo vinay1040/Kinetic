@@ -162,10 +162,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setAccessToken(null);
     setUser(null);
     queryClient.clear();
-    try{
+    try {
       await logoutUser();
-    } catch (error){
-      console.error("Backend failed logout",error);
+    } catch (error) {
+      console.error("Backend failed logout", error);
     }
   };
 
@@ -174,16 +174,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       throw new Error("You must be logged in to update your profile.");
     }
 
-    const updatedUser ={
+    const updatedUser = {
       name: data.name ?? user.name,
       email: data.email ?? user.email,
     };
     await updateUserProfile(updatedUser);
-    setUser((user) => 
-    user ? {
-      ...user,
-      updatedUser
-    } : null);
+    setUser((currentUser) =>
+      currentUser
+        ? {
+            ...currentUser,
+            ...updatedUser,
+          }
+        : null,
+    );
   };
 
   const value = useMemo<AuthContextType>(
@@ -194,7 +197,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       logout,
       updateProfile,
       isAuthenticated,
-      isLoading
+      isLoading,
     }),
     [user, isAuthenticated, isLoading],
   );

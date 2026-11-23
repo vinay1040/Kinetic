@@ -6,8 +6,10 @@ type ProtectedRouteProps = {
 };
 
 export const ProtectedRoute = ({ allowedRole }: ProtectedRouteProps) => {
-  const { user, isAuthenticated } = useAuth();
-
+  const { user, isAuthenticated, isLoading } = useAuth();
+  if(isLoading){
+    return <div>Loading...</div>
+  }
   if (!isAuthenticated || !user) {
     return <Navigate to="/login" replace />;
   }
