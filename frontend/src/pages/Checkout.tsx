@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 import { useAddress } from "@/features/addresses/hooks/useAddress";
-import { useCreateOrder } from "@/features/orders/hooks/useCreateOrder";
+import { useCreateOrder } from "@/hooks/orders/useCreateOrder";
 import { useCartContext } from "@/features/cart/context/CartContext";
 import { formatCurrency } from "@/utils/formatCurrency";
 

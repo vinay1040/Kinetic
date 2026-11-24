@@ -5,9 +5,9 @@ import { SearchOutlined, ReloadOutlined } from "@ant-design/icons";
 
 import { formatCurrency } from "@/utils/formatCurrency";
 import { formatOrderDate, getOrderStatus } from "@/utils/orderUtils";
-import { useAllOrder } from "@/features/admin/Orders/hooks/useAllOrder";
+import { useAllOrder } from "@/hooks/orders/useAllOrder";
 import type { Order } from "@/features/orders/types/Order.types";
-import { useConfirmOrder } from "../hooks/useConfirmOrder";
+import { useConfirmOrder } from "../../../../hooks/orders/useConfirmOrder";
 
 const AdminOrders = () => {
   const { data, isLoading, isError, refetch } = useAllOrder();

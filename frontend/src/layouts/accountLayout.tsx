@@ -4,10 +4,10 @@ import AccountSidebar from "@/features/account/components/accountSideBar";
 
 const AccountLayout = () => {
   return (
-    <div className="min-h-screen bg-background">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 md:flex-row md:gap-8 md:px-6 md:py-8">
+    <div className="min-h-screen bg-background m-2">
+      <div className="mx-auto flex w-full max-w-screen flex-col p-3 gap-6 md:flex-row md:gap-4 ">
         {/* Desktop sidebar */}
-        <aside className="hidden shrink-0 md:block md:w-64">
+        <aside className="hidden shrink-0 md:block md:w-60">
           <AccountSidebar />
         </aside>
 

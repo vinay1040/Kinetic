@@ -1,9 +1,10 @@
 import { ArrowLeft, Package } from "lucide-react";
 import { Link, useParams } from "react-router";
-import { useOrderById } from "@/features/orders/hooks/useOrderById";
+import { useOrderById } from "@/hooks/orders/useOrderById";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { formatOrderDate, getOrderStatus } from "@/utils/orderUtils";
-import { useCancelOrder } from "@/features/orders/hooks/useCancelOrder";
+import { useCancelOrder } from "@/hooks/orders/useCancelOrder";
+import { Popconfirm } from "antd";
 
 const OrderDetail = () => {
   const { orderId = "" } = useParams();
@@ -20,14 +21,7 @@ const OrderDetail = () => {
 
   const handleCancelOrder = () => {
     if (!order || !canCancelOrder) return;
-
-    const confirmed = window.confirm(
-      "Are you sure you want to cancel this order?",
-    );
-
-    if (confirmed) {
-      cancelOrderMutation.mutate(order.id);
-    }
+    cancelOrderMutation.mutate(order.id);
   };
   if (isLoading) {
     return (
@@ -127,16 +121,24 @@ const OrderDetail = () => {
             </span>
 
             {canCancelOrder && (
-              <button
-                type="button"
-                onClick={handleCancelOrder}
+              <Popconfirm
+                title="Cancel this order?"
+                description="Are you sure you want to cancel this order?"
+                okText="Yes, cancel"
+                cancelText="Keep order"
+                onConfirm={handleCancelOrder}
                 disabled={cancelOrderMutation.isPending}
-                className="rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {cancelOrderMutation.isPending
-                  ? "Cancelling..."
-                  : "Cancel Order"}
-              </button>
+                <button
+                  type="button"
+                  disabled={cancelOrderMutation.isPending}
+                  className="rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {cancelOrderMutation.isPending
+                    ? "Cancelling..."
+                    : "Cancel Order"}
+                </button>
+              </Popconfirm>
             )}
           </div>
         </div>

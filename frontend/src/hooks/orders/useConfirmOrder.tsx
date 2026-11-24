@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { message } from "antd";
 
 import { adminKeys } from "@/features/admin/admin.keys";
-import { confirmOrder } from "../../AdminServices/AdminService";
+import { confirmOrder } from "../../features/admin/AdminServices/AdminService";
 import axios from "axios";
 
 export const useConfirmOrder = () => {

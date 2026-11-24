@@ -4,8 +4,8 @@ import { Check, ChevronDown, SlidersHorizontal } from "lucide-react";
 import { Button, Spin } from "antd";
 import { useProduct } from "@/features/products/context/ProductContext";
 import ProductCard from "@/features/products/components/ProductCard";
-import { useCategory } from "@/features/products/hooks/useCategory";
-import { useStoreHook } from "@/features/products/hooks/useStoreHook";
+import { useCategory } from "@/hooks/products/useCategory";
+import { useStoreHook } from "@/hooks/products/useStoreHook";
 
 const Store = () => {
   const [isSortOpen, setIsSortOpen] = useState(false);

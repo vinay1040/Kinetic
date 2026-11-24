@@ -15,7 +15,7 @@ import {
 import { useCartContext } from "@/features/cart/context/CartContext";
 import { useWishlist } from "@/features/wishlist/context/WishlistContext";
 import { formatCurrency } from "@/utils/formatCurrency";
-import { useProductDetail } from "../hooks/useProductDetail";
+import { useProductDetail } from "../../../hooks/products/useProductDetail";
 
 const ProductDetail = () => {
   const { id } = useParams();

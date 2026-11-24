@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { productKeys } from "../product.keys";
-import { getProductById } from "../services/productApi";
+import { productKeys } from "../../features/products/product.keys";
+import { getProductById } from "../../features/products/services/productApi";
 
 export const useProductDetail = (id?: string) => {
   return useQuery({
@@ -14,6 +14,6 @@ export const useProductDetail = (id?: string) => {
     },
     enabled: Boolean(id),
     staleTime: 60 * 1000,
-    gcTime:5*60*1000,
+    gcTime: 5 * 60 * 1000,
   });
 };

@@ -1,35 +1,27 @@
 import { Link, useNavigate } from "react-router";
-import { ArrowRight, Heart, LogOut, MapPin, Pencil, ShoppingBag } from "lucide-react";
+import {
+  ArrowRight,
+  LogOut,
+  Pencil,
+  ShoppingBag,
+} from "lucide-react";
 
-import { useWishlist } from "@/features/wishlist/context/WishlistContext";
-import { useMyOrder } from "@/features/orders/hooks/useMyOrder";
-import { useAddress } from "@/features/addresses/hooks/useAddress";
+import { useMyOrder } from "@/hooks/orders/useMyOrder";
 
 import OrderCard from "../../orders/components/OrderCard";
 import { useAuth } from "@/features/auth/context/AuthContext";
 import { useState } from "react";
 import { Modal } from "antd";
 import { ProfileForm } from "@/features/auth/components/profile-form";
+import { AccountStatistics } from "./AccountStatistics";
 
 const AccountOverview = () => {
-  // Customer wishlist
-  const { wishlist } = useWishlist();
-
-  // Customer orders
   const {
     data: orders = [],
     isLoading: ordersLoading,
     isError: ordersError,
   } = useMyOrder();
 
-  // Customer saved addresses
-  const {
-    data: addresses = [],
-    isLoading: addressesLoading,
-    isError: addressesError,
-  } = useAddress();
-
-  // Get the three most recent orders
   const recentOrders = [...orders]
     .sort(
       (firstOrder, secondOrder) =>
@@ -57,7 +49,7 @@ const AccountOverview = () => {
     navigate("/login", { replace: true });
   };
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       {/* Mobile profile header */}
       <section className="flex flex-col items-center justify-center py-6 text-center md:hidden">
         <div className="relative">
@@ -82,115 +74,12 @@ const AccountOverview = () => {
         <p className="mt-1 text-sm text-[#434655]">{user?.email}</p>
       </section>
       {/* Account statistics */}
-      <section>
-        <div className="mb-4">
-          <h2 className="text-lg font-semibold text-foreground">
-            Account Summary
-          </h2>
-
-          <p className="mt-1 text-sm text-muted-foreground">
-            A quick look at your account activity.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {/* Orders statistic */}
-          <div className="rounded-xl border border-border bg-card p-5 transition-shadow hover:shadow-sm">
-            <div className="flex items-center justify-between">
-              <div className="rounded-lg bg-muted p-3">
-                <ShoppingBag size={21} className="text-foreground" />
-              </div>
-
-              <span className="text-sm text-muted-foreground">Orders</span>
-            </div>
-
-            <div className="mt-5">
-              <p className="text-3xl font-semibold tracking-tight text-foreground">
-                {ordersLoading ? "..." : ordersError ? "—" : orders.length}
-              </p>
-
-              <p className="mt-1 text-sm text-muted-foreground">
-                Total purchases
-              </p>
-            </div>
-
-            <Link
-              to="/profile/orders"
-              className="mt-5 flex items-center gap-2 text-sm font-medium text-foreground transition-colors hover:text-brand-accent"
-            >
-              View orders
-              <ArrowRight size={16} />
-            </Link>
-          </div>
-
-          {/* Wishlist statistic */}
-          <div className="rounded-xl border border-border bg-card p-5 transition-shadow hover:shadow-sm">
-            <div className="flex items-center justify-between">
-              <div className="rounded-lg bg-muted p-3">
-                <Heart size={21} className="text-foreground" />
-              </div>
-
-              <span className="text-sm text-muted-foreground">Wishlist</span>
-            </div>
-
-            <div className="mt-5">
-              <p className="text-3xl font-semibold tracking-tight text-foreground">
-                {wishlist.length}
-              </p>
-
-              <p className="mt-1 text-sm text-muted-foreground">
-                Saved products
-              </p>
-            </div>
-
-            <Link
-              to="/wishlist"
-              className="mt-5 flex items-center gap-2 text-sm font-medium text-foreground transition-colors hover:text-brand-accent"
-            >
-              View wishlist
-              <ArrowRight size={16} />
-            </Link>
-          </div>
-
-          {/* Addresses statistic */}
-          <div className="rounded-xl border border-border bg-card p-5 transition-shadow hover:shadow-sm sm:col-span-2 xl:col-span-1">
-            <div className="flex items-center justify-between">
-              <div className="rounded-lg bg-muted p-3">
-                <MapPin size={21} className="text-foreground" />
-              </div>
-
-              <span className="text-sm text-muted-foreground">Addresses</span>
-            </div>
-
-            <div className="mt-5">
-              <p className="text-3xl font-semibold tracking-tight text-foreground">
-                {addressesLoading
-                  ? "..."
-                  : addressesError
-                    ? "—"
-                    : addresses.length}
-              </p>
-
-              <p className="mt-1 text-sm text-muted-foreground">
-                Saved delivery addresses
-              </p>
-            </div>
-
-            <Link
-              to="/profile/settings"
-              className="mt-5 flex items-center gap-2 text-sm font-medium text-foreground transition-colors hover:text-brand-accent"
-            >
-              Manage account
-              <ArrowRight size={16} />
-            </Link>
-          </div>
-        </div>
-      </section>
+      <AccountStatistics/>
 
       {/* Recent orders */}
-      <section className="overflow-hidden rounded-xl border border-border bg-card">
+      <section className="overflow-hidden ">
         {/* Section heading */}
-        <div className="flex flex-col gap-3 border-b border-border p-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div className="flex flex-col gap-3 rounded-xl bg-card p-5 mb-2 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div>
             <h2 className="text-lg font-semibold text-foreground">
               Recent Orders
@@ -211,7 +100,7 @@ const AccountOverview = () => {
         </div>
 
         {/* Orders content */}
-        <div className="space-y-4 p-4 sm:p-6">
+        <div className="space-y-4 flex flex-col gap-4">
           {/* Loading state */}
           {ordersLoading && (
             <div className="space-y-3" aria-label="Loading orders">

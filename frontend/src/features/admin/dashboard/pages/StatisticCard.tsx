@@ -50,12 +50,12 @@ const StatisticCard = () => {
   }
 
   return (
-    <Row gutter={[10, 10]}>
+    <Row gutter={[12, 12]}>
       {statistics.map((stat) => {
         const Icon = stat.icon;
 
         return (
-          <Col xs={24} sm={12} xl={6} key={stat.title}>
+          <Col xs={12} sm={6} xl={6} key={stat.title}>
             <Card
               className="h-full !rounded-xl !border-slate-200 !shadow-sm"
               styles={{ body: { padding: "20px" } }}

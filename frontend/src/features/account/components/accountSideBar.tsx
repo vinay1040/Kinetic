@@ -1,5 +1,12 @@
 import { NavLink } from "react-router";
-import { User, ShoppingBag, Heart, Settings, LogOut } from "lucide-react";
+import {
+  User,
+  ShoppingBag,
+  Heart,
+  Settings,
+  LogOut,
+  CircleUser,
+} from "lucide-react";
 
 import { useAuth } from "@/features/auth/context/AuthContext";
 import { Popconfirm } from "antd";
@@ -39,20 +46,25 @@ const AccountSidebar = ({ onNavigate }: AccountSidebarProps) => {
   const { user, logout } = useAuth();
 
   return (
-    <aside className="w-full rounded-xl border border-border bg-card p-4">
-      {/* Account information */}
-      <div className="mb-6 border-b border-border pb-5">
-        <h2 className="truncate text-lg font-semibold text-foreground">
-          {user?.name || "My Account"}
-        </h2>
+    <aside className="w-full">
+      
+      <div className="flex p-3 items-center border rounded-xl gap-3 mb-6 bg-card shadow border-b border-border">
+        <div className="">
+          <CircleUser size={28} />
+        </div>
+        <div>
+          <h2 className="truncate text-lg font-semibold text-foreground">
+            {user?.name || "My Account"}
+          </h2>
 
-        <p className="mt-1 text-sm text-muted-foreground">
-          Manage your account
-        </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Manage your account
+          </p>
+        </div>
       </div>
 
       {/* Account navigation */}
-      <nav className="space-y-1">
+      <nav className="space-y-1 bg-card rounded-xl px-1 py-3 shadow">
         {accountMenuItems.map((item) => {
           const Icon = item.icon;
 
@@ -75,24 +87,24 @@ const AccountSidebar = ({ onNavigate }: AccountSidebarProps) => {
             </NavLink>
           );
         })}
+        <div className="mt-6 border-t border-border pt-4">
+          <Popconfirm
+            title="Are you sure?"
+            description="Do you want to log out?"
+            onConfirm={logout}
+          >
+            <button
+              type="button"
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+            >
+              <LogOut size={18} />
+              <span>Logout</span>
+            </button>
+          </Popconfirm>
+        </div>
       </nav>
 
       {/* Logout */}
-      <div className="mt-6 border-t border-border pt-4">
-        <Popconfirm 
-        title="Are you sure"
-        description="you want to logout"
-        >
-          <button
-            type="button"
-            onClick={logout}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
-          >
-            <LogOut size={18} />
-            <span>Logout</span>
-          </button>
-        </Popconfirm>
-      </div>
     </aside>
   );
 };

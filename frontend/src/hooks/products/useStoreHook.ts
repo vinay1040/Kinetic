@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useProduct } from "../context/ProductContext";
+import { useProduct } from "../../features/products/context/ProductContext";
 import { useDebounce } from "use-debounce";
 import { useProducts } from "./useProducts";
 
