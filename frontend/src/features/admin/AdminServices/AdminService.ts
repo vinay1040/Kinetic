@@ -53,3 +53,8 @@ export const confirmOrder = async (
 
   return response.data;
 };
+
+export const getAdminOrderDetail = async (id:string) => {
+  const response = await apiClient.get(`Order/admin/${encodeURIComponent(id)}`);
+  return response.data;
+}

@@ -18,6 +18,7 @@ import Wishlist from "@/pages/WishList";
 import { BrowserRouter, Route, Routes } from "react-router";
 import Home from "@/pages/Home";
 import Store from "@/pages/Store";
+import AdminOrderDetail from "@/features/admin/Orders/components/AdminOrderDetail";
 
 export const AppRouter = () => {
   return (
@@ -59,9 +60,10 @@ export const AppRouter = () => {
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
             <Route path="orders" element={<AdminOrders />} />
+            <Route path="orders/:orderId" element={<AdminOrderDetail />} />
             <Route path="products" element={<div>Products</div>} />
             <Route path="inventry" element={<div>inventory</div>} />
-            <Route path="analytics" element={<div>analytics</div>}/>
+            <Route path="analytics" element={<div>analytics</div>} />
             <Route path="users" element={<div>Users</div>} />
             <Route path="settings" element={<div>Settings</div>} />
           </Route>

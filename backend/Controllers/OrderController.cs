@@ -61,7 +61,6 @@ public class OrderController : ControllerBase
         return Ok(order);
     }
 
-
     // POST: api/order/{id}/confirm
     [HttpPost("{id}/confirm")]
     [Authorize(Policy = "ActiveUser", Roles = "Admin")]
@@ -141,6 +140,15 @@ public class OrderController : ControllerBase
     public async Task<IActionResult> GetCategoriesRevenue()
     {
         var result = await _orderService.GetCategoryRevenueResponsesAsync();
+        return Ok(result);
+    }
+
+    [HttpGet("admin/{id}")]
+    [Authorize(Policy ="ActiveUser", Roles ="Admin")]
+    public async Task<IActionResult> GetAdminOrderDetail(string id)
+    {
+        var result = await _orderService.GetAdminOrderByIdAsync(id);
+        if(result is null) return NotFound(new {message = "Order not found"});
         return Ok(result);
     }
 }

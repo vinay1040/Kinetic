@@ -617,4 +617,33 @@ public class OrderService
             .OrderByDescending(item => item.Revenue)
             .ToList();
     }
+    public async Task<OrderDetailResponse?> GetAdminOrderByIdAsync(
+    string orderId)
+    {
+        if (!ObjectId.TryParse(orderId, out var orderObjectId))
+            return null;
+
+        var order = await _context.Order
+            .Find(o => o.Id == orderObjectId)
+            .FirstOrDefaultAsync();
+
+        if (order is null)
+            return null;
+
+        User? customer = null;
+
+        if (ObjectId.TryParse(order.UserId, out var userObjectId))
+        {
+            customer = await _context.Users
+                .Find(u => u.Id == userObjectId)
+                .FirstOrDefaultAsync();
+        }
+
+        return new OrderDetailResponse
+        {
+            Order = MapToResponse(order),
+            CustomerName = customer?.Name ?? string.Empty,
+            CustomerEmail = customer?.Email ?? string.Empty
+        };
+    }
 }

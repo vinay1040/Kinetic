@@ -10,4 +10,5 @@ export const adminKeys = {
   categoryRevenue: () => [...adminKeys.revenue(), "categories"] as const,
 
   orders: () => [...adminKeys.all, "orders"] as const,
+  orderDetail : (id:string) => [...adminKeys.orders(), "detail" ,id] as const,
 };

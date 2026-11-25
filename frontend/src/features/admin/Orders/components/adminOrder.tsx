@@ -1,13 +1,14 @@
 import { useMemo, useState } from "react";
 import { Alert, Button, Input, Popconfirm, Select, Table } from "antd";
 import type { TableColumnsType } from "antd";
-import { SearchOutlined, ReloadOutlined } from "@ant-design/icons";
+import { SearchOutlined } from "@ant-design/icons";
 
 import { formatCurrency } from "@/utils/formatCurrency";
 import { formatOrderDate, getOrderStatus } from "@/utils/orderUtils";
 import { useAllOrder } from "@/hooks/orders/useAllOrder";
 import type { Order } from "@/features/orders/types/Order.types";
 import { useConfirmOrder } from "../../../../hooks/orders/useConfirmOrder";
+import { Link } from "react-router";
 
 const AdminOrders = () => {
   const { data, isLoading, isError, refetch } = useAllOrder();
@@ -18,7 +19,6 @@ const AdminOrders = () => {
     undefined,
   );
 
-  // Filter orders based on search text and selected status.
   const filteredOrders = useMemo(() => {
     const searchTerm = search.trim().toLowerCase();
 
@@ -100,53 +100,40 @@ const AdminOrders = () => {
     {
       title: "Actions",
       key: "actions",
-      render: (_, order) => {
-        if (order.status !== 0) {
-          return <span className="text-slate-400">—</span>;
-        }
+      render: (_, order) => (
+        <div className="flex items-center gap-2">
+          <Link to={`/admin/orders/${encodeURIComponent(order.id)}`}>
+            <Button size="small">View Details</Button>
+          </Link>
 
-        return (
-          <Popconfirm
-            title="Confirm this order?"
-            description="This will update inventory and change the order status."
-            okText="Confirm"
-            cancelText="Cancel"
-            onConfirm={() => confirmOrderMutation.mutate(order.id)}
-          >
-            <Button
-              type="primary"
-              size="small"
-              loading={
-                confirmOrderMutation.isPending &&
-                confirmOrderMutation.variables === order.id
-              }
-              disabled={confirmOrderMutation.isPending}
+          {order.status === 0 && (
+            <Popconfirm
+              title="Confirm this order?"
+              description="This will update inventory and change the order status."
+              okText="Confirm"
+              cancelText="Cancel"
+              onConfirm={() => confirmOrderMutation.mutate(order.id)}
             >
-              Confirm
-            </Button>
-          </Popconfirm>
-        );
-      },
+              <Button
+                type="primary"
+                size="small"
+                loading={
+                  confirmOrderMutation.isPending &&
+                  confirmOrderMutation.variables === order.id
+                }
+                disabled={confirmOrderMutation.isPending}
+              >
+                Confirm
+              </Button>
+            </Popconfirm>
+          )}
+        </div>
+      ),
     },
   ];
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">
-            Order Management
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            View and manage customer orders.
-          </p>
-        </div>
-
-        <Button icon={<ReloadOutlined />} onClick={() => refetch()}>
-          Refresh
-        </Button>
-      </div>
-
       {isError && (
         <Alert
           type="error"
@@ -196,7 +183,7 @@ const AdminOrders = () => {
               columns={columns}
               dataSource={filteredOrders}
               loading={isLoading}
-              scroll={{ x: 800 }}
+              scroll={{ x: true, y: "calc(100vh - 280px)" }}
               pagination={{
                 pageSize: 10,
                 showSizeChanger: true,

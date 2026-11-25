@@ -69,26 +69,7 @@ function mapUser(response: UserProfileResponse): User {
   };
 }
 
-// function readSession(): AuthSession | null {
-//   try {
-//     const savedSession = sessionStorage.getItem(SESSION_KEY);
-//     if (!savedSession) return null;
-//     const session = JSON.parse(savedSession) as AuthSession;
 
-//     if (
-//       !session.user ||
-//       !session.accessToken ||
-//       typeof session.accessToken !== "string"
-//     ) {
-//       sessionStorage.removeItem(SESSION_KEY);
-//       return null;
-//     }
-//     return session;
-//   } catch {
-//     sessionStorage.removeItem(SESSION_KEY);
-//     return null;
-//   }
-// }
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);

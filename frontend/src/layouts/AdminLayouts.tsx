@@ -14,13 +14,13 @@ const AdminLayout = () => {
         collapsed
           ? "lg:grid-cols-[72px_minmax(0,1fr)]"
           : "lg:grid-cols-[240px_minmax(0,1fr)]"
-      }`}
+      } admin-layout`}
     >
       <aside className="hidden min-h-0 overflow-hidden border-r border-[#E5ECF8] bg-white lg:block">
         <AdminSideBar collapsed={collapsed} />
       </aside>
 
-      <div className="grid min-h-0 min-w-0 grid-rows-[64px_minmax(0,1fr)] overflow-hidden">
+      <div className="grid min-h-0 min-w-0 grid-rows-[64px_minmax(0,1fr)] scrollbar-none overflow-hidden">
         <AdminNavbar
           collapsed={collapsed}
           onToggleCollapse={() => setCollapsed((prev) => !prev)}
@@ -31,10 +31,6 @@ const AdminLayout = () => {
           <main className="mx-auto w-full max-w-[1600px] min-w-0 flex-1 p-2">
             <Outlet />
           </main>
-
-          <footer className="border-t border-[#E5ECF8] bg-white px-4 py-3.5 text-center text-xs text-slate-400">
-            Kinetic Admin Panel © {new Date().getFullYear()}
-          </footer>
         </div>
       </div>
 
