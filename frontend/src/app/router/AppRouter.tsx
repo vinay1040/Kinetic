@@ -19,6 +19,7 @@ import { BrowserRouter, Route, Routes } from "react-router";
 import Home from "@/pages/Home";
 import Store from "@/pages/Store";
 import AdminOrderDetail from "@/features/admin/Orders/components/AdminOrderDetail";
+import { GuestRoute } from "./GuestRoute";
 
 export const AppRouter = () => {
   return (
@@ -30,13 +31,13 @@ export const AppRouter = () => {
           <Route path="/store" element={<Store />} />
           <Route path="/product/:id" element={<ProductDetail />} />
         </Route>
-
         {/* Authentication routes */}
-        <Route element={<AuthLayout />}>
-          <Route path="/login" element={<LoginForm />} />
-          <Route path="/signUp" element={<SignupForm />} />
+        <Route element={<GuestRoute />}>
+          <Route element={<AuthLayout />}>
+            <Route path="/login" element={<LoginForm />} />
+            <Route path="/signUp" element={<SignupForm />} />
+          </Route>
         </Route>
-
         {/* Authenticated customer routes */}
         <Route element={<ProtectedRoute />}>
           <Route element={<MainLayout />}>
