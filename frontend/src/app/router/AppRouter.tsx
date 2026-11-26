@@ -12,14 +12,14 @@ import ProductDetail from "@/features/products/components/ProductDetail";
 import AccountLayout from "@/layouts/accountLayout";
 import AdminLayout from "@/layouts/AdminLayouts";
 import AuthLayout from "@/layouts/AuthLayouts";
-import MainLayout from "@/layouts/MainLayout";
 import Checkout from "@/pages/Checkout";
 import Wishlist from "@/pages/WishList";
 import { BrowserRouter, Route, Routes } from "react-router";
-import Home from "@/pages/Home";
 import Store from "@/pages/Store";
 import AdminOrderDetail from "@/features/admin/Orders/components/AdminOrderDetail";
 import { GuestRoute } from "./GuestRoute";
+import { RootRoute } from "./RootRoute";
+import { MainLayout } from "@/layouts/MainLayout";
 
 export const AppRouter = () => {
   return (
@@ -27,7 +27,7 @@ export const AppRouter = () => {
       <Routes>
         {/* Public routes */}
         <Route element={<MainLayout />}>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<RootRoute/>} />
           <Route path="/store" element={<Store />} />
           <Route path="/product/:id" element={<ProductDetail />} />
         </Route>

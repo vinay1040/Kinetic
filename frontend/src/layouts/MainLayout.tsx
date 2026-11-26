@@ -1,19 +1,19 @@
-import { Outlet } from "react-router";
-import NavBar from "@/components/shared/NavBar";
 import Footer from "@/components/shared/Footer";
-import MobileBottomNav from "@/components/shared/MobileBottomNav";
+import MobileBottomNav from "@/components/shared/Nav/MobileBottomNav";
+import { NavBar } from "@/components/shared/Nav/NavBar";
+import { Outlet } from "react-router";
 
-const MainLayout = () => {
+export const MainLayout = () => {
   return (
-    <div>
-        <NavBar/>
-        <main>
-            <Outlet/>
-        </main>
-        <Footer/>
-        <MobileBottomNav/>
-    </div>
-  )
-}
+    <div className="flex min-h-dvh flex-col">
+      <NavBar />
 
-export default MainLayout;
+      <main className="min-w-0 flex-1 pb-16 md:pb-0">
+        <Outlet />
+      </main>
+
+      <Footer />
+      <MobileBottomNav />
+    </div>
+  );
+};

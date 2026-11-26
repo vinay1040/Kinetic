@@ -375,7 +375,52 @@ public class OrderService
                 await session.AbortTransactionAsync();
         }
     }
+    public async Task<OrderResponse?> UpdateAdminOrderStatusAsync(
+        string orderId,
+        OrderStatus newStatus)
+    {
+        if (!ObjectId.TryParse(orderId, out var orderObjectId))
+            return null;
+        var order = await _context.Order
+            .Find(o => o.Id == orderObjectId)
+            .FirstOrDefaultAsync();
+        if (order is null)
+            return null;
+        var isValidTransition =
+            (order.Status == OrderStatus.Confirmed &&
+             newStatus == OrderStatus.Processing) ||
+            (order.Status == OrderStatus.Processing &&
+             newStatus == OrderStatus.Shipped) ||
+            (order.Status == OrderStatus.Shipped &&
+             newStatus == OrderStatus.Delivered);
 
+        if (!isValidTransition)
+            return null;
+
+        var filter = Builders<Order>.Filter.And(
+            Builders<Order>.Filter.Eq(o => o.Id, orderObjectId),
+            Builders<Order>.Filter.Eq(o => o.Status, order.Status)
+        );
+
+        var update = Builders<Order>.Update
+            .Set(o => o.Status, newStatus)
+            .Set(o => o.UpdatedAt, DateTime.UtcNow);
+
+        var options = new FindOneAndUpdateOptions<Order>
+        {
+            ReturnDocument = ReturnDocument.After
+        };
+
+        var updatedOrder = await _context.Order.FindOneAndUpdateAsync(
+            filter,
+            update,
+            options
+        );
+
+        return updatedOrder is null
+            ? null
+            : MapToResponse(updatedOrder);
+    }
     public async Task<OrderResponse?> CancelOrderAsync(
         string orderId,
         string? requestingUserId = null)
