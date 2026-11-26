@@ -1,4 +1,4 @@
-import { getOrderData } from "@/features/orders/services/Order";
+import { getOrderData } from "@/Services/Order";
 import { useQuery } from "@tanstack/react-query";
 
 export const useMyOrder = () => {

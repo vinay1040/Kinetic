@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { message } from "antd";
 import type { ProductCreateRequest } from "../../../products/types/product.types";
 import { productKeys } from "../../../products/product.keys";
-import { createProduct } from "../../../products/services/productApi";
+import { createProduct } from "../../../../Services/productApi";
 
 const useCreateProduct = () => {
   const queryClient = useQueryClient();

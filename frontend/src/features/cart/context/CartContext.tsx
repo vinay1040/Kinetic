@@ -8,7 +8,7 @@ import { useRemoveCartItem } from "@/features/cart/hooks/useRemoveCartItem";
 import { useUpdateCartItem } from "@/features/cart/hooks/useUpdateCartItem";
 import { useClearCart } from "@/features/cart/hooks/useClearCart";
 import type { Product } from "@/features/products/types/product.types";
-import { getProductById } from "@/features/products/services/productApi";
+import { getProductById } from "@/Services/productApi";
 
 export type CartItem = {
   product: Product;

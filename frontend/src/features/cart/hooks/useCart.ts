@@ -1,5 +1,5 @@
 import { useAuth } from "@/features/auth/context/AuthContext";
-import { getCart } from "@/features/cart/services/CartService";
+import { getCart } from "@/Services/CartService";
 import { useQuery } from "@tanstack/react-query";
 
 export const useCart = () => {

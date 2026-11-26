@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { productKeys } from "../../features/products/product.keys";
 import type { ProductFilters } from "../../features/products/types/product.types";
-import { getData } from "../../features/products/services/productApi";
+import { getData } from "../../Services/productApi";
 
 export const useProducts = (
   page: number,

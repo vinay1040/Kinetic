@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/api/apiClient";
 import type {
+  CategoryReponse,
   ProductCreateRequest,
   ProductDeleteResponse,
   ProductFilters,
@@ -7,10 +8,10 @@ import type {
   ProductResponse,
   ProductUpdateRequest,
   ProductUpdateResponse,
-} from "../types/product.types";
+} from "../features/products/types/product.types";
 
-export const getCategory = async (): Promise<string[]> => {
-  const response = await apiClient.get<string[]>("/Product/categories");
+export const getCategory = async (): Promise<CategoryReponse[]> => {
+  const response = await apiClient.get<CategoryReponse[]>("/Product/categories");
   return response.data;
 };
 
@@ -82,7 +83,10 @@ export const updateProduct = async (
 export const createProduct = async (
   productData: ProductCreateRequest,
 ): Promise<ProductResponse> => {
-  const response = await apiClient.post<ProductResponse>("/Product/", productData);
+  const response = await apiClient.post<ProductResponse>(
+    "/Product/",
+    productData,
+  );
   return response.data;
 };
 export const deleteProduct = async (

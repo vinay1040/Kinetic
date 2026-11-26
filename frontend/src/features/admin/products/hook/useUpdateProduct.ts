@@ -5,7 +5,7 @@ import type {
   ProductUpdateRequest,
   ProductUpdateResponse,
 } from "../../../products/types/product.types";
-import { updateProduct } from "../../../products/services/productApi";
+import { updateProduct } from "../../../../Services/productApi";
 import { productKeys } from "../../../products/product.keys";
 
 type UpdateProductVariables = {

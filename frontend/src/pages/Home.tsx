@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { Input } from "antd";
 import type { Product } from "@/features/products/types/product.types";
 import ProductCard from "@/features/products/components/ProductCard";
-import { getData } from "@/features/products/services/productApi";
+import { getData } from "@/Services/productApi";
 const categories = [
   {
     title: "Performance Computing",

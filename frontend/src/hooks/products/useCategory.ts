@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { productKeys } from "../../features/products/product.keys";
-import { getCategory } from "../../features/products/services/productApi";
+import { getCategory } from "../../Services/productApi";
 
 export const useCategory = () => {
   return useQuery({

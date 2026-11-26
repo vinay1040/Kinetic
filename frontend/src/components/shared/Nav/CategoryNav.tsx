@@ -7,7 +7,9 @@ const CategoryNav = () => {
   const { filters, setFilters } = useProduct();
   const navigate = useNavigate();
   const selectedCategories = filters.categories ?? [];
-
+  const subCategory = categories.flatMap((category) =>
+    Array.isArray(category.SubCategory) ? category.SubCategory : [],
+  );
   const handleCategoryClick = (category?: string) => {
     setFilters((current) => ({
       ...current,
@@ -36,7 +38,7 @@ const CategoryNav = () => {
           All Products
         </button>
 
-        {categories.map((category) => {
+        {subCategory.map((category) => {
           const isActive = selectedCategories.includes(category);
 
           return (

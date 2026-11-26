@@ -1,4 +1,4 @@
-import { getOrderById } from "@/features/orders/services/Order";
+import { getOrderById } from "@/Services/Order";
 import { useQuery } from "@tanstack/react-query";
 
 export const useOrderById = (id: string) => {

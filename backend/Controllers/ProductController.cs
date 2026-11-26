@@ -33,8 +33,7 @@ public class ProductController : ControllerBase
         var categories = await _productService.GetCategories();
         return Ok(categories);
     }
-
-    // GET: api/product/{id}
+    
     [HttpGet("{id}")]
     public async Task<IActionResult> GetProductById(string id)
     {

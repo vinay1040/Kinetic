@@ -4,7 +4,7 @@ import type {
   CreateOrderRequest,
   CreateOrderResponse,
   Order,
-} from "../types/Order.types";
+} from "../features/orders/types/Order.types";
 
 export const createOrder = async (
   request: CreateOrderRequest,
@@ -30,5 +30,3 @@ export const cancelOrder = async (id: string): Promise<CancelOrderResponse> => {
   );
   return response.data;
 };
-
-

@@ -1,4 +1,4 @@
-import { clearCart } from "@/features/cart/services/CartService";
+import { clearCart } from "@/Services/CartService";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const useClearCart = () => {

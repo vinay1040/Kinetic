@@ -1,7 +1,7 @@
 import {
   updateCartItem,
   type UpdateCartQuantityRequest,
-} from "@/features/cart/services/CartService";
+} from "@/Services/CartService";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 type UpdateCartVariables = {

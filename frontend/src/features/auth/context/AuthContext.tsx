@@ -12,7 +12,7 @@ import {
   logoutUser,
   updateUserProfile,
   refreshSession,
-} from "../services/authApi";
+} from "../../../Services/authApi";
 
 import type { ApiUserRole, UserProfileResponse } from "../types/auth.types";
 
@@ -68,8 +68,6 @@ function mapUser(response: UserProfileResponse): User {
     role: normalizeRole(response.role),
   };
 }
-
-
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);

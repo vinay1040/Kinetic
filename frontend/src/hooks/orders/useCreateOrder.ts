@@ -1,4 +1,4 @@
-import { createOrder } from "@/features/orders/services/Order";
+import { createOrder } from "@/Services/Order";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { CreateOrderRequest } from "../../features/orders/types/Order.types";
 

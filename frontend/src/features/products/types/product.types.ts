@@ -67,3 +67,7 @@ export interface ProductFilters {
   sortBy?: ProductSortBy;
   sortOrder?: SortOrder;
 }
+export interface CategoryReponse{
+  MainCategory: string;
+  SubCategory: string[];
+}

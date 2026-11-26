@@ -1,7 +1,4 @@
-import {
-  addCartItem,
-  type CartItemRequest,
-} from "@/features/cart/services/CartService";
+import { addCartItem, type CartItemRequest } from "@/Services/CartService";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const useAddCartItem = () => {

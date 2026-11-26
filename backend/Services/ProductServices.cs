@@ -184,20 +184,27 @@ public class ProductServices
         };
     }
 
-    public async Task<List<string>> GetCategories()
+    public async Task<List<CategoryResponce>> GetCategories()
     {
-        var categories = await _context.Products
-            .Distinct<string>(
-                new ExpressionFieldDefinition<Product, string>(product => product.Category),
-                Builders<Product>.Filter.Empty)
-            .ToListAsync();
-
+        var categories = await _context.Products.Find(_ => true).Project(product => new
+        {
+            product.MainCategory,
+            product.SubCategory
+        }).ToListAsync();
         return categories
-            .Where(category => !string.IsNullOrWhiteSpace(category))
-            .OrderBy(category => category)
-            .ToList();
+            .Where(p => !string.IsNullOrWhiteSpace(p.MainCategory) &&
+            !string.IsNullOrWhiteSpace(p.SubCategory))
+            .GroupBy(p => p.MainCategory)
+            .Select(group => new CategoryResponce
+            {
+                MainCategory = group.Key,
+                SubCategory = group
+                .Select(x => x.SubCategory)
+                .Distinct()
+                .OrderBy(x => x)
+                .ToList()
+            }).OrderBy(x => x.MainCategory).ToList();
     }
-
     public async Task<ProductResponse> CreateProduct(Product product)
     {
         await _context.Products.InsertOneAsync(product);

@@ -1,4 +1,4 @@
-import { deleteAddress } from "@/features/addresses/services/AddressService";
+import { deleteAddress } from "@/Services/AddressService";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const useAddressDelete = () => {

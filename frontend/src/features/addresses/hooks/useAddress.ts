@@ -1,5 +1,5 @@
 import { useAuth } from "@/features/auth/context/AuthContext";
-import { getAddresses } from "@/features/addresses/services/AddressService";
+import { getAddresses } from "@/Services/AddressService";
 import { useQuery } from "@tanstack/react-query";
 
 export const useAddress = () => {

@@ -1,4 +1,4 @@
-import { removeCartItem } from "@/features/cart/services/CartService";
+import { removeCartItem } from "@/Services/CartService";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const useRemoveCartItem = () => {

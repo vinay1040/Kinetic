@@ -25,7 +25,9 @@ const Store = () => {
     refetch,
   } = useStoreHook();
   const { data: categories = [] } = useCategory();
-
+  const subCategory = categories.flatMap((category) =>
+    Array.isArray(category.SubCategory) ? category.SubCategory : [],
+  );
   const selectCategories = filters.categories ?? [];
   const minPrice = filters.minPrice ?? 0;
   const maxPrice = filters.maxPrice ?? Infinity;
@@ -233,7 +235,7 @@ const Store = () => {
               <div className="min-h-0 flex-1 px-4">
                 <SideBar
                   alwaysOpen
-                  categories={categories}
+                  categories={subCategory}
                   selectCategories={selectCategories}
                   setSelectCategories={(selected) =>
                     setFilters((current) => ({

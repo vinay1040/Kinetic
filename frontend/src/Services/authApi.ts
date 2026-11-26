@@ -1,14 +1,11 @@
-import {
-  apiClient,
-  refreshAccessToken,
-} from "@/lib/api/apiClient";
+import { apiClient, refreshAccessToken } from "@/lib/api/apiClient";
 
 import type {
   ChangePasswordRequest,
   LoginResponse,
   UpdateProfileRequest,
   UserProfileResponse,
-} from "../types/auth.types";
+} from "../features/auth/types/auth.types";
 
 export const registerUser = async (
   name: string,
@@ -49,8 +46,7 @@ export const updateUserProfile = async (
 };
 
 export const getCurrentUser = async (): Promise<UserProfileResponse> => {
-  const response =
-    await apiClient.get<UserProfileResponse>("/auth/me");
+  const response = await apiClient.get<UserProfileResponse>("/auth/me");
 
   return response.data;
 };

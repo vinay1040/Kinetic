@@ -77,12 +77,6 @@ export const SideBar = ({
     selectCategories.length +
     (minPrice > 0 || maxPrice !== Infinity ? 1 : 0) +
     (minRating > 0 ? 1 : 0);
-
-  // const brands = ["Logitech", "Razer", "Keychron", "Dell"];
-  // const filteredBrands = brands.filter((brand) =>
-  //   brand.toLowerCase().includes(brandSearch.toLowerCase()),
-  // );
-
   return (
     <aside className="my-2 h-fit w-full shrink-0 self-start rounded-xl border border-slate-200 bg-white md:sticky md:top-24 md:w-full md:self-start md:rounded-none md:border-0 md:px-0">
       {!alwaysOpen && (
