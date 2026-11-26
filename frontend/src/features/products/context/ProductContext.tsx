@@ -22,7 +22,7 @@ export const ProductProvider = ({
   children: ReactNode;
 }) => {
   const [filters, setFilters] = useState<ProductFilters>({});
-
+   
   return (
     <ProductContext.Provider value={{ filters, setFilters }}>
       {children}

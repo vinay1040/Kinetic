@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { ChevronDown, X } from "lucide-react";
+import type { Category } from "@/features/products/types/product.types";
 
 interface FilterCategories {
-  categories: string[];
+  categories: Category[];
   selectCategories: string[];
   setSelectCategories: (categories: string[]) => void;
   minPrice: number;
@@ -54,10 +55,8 @@ export const SideBar = ({
   const [openSections, setOpenSections] = useState({
     categories: true,
     price: true,
-    brand: true,
     rating: true,
   });
-  // const [brandSearch, setBrandSearch] = useState("");
 
   const toggleSection = (section: keyof typeof openSections) => {
     setOpenSections((current) => ({
@@ -94,7 +93,6 @@ export const SideBar = ({
       <div
         className={`${mobileOpen || alwaysOpen ? "block" : "hidden"} md:block`}
       >
-        {/* Active filters */}
         <section className="border-b border-slate-200 pb-4">
           <div className="flex items-center justify-between gap-2 py-3">
             <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-900">
@@ -160,7 +158,6 @@ export const SideBar = ({
         </section>
 
         {/* Categories */}
-        {/* Categories */}
         <section className="border-b border-slate-200 pb-2">
           <SectionTitle
             title="Categories"
@@ -169,37 +166,49 @@ export const SideBar = ({
           />
 
           {openSections.categories && (
-            <div className="space-y-2 pb-3">
+            <div className="space-y-3 pb-3">
               {categories.map((category) => (
-                <label
-                  key={category}
-                  className="flex cursor-pointer items-center gap-2 text-xs text-slate-600 hover:text-slate-950"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectCategories.includes(category)}
-                    onChange={(event) => {
-                      if (event.target.checked) {
-                        setSelectCategories([...selectCategories, category]);
-                      } else {
-                        setSelectCategories(
-                          selectCategories.filter((item) => item !== category),
-                        );
-                      }
-                    }}
-                    className="size-3.5 accent-blue-600"
-                  />
+                <div key={category.mainCategory}>
+                  <h3 className="mb-2 text-xs font-semibold text-slate-800">
+                    {category.mainCategory}
+                  </h3>
 
-                  <span className="capitalize">
-                    {category.replaceAll("-", " ")}
-                  </span>
-                </label>
+                  <div className="ml-2 space-y-2">
+                    {category.subCategory.map((subCategory) => (
+                      <label
+                        key={subCategory}
+                        className="flex cursor-pointer items-center gap-2 text-xs text-slate-600 hover:text-slate-950"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectCategories.includes(subCategory)}
+                          onChange={(event) => {
+                            if (event.target.checked) {
+                              setSelectCategories([
+                                ...selectCategories,
+                                subCategory,
+                              ]);
+                            } else {
+                              setSelectCategories(
+                                selectCategories.filter(
+                                  (item) => item !== subCategory,
+                                ),
+                              );
+                            }
+                          }}
+                          className="size-3.5 accent-blue-600"
+                        />
+
+                        <span>{subCategory}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           )}
         </section>
 
-        {/* Price range */}
         <section className="border-b border-slate-200 pb-3">
           <SectionTitle
             title="Price Range"
@@ -248,49 +257,6 @@ export const SideBar = ({
             </div>
           )}
         </section>
-
-        {/* Brand: UI prepared for backend integration */}
-        {/* <section className="border-b border-slate-200 pb-2">
-          <SectionTitle
-            title="Brand"
-            open={openSections.brand}
-            onClick={() => toggleSection("brand")}
-          />
-
-          {openSections.brand && (
-            <div className="pb-3">
-              <div className="relative mb-3">
-                <Search
-                  size={13}
-                  className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"
-                />
-                <input
-                  value={brandSearch}
-                  onChange={(event) => setBrandSearch(event.target.value)}
-                  placeholder="Search brands"
-                  className="w-full rounded bg-slate-50 py-1.5 pl-8 pr-2 text-xs outline-none placeholder:text-slate-400 focus:ring-1 focus:ring-blue-200"
-                />
-              </div>
-
-              <div className="space-y-2">
-                {filteredBrands.map((brand) => (
-                  <div
-                    key={brand}
-                    className="flex items-center gap-2 text-xs text-slate-500"
-                  >
-                    <span className="size-3.5 rounded-sm border border-slate-300" />
-                    <span>{brand}</span>
-                  </div>
-                ))}
-                {filteredBrands.length === 0 && (
-                  <p className="text-xs text-slate-400">No brands found</p>
-                )}
-              </div>
-            </div>
-          )}
-        </section> */}
-
-        {/* Rating */}
         <section className="pb-3">
           <SectionTitle
             title="Rating"

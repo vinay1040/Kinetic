@@ -23,53 +23,48 @@ import { MainLayout } from "@/layouts/MainLayout";
 
 export const AppRouter = () => {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Public routes */}
+    <Routes>
+      {/* Public routes */}
+      <Route element={<MainLayout />}>
+        <Route path="/" element={<RootRoute />} />
+        <Route path="/store" element={<Store />} />
+        <Route path="/product/:id" element={<ProductDetail />} />
+      </Route>
+      {/* Authentication routes */}
+      <Route element={<GuestRoute />}>
+        <Route element={<AuthLayout />}>
+          <Route path="/login" element={<LoginForm />} />
+          <Route path="/signUp" element={<SignupForm />} />
+        </Route>
+      </Route>
+      {/* Authenticated customer routes */}
+      <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
-          <Route path="/" element={<RootRoute/>} />
-          <Route path="/store" element={<Store />} />
-          <Route path="/product/:id" element={<ProductDetail />} />
-        </Route>
-        {/* Authentication routes */}
-        <Route element={<GuestRoute />}>
-          <Route element={<AuthLayout />}>
-            <Route path="/login" element={<LoginForm />} />
-            <Route path="/signUp" element={<SignupForm />} />
+          <Route element={<AccountLayout />}>
+            <Route path="/profile" element={<AccountOverview />} />
+            <Route path="/profile/orders" element={<Orders />} />
+            <Route path="/profile/orders/:orderId" element={<OrderDetail />} />
+            <Route path="/profile/settings" element={<SettingPage />} />
           </Route>
+          <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
         </Route>
-        {/* Authenticated customer routes */}
-        <Route element={<ProtectedRoute />}>
-          <Route element={<MainLayout />}>
-            <Route element={<AccountLayout />}>
-              <Route path="/profile" element={<AccountOverview />} />
-              <Route path="/profile/orders" element={<Orders />} />
-              <Route
-                path="/profile/orders/:orderId"
-                element={<OrderDetail />}
-              />
-              <Route path="/profile/settings" element={<SettingPage />} />
-            </Route>
-            <Route path="/wishlist" element={<Wishlist />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/checkout" element={<Checkout />} />
-          </Route>
-        </Route>
+      </Route>
 
-        {/* Admin routes */}
-        <Route element={<ProtectedRoute allowedRole="admin" />}>
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<AdminDashboard />} />
-            <Route path="orders" element={<AdminOrders />} />
-            <Route path="orders/:orderId" element={<AdminOrderDetail />} />
-            <Route path="products" element={<div>Products</div>} />
-            <Route path="inventry" element={<div>inventory</div>} />
-            <Route path="analytics" element={<div>analytics</div>} />
-            <Route path="users" element={<div>Users</div>} />
-            <Route path="settings" element={<div>Settings</div>} />
-          </Route>
+      {/* Admin routes */}
+      <Route element={<ProtectedRoute allowedRole="admin" />}>
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="orders" element={<AdminOrders />} />
+          <Route path="orders/:orderId" element={<AdminOrderDetail />} />
+          <Route path="products" element={<div>Products</div>} />
+          <Route path="inventry" element={<div>inventory</div>} />
+          <Route path="analytics" element={<div>analytics</div>} />
+          <Route path="users" element={<div>Users</div>} />
+          <Route path="settings" element={<div>Settings</div>} />
         </Route>
-      </Routes>
-    </BrowserRouter>
+      </Route>
+    </Routes>
   );
 };

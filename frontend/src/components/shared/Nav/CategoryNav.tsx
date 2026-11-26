@@ -8,7 +8,7 @@ const CategoryNav = () => {
   const navigate = useNavigate();
   const selectedCategories = filters.categories ?? [];
   const subCategory = categories.flatMap((category) =>
-    Array.isArray(category.SubCategory) ? category.SubCategory : [],
+    Array.isArray(category.subCategory) ? category.subCategory : [],
   );
   const handleCategoryClick = (category?: string) => {
     setFilters((current) => ({

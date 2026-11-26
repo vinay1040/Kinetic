@@ -1,11 +1,9 @@
 
 import { useProduct } from "@/features/products/context/ProductContext";
 import { Search } from "lucide-react";
-import { useNavigate } from "react-router";
 
 const SearchInput = () => {
   const { filters, setFilters } = useProduct();
-  const navigate = useNavigate();
 
   const search = filters.search ?? "";
 
@@ -16,8 +14,11 @@ const SearchInput = () => {
     }));
   };
 
-  const handleSearch = () => {
-    navigate("/store");
+  const clearSearch = () => {
+    setFilters((current) => ({
+      ...current,
+      search: "",
+    }));
   };
 
   return (
@@ -27,18 +28,12 @@ const SearchInput = () => {
         className="shrink-0 text-muted-foreground"
         aria-hidden="true"
       />
-
       <input
         type="search"
         placeholder="Search products..."
         aria-label="Search products"
         value={search}
         onChange={(event) => updateSearch(event.target.value)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter") {
-            handleSearch();
-          }
-        }}
         className="h-full min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
       />
     </label>

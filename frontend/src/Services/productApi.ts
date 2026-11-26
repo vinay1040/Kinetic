@@ -1,6 +1,6 @@
 import { apiClient } from "@/lib/api/apiClient";
 import type {
-  CategoryReponse,
+  Category,
   ProductCreateRequest,
   ProductDeleteResponse,
   ProductFilters,
@@ -10,8 +10,8 @@ import type {
   ProductUpdateResponse,
 } from "../features/products/types/product.types";
 
-export const getCategory = async (): Promise<CategoryReponse[]> => {
-  const response = await apiClient.get<CategoryReponse[]>("/Product/categories");
+export const getCategory = async (): Promise<Category[]> => {
+  const response = await apiClient.get<Category[]>("/Product/categories");
   return response.data;
 };
 
