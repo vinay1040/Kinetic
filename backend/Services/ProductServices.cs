@@ -44,7 +44,6 @@ public class ProductServices
 
         var filter = Builders<Product>.Filter.Empty;
 
-        // Multi-category filtering: match any selected category.
         var categories = (request.Categories ?? new List<string>())
             .Where(category => !string.IsNullOrWhiteSpace(category))
             .Select(category => category.Trim())
@@ -60,7 +59,7 @@ public class ProductServices
         {
             var categoryFilters = categories.Select(category =>
                 Builders<Product>.Filter.Regex(
-                    product => product.Category,
+                    product => product.SubCategory,
                     new BsonRegularExpression(
                         $"^{Regex.Escape(category)}$",
                         "i")));
