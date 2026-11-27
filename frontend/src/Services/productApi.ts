@@ -32,7 +32,9 @@ export const getData = async (
   (filters.categories ?? []).forEach((category) => {
     params.append("categories", category);
   });
-
+  (filters.mainCategories ?? []).forEach((category) => {
+    params.append("mainCategories", category);
+  });
   if (filters.minPrice !== undefined) {
     params.set("minPrice", String(filters.minPrice));
   }

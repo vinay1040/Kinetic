@@ -67,7 +67,23 @@ public class ProductServices
 
             filter &= Builders<Product>.Filter.Or(categoryFilters);
         }
+        var mainCategories = (request.MainCategories ?? new List<string>())
+            .Where(category => !string.IsNullOrWhiteSpace(category))
+            .Select(category => category.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
 
+        if (mainCategories.Count > 0)
+        {
+            var mainCategoryFilters = mainCategories.Select(category =>
+                Builders<Product>.Filter.Regex(
+                    product => product.MainCategory,
+                    new BsonRegularExpression(
+                        $"^{Regex.Escape(category)}$",
+                        "i")));
+
+            filter &= Builders<Product>.Filter.Or(mainCategoryFilters);
+        }
         // Search product title and category hierarchy.
         var search = request.Search?.Trim();
 

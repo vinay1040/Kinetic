@@ -7,14 +7,12 @@ const CategoryNav = () => {
   const { filters, setFilters } = useProduct();
   const navigate = useNavigate();
   const selectedCategories = filters.categories ?? [];
-  const subCategory = categories.flatMap((category) =>
-    Array.isArray(category.subCategory) ? category.subCategory : [],
-  );
+  const subCategories = categories.flatMap((c) => c.subCategory);
   const handleCategoryClick = (category?: string) => {
-    setFilters((current) => ({
-      ...current,
+    setFilters({
+      ...filters,
       categories: category ? [category] : [],
-    }));
+    });
     navigate("/store");
   };
 
@@ -38,7 +36,7 @@ const CategoryNav = () => {
           All Products
         </button>
 
-        {subCategory.map((category) => {
+        {subCategories.map((category) => {
           const isActive = selectedCategories.includes(category);
 
           return (

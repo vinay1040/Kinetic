@@ -14,7 +14,7 @@ public class ProductPaginationRequest
     public string? Search { get; set; }
 
     public List<string>? Categories { get; set; }
-
+    public List<string>? MainCategories { get; set; }
     [Range(typeof(decimal), "0", "999999999")]
     public decimal? MinPrice { get; set; }
 

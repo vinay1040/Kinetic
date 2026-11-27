@@ -1,23 +1,14 @@
 import ProductCard from "@/features/products/components/ProductCard";
-import type { Product } from "@/features/products/types/product.types";
-import { getData } from "@/Services/productApi";
+import { useProducts } from "@/hooks/products/useProducts";
 import { ArrowRight } from "lucide-react";
-import { useEffect, useState } from "react";
 
 export const TrendingSection = () => {
-  const [randomProducts, setRandomProducts] = useState<Product[] | null>();
-  useEffect(() => {
-    const loadData = async () => {
-      const data = await getData(1, 12);
-      if (data) {
-        const random = [...data.products]
-          .sort(() => Math.random() - 0.5)
-          .slice(0, 8);
-        setRandomProducts(random);
-      }
-    };
-    loadData();
-  }, []);
+  const { data, isLoading, isError } = useProducts(1, 8, {});
+
+  if (isLoading || isError || !data?.products.length) {
+    return null;
+  }
+
   return (
     <section className="mx-auto max-w-7xl px-5 pb-16 md:px-10">
       <div className="mb-6 flex items-end justify-between border-b border-gray-200 pb-4">
@@ -34,7 +25,7 @@ export const TrendingSection = () => {
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        {randomProducts?.map((product) => (
+        {data.products.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>

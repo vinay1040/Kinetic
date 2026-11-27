@@ -1,75 +1,81 @@
-import { ArrowRight } from "lucide-react";
-import unnamed from "@/assets/unnamed.jpg";
+import { ArrowUpRight } from "lucide-react";
+import { useCategory } from "@/hooks/products/useCategory";
+import { useProduct } from "@/features/products/context/ProductContext";
+
+import computing from "@/assets/unnamed.jpg";
 import headphones from "@/assets/headphones.png";
 import smartHome from "@/assets/smarthome.png";
 import smartwatch from "@/assets/watch.png";
-export const CategorySection = () => {
-  const categories = [
-    {
-      title: "Performance Computing",
-      description: "Workstations built for the most demanding tasks.",
-      image: unnamed,
-      className: "md:col-span-2",
-    },
-    {
-      title: "High-Fidelity Audio",
-      description: "Immersive soundscapes.",
-      image: headphones,
-      className: "",
-    },
-    {
-      title: "Smart Home",
-      description: "Intelligent living.",
-      image: smartHome,
-      className: "",
-    },
-    {
-      title: "Advanced Wearables",
-      description: "Precision on your wrist.",
-      image: smartwatch,
-      className: "md:col-span-2",
-    },
-  ];
-  return (
-    <section className="mx-auto max-w-7xl px-5 py-14 md:px-10">
-      <div className="mb-7">
-        <p className="mb-2 text-[9px] uppercase tracking-[0.25em] text-gray-500">
-          Collections
-        </p>
 
-        <h2 className="text-2xl font-medium tracking-tight">
-          Curated Categories
-        </h2>
+const categoryImages = [computing, headphones, smartHome, smartwatch];
+
+export const CategorySection = () => {
+  const { data: categories = [], isLoading } = useCategory();
+  const { setFilters } = useProduct();
+
+  const handleCategoryClick = (category: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      mainCategories: [category],
+      categories: []
+    }))
+  };
+
+  const categoryItems = categories.map((category) => ({
+    name: category.mainCategory,
+  }));
+  if (isLoading || categoryItems.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="mx-auto max-w-7xl px-5 py-12 md:px-10">
+      <div className="mb-6 flex items-end justify-between">
+        <div>
+          <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.2em] text-slate-500">
+            Explore our collection
+          </p>
+
+          <h2 className="text-2xl font-semibold tracking-tight text-slate-900">
+            Shop by Category
+          </h2>
+        </div>
+
+        <span className="text-sm text-slate-500">
+          {categoryItems.length} categories
+        </span>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-        {categories.map((category) => (
-          <div
-            key={category.title}
-            className={`group relative h-[290px] overflow-hidden rounded-lg ${category.className}`}
+      <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4">
+        {categoryItems.map((category, index) => (
+          <button
+            key={`${category.name}`}
+            type="button"
+            onClick={() => handleCategoryClick(category.name)}
+            className="group relative h-64 w-48 shrink-0 snap-start overflow-hidden rounded-2xl bg-slate-100 text-left sm:h-72 sm:w-56"
           >
             <img
-              src={category.image}
-              alt={category.title}
-              className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
+              src={categoryImages[index % categoryImages.length]}
+              alt={category.name}
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
 
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
 
-            <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between text-white">
+            <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-4 text-white">
               <div>
-                <h3 className="mb-1 text-sm font-medium">{category.title}</h3>
+                <h3 className="text-base font-semibold capitalize">
+                  {category.name.replaceAll("-", " ")}
+                </h3>
 
-                <p className="text-[10px] text-gray-200">
-                  {category.description}
-                </p>
+                <p className="mt-2 text-xs text-white/80">Explore collection</p>
               </div>
 
-              <button className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition group-hover:bg-white group-hover:text-black">
-                <ArrowRight size={14} />
-              </button>
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition group-hover:bg-white group-hover:text-slate-900">
+                <ArrowUpRight size={17} />
+              </span>
             </div>
-          </div>
+          </button>
         ))}
       </div>
     </section>

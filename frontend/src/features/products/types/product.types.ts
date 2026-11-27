@@ -61,6 +61,7 @@ export type SortOrder = "asc" | "desc";
 export interface ProductFilters {
   search?: string;
   categories?: string[];
+  mainCategories?: string[];
   minPrice?: number;
   maxPrice?: number;
   minRating?: number;
