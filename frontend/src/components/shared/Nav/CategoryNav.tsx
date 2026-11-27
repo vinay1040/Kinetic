@@ -1,11 +1,9 @@
 import { useProduct } from "@/features/products/context/ProductContext";
 import { useCategory } from "@/hooks/products/useCategory";
-import { useNavigate } from "react-router";
 
 const CategoryNav = () => {
   const { data: categories = [], isLoading } = useCategory();
   const { filters, setFilters } = useProduct();
-  const navigate = useNavigate();
   const selectedCategories = filters.categories ?? [];
   const subCategories = categories.flatMap((c) => c.subCategory);
   const handleCategoryClick = (category?: string) => {
@@ -13,7 +11,6 @@ const CategoryNav = () => {
       ...filters,
       categories: category ? [category] : [],
     });
-    navigate("/store");
   };
 
   if (isLoading) return null;

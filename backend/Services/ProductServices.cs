@@ -44,7 +44,7 @@ public class ProductServices
 
         var filter = Builders<Product>.Filter.Empty;
 
-        var categories = (request.Categories ?? new List<string>())
+        var categories = (request.subCategories ?? new List<string>())
             .Where(category => !string.IsNullOrWhiteSpace(category))
             .Select(category => category.Trim())
             .Where(category =>
